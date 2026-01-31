@@ -1,0 +1,78 @@
+{
+  "orchestrator": {
+    "version": "2.6.0",
+    "templateVersion": "1.4.0"
+  },
+  "project": {
+    "name": "Snakey",
+    "slug": "snakey",
+    "type": "web-app",
+    "primaryLanguage": "typescript",
+    "mobileApps": "none"
+  },
+  "created": {
+    "date": "2026-01-31",
+    "method": "initialization"
+  },
+  "ai": {
+    "trainingCutoff": "2025-05",
+    "knownVersionsBaseline": "2025-05"
+  },
+  "techValidation": {
+    "lastValidated": "2026-01-31",
+    "aiTrainingCutoffAtValidation": "2025-05",
+    "validatedVersions": {
+      "next": "15.1.x",
+      "react": "19.x",
+      "typescript": "5.7.x",
+      "prisma": "7.x",
+      "tailwindcss": "4.x",
+      "supabase": "2.90.x",
+      "serwist": "9.x",
+      "dexie": "4.x",
+      "recharts": "3.6.x",
+      "tremor": "3.18.x",
+      "zod": "4.x"
+    },
+    "confidenceLevels": {
+      "next": "Medium",
+      "react": "Medium",
+      "typescript": "High",
+      "prisma": "Medium",
+      "tailwindcss": "Low",
+      "supabase": "High",
+      "serwist": "Low",
+      "dexie": "High",
+      "recharts": "High",
+      "tremor": "Medium",
+      "zod": "High"
+    }
+  },
+  "versionControl": {
+    "provider": "github",
+    "repository": "snakey",
+    "clonedFrom": null
+  },
+  "services": {
+    "database": "supabase",
+    "hosting": "vercel",
+    "errorTracking": "sentry"
+  },
+  "logging": {
+    "library": "pino",
+    "errorTracking": "sentry",
+    "aggregation": "vercel"
+  },
+  "mcp": {
+    "servers": ["context7"],
+    "context7": {
+      "enabled": true,
+      "purpose": "Live documentation lookup"
+    }
+  },
+  "migration": {
+    "migratedFrom": null,
+    "originalPath": null,
+    "preMigrationBackup": null
+  }
+}
