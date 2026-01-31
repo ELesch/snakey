@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a7c59"/>
+      <stop offset="100%" style="stop-color:#2d5a3d"/>
+    </linearGradient>
+    <linearGradient id="snakeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6bc17a"/>
+      <stop offset="100%" style="stop-color:#4a9c5d"/>
+    </linearGradient>
+    <linearGradient id="bellyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#a8e6a3"/>
+      <stop offset="100%" style="stop-color:#7ed687"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#bgGrad)"/>
+
+  <!-- Snake body - coiled shape -->
+  <path d="M 350 180
+           Q 420 200, 400 280
+           Q 380 360, 300 380
+           Q 220 400, 160 350
+           Q 100 300, 120 220
+           Q 140 140, 220 120
+           Q 300 100, 350 180"
+        fill="url(#snakeGrad)"
+        stroke="#3d8b4f"
+        stroke-width="4"/>
+
+  <!-- Inner coil -->
+  <path d="M 300 200
+           Q 340 220, 320 280
+           Q 300 340, 240 340
+           Q 180 340, 170 280
+           Q 160 220, 200 190
+           Q 240 160, 300 200"
+        fill="url(#snakeGrad)"
+        stroke="#3d8b4f"
+        stroke-width="3"/>
+
+  <!-- Snake belly pattern -->
+  <path d="M 280 220
+           Q 300 240, 290 280
+           Q 280 320, 240 320
+           Q 200 320, 195 280
+           Q 190 240, 220 220
+           Q 250 200, 280 220"
+        fill="url(#bellyGrad)"/>
+
+  <!-- Snake head -->
+  <ellipse cx="350" cy="175" rx="55" ry="45" fill="url(#snakeGrad)" stroke="#3d8b4f" stroke-width="3"/>
+
+  <!-- Head belly -->
+  <ellipse cx="355" cy="185" rx="35" ry="25" fill="url(#bellyGrad)"/>
+
+  <!-- Eyes -->
+  <ellipse cx="330" cy="160" rx="14" ry="16" fill="white"/>
+  <ellipse cx="370" cy="160" rx="14" ry="16" fill="white"/>
+  <ellipse cx="332" cy="162" rx="8" ry="10" fill="#2d3748"/>
+  <ellipse cx="372" cy="162" rx="8" ry="10" fill="#2d3748"/>
+  <circle cx="334" cy="158" r="3" fill="white"/>
+  <circle cx="374" cy="158" r="3" fill="white"/>
+
+  <!-- Smile -->
+  <path d="M 335 190 Q 350 205, 365 190" fill="none" stroke="#2d5a3d" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Forked tongue -->
+  <path d="M 400 180 L 430 175 L 445 165 M 430 175 L 445 185"
+        fill="none"
+        stroke="#e53e3e"
+        stroke-width="5"
+        stroke-linecap="round"/>
+
+  <!-- Scale details on body -->
+  <circle cx="200" cy="280" r="8" fill="#5aad6a" opacity="0.6"/>
+  <circle cx="240" cy="250" r="6" fill="#5aad6a" opacity="0.6"/>
+  <circle cx="280" cy="300" r="7" fill="#5aad6a" opacity="0.6"/>
+  <circle cx="320" cy="260" r="5" fill="#5aad6a" opacity="0.6"/>
+  <circle cx="180" cy="320" r="6" fill="#5aad6a" opacity="0.6"/>
+  <circle cx="260" cy="350" r="5" fill="#5aad6a" opacity="0.6"/>
+</svg>

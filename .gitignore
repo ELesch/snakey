@@ -75,3 +75,5 @@ secrets/
 *.temp
 tmp/
 temp/
+
+.vercel

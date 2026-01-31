@@ -1,0 +1,5 @@
+export { SnakeMascot } from './snake-mascot'
+export { FeatureCard } from './feature-card'
+export { HeroSection } from './hero-section'
+export { FeaturesSection } from './features-section'
+export * from './feature-icons'
