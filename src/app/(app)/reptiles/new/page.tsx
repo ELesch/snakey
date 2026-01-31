@@ -3,11 +3,17 @@
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ReptileForm } from '@/components/reptiles/reptile-form'
+import type { Reptile } from '@/generated/prisma/client'
 
 export default function NewReptilePage() {
   const router = useRouter()
 
-  const handleSuccess = () => {
+  const handleSuccess = (reptile: Reptile) => {
+    // Navigate to the newly created reptile's detail page
+    router.push(`/reptiles/${reptile.id}`)
+  }
+
+  const handleCancel = () => {
     router.push('/reptiles')
   }
 
@@ -18,7 +24,7 @@ export default function NewReptilePage() {
           <CardTitle>Add New Reptile</CardTitle>
         </CardHeader>
         <CardContent>
-          <ReptileForm onSuccess={handleSuccess} />
+          <ReptileForm onSuccess={handleSuccess} onCancel={handleCancel} />
         </CardContent>
       </Card>
     </div>

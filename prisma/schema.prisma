@@ -1,4 +1,5 @@
 // Prisma 7 Schema - Snakey Reptile Care Tracker
+// Using 'snakey' schema for database isolation
 
 generator client {
   provider = "prisma-client"
@@ -7,6 +8,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["snakey"]
 }
 
 // ============================================================================
@@ -47,12 +49,15 @@ model Reptile {
   @@index([userId])
   @@index([species])
   @@index([shareId])
+  @@schema("snakey")
 }
 
 enum Sex {
   MALE
   FEMALE
   UNKNOWN
+
+  @@schema("snakey")
 }
 
 // ============================================================================
@@ -76,12 +81,15 @@ model Feeding {
   reptile Reptile @relation(fields: [reptileId], references: [id])
 
   @@index([reptileId, date])
+  @@schema("snakey")
 }
 
 enum PreySource {
   LIVE
   FROZEN_THAWED
   PRE_KILLED
+
+  @@schema("snakey")
 }
 
 model Shed {
@@ -100,12 +108,15 @@ model Shed {
   photos  Photo[] @relation("ShedPhotos")
 
   @@index([reptileId, completedDate])
+  @@schema("snakey")
 }
 
 enum ShedQuality {
   COMPLETE
   PARTIAL
   PROBLEMATIC
+
+  @@schema("snakey")
 }
 
 model Weight {
@@ -120,6 +131,7 @@ model Weight {
   reptile Reptile @relation(fields: [reptileId], references: [id])
 
   @@index([reptileId, date])
+  @@schema("snakey")
 }
 
 model EnvironmentLog {
@@ -136,6 +148,7 @@ model EnvironmentLog {
   reptile Reptile @relation(fields: [reptileId], references: [id])
 
   @@index([reptileId, date])
+  @@schema("snakey")
 }
 
 // ============================================================================
@@ -161,6 +174,7 @@ model VetVisit {
   documents Photo[] @relation("VetDocuments")
 
   @@index([reptileId, date])
+  @@schema("snakey")
 }
 
 model Medication {
@@ -179,6 +193,7 @@ model Medication {
   reptile Reptile @relation(fields: [reptileId], references: [id])
 
   @@index([reptileId])
+  @@schema("snakey")
 }
 
 // ============================================================================
@@ -193,7 +208,9 @@ model Photo {
   caption       String?
   takenAt       DateTime      @default(now())
   category      PhotoCategory @default(GENERAL)
+  isPrimary     Boolean       @default(false)
   createdAt     DateTime      @default(now())
+  deletedAt     DateTime?
 
   reptile    Reptile   @relation(fields: [reptileId], references: [id])
   shed       Shed?     @relation("ShedPhotos", fields: [shedId], references: [id])
@@ -202,6 +219,7 @@ model Photo {
   vetVisitId String?
 
   @@index([reptileId, takenAt])
+  @@schema("snakey")
 }
 
 enum PhotoCategory {
@@ -210,6 +228,8 @@ enum PhotoCategory {
   SHED
   VET
   ENCLOSURE
+
+  @@schema("snakey")
 }
 
 // ============================================================================
@@ -233,6 +253,7 @@ model Pairing {
   clutches Clutch[]
 
   @@index([userId])
+  @@schema("snakey")
 }
 
 model Clutch {
@@ -251,6 +272,7 @@ model Clutch {
   hatchlings Hatchling[]
 
   @@index([pairingId])
+  @@schema("snakey")
 }
 
 model Hatchling {
@@ -267,6 +289,7 @@ model Hatchling {
   clutch Clutch @relation(fields: [clutchId], references: [id])
 
   @@index([clutchId])
+  @@schema("snakey")
 }
 
 enum HatchStatus {
@@ -275,6 +298,8 @@ enum HatchStatus {
   FAILED
   SOLD
   KEPT
+
+  @@schema("snakey")
 }
 
 // ============================================================================
@@ -295,6 +320,7 @@ model Expense {
   reptile Reptile? @relation(fields: [reptileId], references: [id])
 
   @@index([userId, date])
+  @@schema("snakey")
 }
 
 enum ExpenseCategory {
@@ -303,6 +329,8 @@ enum ExpenseCategory {
   SUPPLIES
   ENCLOSURE
   OTHER
+
+  @@schema("snakey")
 }
 
 // ============================================================================
@@ -327,6 +355,7 @@ model SpeciesConfig {
   updatedAt       DateTime @updatedAt
 
   @@index([userId])
+  @@schema("snakey")
 }
 
 // ============================================================================
@@ -347,6 +376,7 @@ model SyncQueue {
   syncedAt   DateTime?
 
   @@index([userId, status])
+  @@schema("snakey")
 }
 
 enum SyncStatus {
@@ -354,4 +384,6 @@ enum SyncStatus {
   SYNCING
   SYNCED
   FAILED
+
+  @@schema("snakey")
 }

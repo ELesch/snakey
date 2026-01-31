@@ -1,29 +1,100 @@
-import { Card, CardContent } from '@/components/ui/card'
-import { Bug, UtensilsCrossed, Thermometer, Scale } from 'lucide-react'
+'use client'
 
-// TODO: Fetch actual stats from API or offline DB
-const stats = [
-  { name: 'Total Reptiles', value: '0', icon: Bug, color: 'text-primary-600' },
-  { name: 'Feedings Due', value: '0', icon: UtensilsCrossed, color: 'text-amber-600' },
-  { name: 'Temp Alerts', value: '0', icon: Thermometer, color: 'text-red-600' },
-  { name: 'Recent Weights', value: '0', icon: Scale, color: 'text-blue-600' },
-]
+import { Card, CardContent } from '@/components/ui/card'
+import { Bug, UtensilsCrossed, Thermometer, Scale, AlertCircle, Loader2 } from 'lucide-react'
+import { useDashboardStats } from '@/hooks/use-dashboard'
+
+interface StatCardProps {
+  name: string
+  value: string | number
+  icon: React.ElementType
+  color: string
+  isPending?: boolean
+}
+
+function StatCard({ name, value, icon: Icon, color, isPending }: StatCardProps) {
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-warm-600">{name}</p>
+            {isPending ? (
+              <div className="h-8 w-12 flex items-center">
+                <Loader2 className="h-5 w-5 animate-spin text-warm-400" />
+              </div>
+            ) : (
+              <p className="text-2xl font-bold text-warm-900">{value}</p>
+            )}
+          </div>
+          <Icon className={`h-8 w-8 ${color}`} />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
 export function CollectionStats() {
+  const { stats, isPending, isError } = useDashboardStats()
+
+  if (isError) {
+    return (
+      <>
+        {[...Array(4)].map((_, i) => (
+          <Card key={i}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-warm-600">Error</p>
+                  <p className="text-sm text-red-500">Could not load</p>
+                </div>
+                <AlertCircle className="h-8 w-8 text-red-400" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </>
+    )
+  }
+
+  const statItems = [
+    {
+      name: 'Total Reptiles',
+      value: stats?.totalReptiles ?? 0,
+      icon: Bug,
+      color: 'text-primary-600',
+    },
+    {
+      name: 'Feedings Due',
+      value: stats?.feedingsDue ?? 0,
+      icon: UtensilsCrossed,
+      color: 'text-amber-600',
+    },
+    {
+      name: 'Temp Alerts',
+      value: stats?.environmentAlerts ?? 0,
+      icon: Thermometer,
+      color: 'text-red-600',
+    },
+    {
+      name: 'Recent Weights',
+      value: stats?.recentWeights ?? 0,
+      icon: Scale,
+      color: 'text-blue-600',
+    },
+  ]
+
   return (
     <>
-      {stats.map((stat) => (
-        <Card key={stat.name}>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-warm-600">{stat.name}</p>
-                <p className="text-2xl font-bold text-warm-900">{stat.value}</p>
-              </div>
-              <stat.icon className={`h-8 w-8 ${stat.color}`} />
-            </div>
-          </CardContent>
-        </Card>
+      {statItems.map((stat) => (
+        <StatCard
+          key={stat.name}
+          name={stat.name}
+          value={stat.value}
+          icon={stat.icon}
+          color={stat.color}
+          isPending={isPending}
+        />
       ))}
     </>
   )

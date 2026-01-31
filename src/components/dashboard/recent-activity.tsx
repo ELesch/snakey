@@ -1,19 +1,19 @@
+'use client'
+
+import Link from 'next/link'
 import { formatRelativeTime } from '@/lib/utils'
-import { UtensilsCrossed, Layers, Scale, Thermometer, Camera } from 'lucide-react'
+import {
+  UtensilsCrossed,
+  Layers,
+  Scale,
+  Thermometer,
+  Camera,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-type ActivityType = 'feeding' | 'shed' | 'weight' | 'environment' | 'photo'
-
-interface Activity {
-  id: string
-  type: ActivityType
-  reptileName: string
-  description: string
-  timestamp: Date
-}
-
-// TODO: Fetch from API or offline DB
-const activities: Activity[] = []
+import { useRecentActivity } from '@/hooks/use-dashboard'
+import type { ActivityType } from '@/services/dashboard.service'
 
 const activityIcons: Record<ActivityType, typeof UtensilsCrossed> = {
   feeding: UtensilsCrossed,
@@ -32,7 +32,27 @@ const activityColors: Record<ActivityType, string> = {
 }
 
 export function RecentActivity() {
-  if (activities.length === 0) {
+  const { activity, isPending, isError } = useRecentActivity(10)
+
+  if (isPending) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-warm-400" />
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center py-8 text-warm-500">
+        <AlertCircle className="h-8 w-8 mx-auto mb-2 text-red-400" />
+        <p>Could not load activity</p>
+        <p className="text-sm">Please try again later</p>
+      </div>
+    )
+  }
+
+  if (!activity || activity.length === 0) {
     return (
       <div className="text-center py-8 text-warm-500">
         <Layers className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -44,25 +64,27 @@ export function RecentActivity() {
 
   return (
     <div className="space-y-4">
-      {activities.map((activity) => {
-        const Icon = activityIcons[activity.type]
+      {activity.map((item) => {
+        const Icon = activityIcons[item.type]
         return (
-          <div key={activity.id} className="flex items-start gap-3">
-            <div className={cn('p-2 rounded-full', activityColors[activity.type])}>
+          <Link
+            key={item.id}
+            href={`/reptiles/${item.reptileId}`}
+            className="flex items-start gap-3 hover:bg-warm-50 rounded-lg p-2 -mx-2 transition-colors"
+          >
+            <div className={cn('p-2 rounded-full', activityColors[item.type])}>
               <Icon className="h-4 w-4" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-warm-900">
-                {activity.reptileName}
+                {item.reptileName}
               </p>
-              <p className="text-sm text-warm-600 truncate">
-                {activity.description}
-              </p>
+              <p className="text-sm text-warm-600 truncate">{item.description}</p>
             </div>
             <p className="text-xs text-warm-500 whitespace-nowrap">
-              {formatRelativeTime(activity.timestamp)}
+              {formatRelativeTime(new Date(item.timestamp))}
             </p>
-          </div>
+          </Link>
         )
       })}
     </div>

@@ -13,4 +13,6 @@ Include:
 
 ## Index
 
-*No TDDs yet.*
+| Document | Description | Status |
+|----------|-------------|--------|
+| [reptile-api.md](./reptile-api.md) | Reptile CRUD API contract | Draft |

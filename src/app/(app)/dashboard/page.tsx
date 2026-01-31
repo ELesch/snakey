@@ -1,3 +1,5 @@
+'use client'
+
 import { Suspense } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DashboardSkeleton } from '@/components/dashboard/dashboard-skeleton'
@@ -14,40 +16,38 @@ export default function DashboardPage() {
         <p className="text-warm-600">Overview of your reptile collection</p>
       </div>
 
-      <Suspense fallback={<DashboardSkeleton />}>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <CollectionStats />
-        </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <CollectionStats />
+      </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming Feedings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <UpcomingFeedings />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Environment Alerts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <EnvironmentAlerts />
-            </CardContent>
-          </Card>
-        </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Upcoming Feedings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UpcomingFeedings />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle>Environment Alerts</CardTitle>
           </CardHeader>
           <CardContent>
-            <RecentActivity />
+            <EnvironmentAlerts />
           </CardContent>
         </Card>
-      </Suspense>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RecentActivity />
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -1,16 +1,11 @@
-// Background Sync Logic
+// Background Sync Logic - Push pending changes to server
 import { offlineDb } from './db'
-import {
-  getPendingOperations,
-  markSyncing,
-  markSynced,
-  markFailed,
-} from './queue'
+import { getPendingOperations, markSyncing, markSynced, markFailed } from './queue'
+import { pullServerData, getLastPullTimestamp } from './pull'
+import { updateLocalSyncStatus, calculateBackoff, isOnline } from './utils'
 import { logger } from '../logger'
 
 const log = logger.child({ context: 'OfflineSync' })
-
-// API endpoint for sync
 const SYNC_API_BASE = '/api/sync'
 
 /**
@@ -25,9 +20,7 @@ async function syncOperation(item: {
 }): Promise<void> {
   const response = await fetch(`${SYNC_API_BASE}/${item.table}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       operation: item.operation,
       recordId: item.recordId,
@@ -42,17 +35,11 @@ async function syncOperation(item: {
 }
 
 /**
- * Process all pending sync operations
+ * Process all pending sync operations (push)
  */
-export async function syncPendingChanges(): Promise<{
-  synced: number
-  failed: number
-}> {
+export async function syncPendingChanges(): Promise<{ synced: number; failed: number }> {
   const pending = await getPendingOperations()
-
-  if (pending.length === 0) {
-    return { synced: 0, failed: 0 }
-  }
+  if (pending.length === 0) return { synced: 0, failed: 0 }
 
   log.info({ count: pending.length }, 'Starting sync of pending operations')
 
@@ -72,10 +59,7 @@ export async function syncPendingChanges(): Promise<{
         payload: item.payload,
       })
       await markSynced(item.id)
-
-      // Update the local record's sync status
       await updateLocalSyncStatus(item.table, item.recordId, 'synced')
-
       synced++
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -86,58 +70,9 @@ export async function syncPendingChanges(): Promise<{
   }
 
   log.info({ synced, failed }, 'Sync completed')
-
-  // Update last sync timestamp
-  await offlineDb.lastSync.put({
-    table: '_all',
-    timestamp: Date.now(),
-  })
+  await offlineDb.lastSync.put({ table: '_all', timestamp: Date.now() })
 
   return { synced, failed }
-}
-
-/**
- * Update the sync status of a local record
- */
-async function updateLocalSyncStatus(
-  table: string,
-  recordId: string,
-  status: 'synced' | 'pending' | 'failed'
-): Promise<void> {
-  const tableMap: Record<string, unknown> = {
-    reptiles: offlineDb.reptiles,
-    feedings: offlineDb.feedings,
-    sheds: offlineDb.sheds,
-    weights: offlineDb.weights,
-    environmentLogs: offlineDb.environmentLogs,
-    photos: offlineDb.photos,
-  }
-
-  const dbTable = tableMap[table]
-  if (dbTable && typeof dbTable === 'object' && 'update' in dbTable) {
-    await (dbTable as { update: (id: string, changes: object) => Promise<void> }).update(
-      recordId,
-      { _syncStatus: status, _lastModified: Date.now() }
-    )
-  }
-}
-
-/**
- * Calculate backoff delay for retries (exponential)
- */
-export function calculateBackoff(retryCount: number): number {
-  const baseDelay = 1000 // 1 second
-  const maxDelay = 60000 // 60 seconds
-  const delay = Math.min(baseDelay * Math.pow(2, retryCount), maxDelay)
-  // Add jitter
-  return delay + Math.random() * 1000
-}
-
-/**
- * Check if we're online
- */
-export function isOnline(): boolean {
-  return typeof navigator !== 'undefined' ? navigator.onLine : true
 }
 
 /**
@@ -157,13 +92,31 @@ export function startBackgroundSync(intervalMs: number = 30000): () => void {
     timeoutId = setTimeout(sync, intervalMs)
   }
 
-  // Start immediately
   sync()
-
-  // Return cleanup function
-  return () => {
-    if (timeoutId) {
-      clearTimeout(timeoutId)
-    }
-  }
+  return () => { if (timeoutId) clearTimeout(timeoutId) }
 }
+
+/**
+ * Full sync - push pending changes then pull server updates
+ */
+export async function performFullSync(): Promise<{
+  pushed: { synced: number; failed: number }
+  pulled: boolean
+}> {
+  const pushed = await syncPendingChanges()
+
+  let pulled = false
+  try {
+    const lastPull = await getLastPullTimestamp()
+    await pullServerData(lastPull)
+    pulled = true
+  } catch (error) {
+    log.error({ error }, 'Pull sync failed during full sync')
+  }
+
+  return { pushed, pulled }
+}
+
+// Re-export for convenience
+export { pullServerData, performInitialSync, getLastPullTimestamp } from './pull'
+export { calculateBackoff, isOnline } from './utils'

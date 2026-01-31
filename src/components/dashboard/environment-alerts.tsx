@@ -1,21 +1,32 @@
+'use client'
+
 import Link from 'next/link'
-import { AlertTriangle, Thermometer, Droplets } from 'lucide-react'
+import { AlertTriangle, Thermometer, Droplets, Loader2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-interface EnvironmentAlert {
-  id: string
-  reptileId: string
-  reptileName: string
-  type: 'temperature' | 'humidity'
-  severity: 'warning' | 'critical'
-  message: string
-}
-
-// TODO: Fetch from API or offline DB
-const alerts: EnvironmentAlert[] = []
+import { useEnvironmentAlerts } from '@/hooks/use-dashboard'
 
 export function EnvironmentAlerts() {
-  if (alerts.length === 0) {
+  const { alerts, isPending, isError } = useEnvironmentAlerts()
+
+  if (isPending) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-warm-400" />
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center py-8 text-warm-500">
+        <AlertCircle className="h-8 w-8 mx-auto mb-2 text-red-400" />
+        <p>Could not load alerts</p>
+        <p className="text-sm">Please try again later</p>
+      </div>
+    )
+  }
+
+  if (!alerts || alerts.length === 0) {
     return (
       <div className="text-center py-8 text-warm-500">
         <Thermometer className="h-8 w-8 mx-auto mb-2 opacity-50" />

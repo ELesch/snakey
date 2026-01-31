@@ -4,17 +4,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatDate } from '@/lib/utils'
-import { Plus, UtensilsCrossed, Check, X } from 'lucide-react'
-
-interface Feeding {
-  id: string
-  date: Date
-  preyType: string
-  preySize: string
-  preyCount: number
-  wasEaten: boolean
-  notes?: string
-}
+import { Plus, UtensilsCrossed, Check, X, Loader2, WifiOff } from 'lucide-react'
+import { useFeedings } from '@/hooks/use-feedings'
 
 interface FeedingHistoryProps {
   reptileId: string
@@ -22,14 +13,62 @@ interface FeedingHistoryProps {
 
 export function FeedingHistory({ reptileId }: FeedingHistoryProps) {
   const [showForm, setShowForm] = useState(false)
+  const { feedings, isPending, isError, isOfflineData } = useFeedings(reptileId)
 
-  // TODO: Fetch from API or offline DB
-  const feedings: Feeding[] = []
+  // Show loading state
+  if (isPending) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Feeding History</h3>
+          <Button onClick={() => setShowForm(true)} size="sm" disabled>
+            <Plus className="h-4 w-4 mr-2" />
+            Log Feeding
+          </Button>
+        </div>
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Loader2 className="h-8 w-8 mx-auto mb-4 text-warm-400 animate-spin" />
+            <p className="text-warm-500">Loading feeding history...</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (isError) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Feeding History</h3>
+          <Button onClick={() => setShowForm(true)} size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Log Feeding
+          </Button>
+        </div>
+        <Card>
+          <CardContent className="py-12 text-center">
+            <X className="h-12 w-12 mx-auto mb-4 text-red-300" />
+            <p className="text-red-600">Failed to load feeding history</p>
+            <p className="text-sm text-warm-500">Please try again later</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Feeding History</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">Feeding History</h3>
+          {isOfflineData && (
+            <span title="Showing offline data">
+              <WifiOff className="h-4 w-4 text-warm-400" />
+            </span>
+          )}
+        </div>
         <Button onClick={() => setShowForm(true)} size="sm">
           <Plus className="h-4 w-4 mr-2" />
           Log Feeding
@@ -48,36 +87,43 @@ export function FeedingHistory({ reptileId }: FeedingHistoryProps) {
         </Card>
       ) : (
         <div className="space-y-2">
-          {feedings.map((feeding) => (
-            <Card key={feeding.id}>
-              <CardContent className="py-3 px-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {feeding.wasEaten ? (
-                      <div className="p-1.5 bg-green-100 rounded-full">
-                        <Check className="h-4 w-4 text-green-600" />
+          {feedings.map((feeding) => {
+            // Handle both API format (Date object) and offline format (timestamp number)
+            const feedingDate = typeof feeding.date === 'number'
+              ? new Date(feeding.date)
+              : new Date(feeding.date)
+
+            return (
+              <Card key={feeding.id}>
+                <CardContent className="py-3 px-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {feeding.accepted ? (
+                        <div className="p-1.5 bg-green-100 rounded-full">
+                          <Check className="h-4 w-4 text-green-600" />
+                        </div>
+                      ) : (
+                        <div className="p-1.5 bg-red-100 rounded-full">
+                          <X className="h-4 w-4 text-red-600" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium">
+                          {feeding.preySize} {feeding.preyType}
+                        </p>
+                        <p className="text-sm text-warm-500">{formatDate(feedingDate)}</p>
                       </div>
-                    ) : (
-                      <div className="p-1.5 bg-red-100 rounded-full">
-                        <X className="h-4 w-4 text-red-600" />
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-medium">
-                        {feeding.preyCount}x {feeding.preySize} {feeding.preyType}
-                      </p>
-                      <p className="text-sm text-warm-500">{formatDate(feeding.date)}</p>
                     </div>
+                    {feeding.notes && (
+                      <p className="text-sm text-warm-600 max-w-xs truncate">
+                        {feeding.notes}
+                      </p>
+                    )}
                   </div>
-                  {feeding.notes && (
-                    <p className="text-sm text-warm-600 max-w-xs truncate">
-                      {feeding.notes}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTransition } from 'react'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
@@ -11,6 +12,7 @@ import {
   Settings,
   LogOut,
 } from 'lucide-react'
+import { signOut } from '@/lib/supabase/actions'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -22,6 +24,13 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const [isPending, startTransition] = useTransition()
+
+  const handleSignOut = () => {
+    startTransition(async () => {
+      await signOut()
+    })
+  }
 
   return (
     <>
@@ -57,9 +66,13 @@ export function Sidebar() {
             })}
           </nav>
           <div className="flex-shrink-0 px-2 pb-4">
-            <button className="group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-primary-100 hover:bg-primary-700 hover:text-white">
+            <button
+              onClick={handleSignOut}
+              disabled={isPending}
+              className="group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-primary-100 hover:bg-primary-700 hover:text-white disabled:opacity-50"
+            >
               <LogOut className="mr-3 h-5 w-5 text-primary-300" />
-              Sign Out
+              {isPending ? 'Signing out...' : 'Sign Out'}
             </button>
           </div>
         </div>

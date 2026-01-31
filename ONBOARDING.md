@@ -61,13 +61,40 @@ npm install
    - **Anon Key**: Settings > API > Project API Keys > anon public
    - **Service Role Key**: Settings > API > Project API Keys > service_role (keep secret!)
 
-## Step 3: Set Up Database Schema
+## Step 3: Create the Database Schema
+
+Snakey uses a dedicated `snakey` schema in your Supabase database for isolation (allows sharing one database across multiple projects).
+
+### Create the Schema in Supabase
+
+1. Go to **SQL Editor** in your Supabase dashboard
+2. Click **New Query**
+3. Paste and run the contents of `prisma/create-schema.sql`:
+
+```sql
+-- Create the 'snakey' schema
+CREATE SCHEMA IF NOT EXISTS snakey;
+
+-- Grant usage to authenticated users (for RLS)
+GRANT USAGE ON SCHEMA snakey TO postgres, anon, authenticated, service_role;
+
+-- Grant all privileges on future tables
+ALTER DEFAULT PRIVILEGES IN SCHEMA snakey
+GRANT ALL ON TABLES TO postgres, anon, authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA snakey
+GRANT ALL ON SEQUENCES TO postgres, anon, authenticated, service_role;
+```
+
+4. Click **Run** to execute
+
+### Push the Prisma Schema
 
 ```bash
 # Generate Prisma client (outputs to src/generated/prisma)
 npm run db:generate
 
-# Push schema to database (development)
+# Push schema to database (creates tables in 'snakey' schema)
 npm run db:push
 
 # Optional: Open Prisma Studio to view data
@@ -136,6 +163,10 @@ Run `npm run db:generate` to generate the Prisma client.
 1. Check your `.env.local` credentials
 2. Ensure your IP is allowed in Supabase (Settings > Database > Network)
 3. Try the DIRECT_URL instead of DATABASE_URL for migrations
+
+### "schema 'snakey' does not exist"
+
+Run the schema creation SQL in Supabase SQL Editor (see Step 3 above) before running `npm run db:push`.
 
 ### PWA not working in development
 
