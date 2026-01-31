@@ -41,18 +41,18 @@ export default function RegisterPage() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl text-primary-700">Create Account</CardTitle>
+        <CardTitle className="text-2xl text-[var(--color-primary)]">Create Account</CardTitle>
         <CardDescription>Start tracking your reptile collection</CardDescription>
       </CardHeader>
       <form action={handleSubmit}>
         <CardContent className="space-y-4">
           {error && (
-            <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md">
+            <div className="p-3 text-sm text-[var(--color-destructive)] bg-[var(--color-destructive)]/10 border border-[var(--color-destructive)]/30 rounded-md">
               {error}
             </div>
           )}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
+            <label htmlFor="email" className="block text-sm font-medium mb-1 text-[var(--color-foreground)]">
               Email
             </label>
             <Input
@@ -65,7 +65,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-1">
+            <label htmlFor="password" className="block text-sm font-medium mb-1 text-[var(--color-foreground)]">
               Password
             </label>
             <Input
@@ -77,12 +77,12 @@ export default function RegisterPage() {
               required
               disabled={isPending}
             />
-            <p className="text-xs text-warm-500 mt-1">
+            <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
               Must be at least 8 characters
             </p>
           </div>
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1 text-[var(--color-foreground)]">
               Confirm Password
             </label>
             <Input
@@ -100,9 +100,9 @@ export default function RegisterPage() {
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending ? 'Creating account...' : 'Create Account'}
           </Button>
-          <p className="text-sm text-center text-warm-600">
+          <p className="text-sm text-center text-[var(--color-muted-foreground)]">
             Already have an account?{' '}
-            <Link href="/login" className="text-primary-600 hover:underline">
+            <Link href="/login" className="text-[var(--color-primary)] hover:underline">
               Sign in
             </Link>
           </p>

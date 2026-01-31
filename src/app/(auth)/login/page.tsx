@@ -36,23 +36,23 @@ function LoginForm() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl text-primary-700">Welcome Back</CardTitle>
+        <CardTitle className="text-2xl text-[var(--color-primary)]">Welcome Back</CardTitle>
         <CardDescription>Sign in to your Snakey account</CardDescription>
       </CardHeader>
       <form action={handleSubmit}>
         <CardContent className="space-y-4">
           {message && (
-            <div className="p-3 text-sm text-green-700 bg-green-50 border border-green-200 rounded-md">
+            <div className="p-3 text-sm text-[var(--color-success)] bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 rounded-md">
               {message}
             </div>
           )}
           {error && (
-            <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md">
+            <div className="p-3 text-sm text-[var(--color-destructive)] bg-[var(--color-destructive)]/10 border border-[var(--color-destructive)]/30 rounded-md">
               {error}
             </div>
           )}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
+            <label htmlFor="email" className="block text-sm font-medium mb-1 text-[var(--color-foreground)]">
               Email
             </label>
             <Input
@@ -65,7 +65,7 @@ function LoginForm() {
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-1">
+            <label htmlFor="password" className="block text-sm font-medium mb-1 text-[var(--color-foreground)]">
               Password
             </label>
             <Input
@@ -82,9 +82,9 @@ function LoginForm() {
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending ? 'Signing in...' : 'Sign In'}
           </Button>
-          <p className="text-sm text-center text-warm-600">
+          <p className="text-sm text-center text-[var(--color-muted-foreground)]">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-primary-600 hover:underline">
+            <Link href="/register" className="text-[var(--color-primary)] hover:underline">
               Sign up
             </Link>
           </p>
@@ -98,13 +98,13 @@ function LoginFormFallback() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl text-primary-700">Welcome Back</CardTitle>
+        <CardTitle className="text-2xl text-[var(--color-primary)]">Welcome Back</CardTitle>
         <CardDescription>Sign in to your Snakey account</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="animate-pulse">
-          <div className="h-10 bg-warm-200 rounded mb-4" />
-          <div className="h-10 bg-warm-200 rounded" />
+          <div className="h-10 bg-[var(--color-muted)] rounded mb-4" />
+          <div className="h-10 bg-[var(--color-muted)] rounded" />
         </div>
       </CardContent>
     </Card>
