@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
-import { Bug, WifiOff, AlertCircle } from 'lucide-react'
+import { WifiOff, AlertCircle } from 'lucide-react'
+import { ReptileIcon } from '@/components/icons/reptile-icon'
 import { useReptiles } from '@/hooks'
 import { ReptileGridSkeleton } from './reptile-grid-skeleton'
 import type { Reptile } from '@/generated/prisma/client'
@@ -27,7 +28,7 @@ function ReptileCard({ reptile }: ReptileCardProps) {
         <CardContent className="p-0">
           <div className="aspect-square bg-warm-100 rounded-t-lg overflow-hidden relative">
             <div className="w-full h-full flex items-center justify-center">
-              <Bug className="h-16 w-16 text-warm-300" />
+              <ReptileIcon variant="snake" className="h-16 w-16 text-warm-300" />
             </div>
             {isPending && (
               <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
@@ -73,9 +74,9 @@ export function ReptileGrid() {
   if (reptiles.length === 0) {
     return (
       <div className="text-center py-16">
-        <Bug className="h-16 w-16 mx-auto mb-4 text-warm-300" />
-        <h3 className="text-lg font-medium text-warm-900 mb-2">No reptiles yet</h3>
-        <p className="text-warm-600 mb-4">
+        <ReptileIcon variant="snake" className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+        <h3 className="text-lg font-medium text-foreground mb-2">No reptiles yet</h3>
+        <p className="text-muted-foreground mb-4">
           Add your first reptile to start tracking their care.
         </p>
       </div>
