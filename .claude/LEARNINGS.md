@@ -6,6 +6,17 @@
 
 *Captured during development - see also `.claude/tech/stack.md` for version-specific gotchas.*
 
+### Prisma + Vercel Deployment
+
+**Problem:** Vercel builds fail with Prisma because the client isn't generated automatically.
+
+**Solution:** Always include `prisma generate` in the build script:
+```json
+"build": "prisma generate && next build"
+```
+
+This ensures the Prisma client is generated before Next.js compiles, which is required since Prisma uses a custom output path (`src/generated/prisma`).
+
 ---
 
 ## Patterns That Work
