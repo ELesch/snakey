@@ -17,7 +17,7 @@ import { signOut } from '@/lib/supabase/actions'
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'My Reptiles', href: '/reptiles', icon: ReptileIcon },
-  { name: 'Log Event', href: '/tracker', icon: ClipboardList },
+  { name: 'Event Log', href: '/tracker', icon: ClipboardList },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Breeding', href: '/breeding', icon: Egg },
 ]

@@ -1,11 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { WifiOff, AlertCircle } from 'lucide-react'
 import { ReptileIcon } from '@/components/icons/reptile-icon'
 import { useReptiles } from '@/hooks'
 import { ReptileGridSkeleton } from './reptile-grid-skeleton'
+import { ReptileForm } from './reptile-form'
 import type { Reptile } from '@/generated/prisma/client'
 import type { OfflineReptile } from '@/lib/offline/db'
 
@@ -51,6 +53,7 @@ function ReptileCard({ reptile }: ReptileCardProps) {
 }
 
 export function ReptileGrid() {
+  const router = useRouter()
   const { reptiles, isPending, isError, error, isOnline, isOfflineData } = useReptiles()
 
   if (isPending) {
@@ -73,12 +76,23 @@ export function ReptileGrid() {
 
   if (reptiles.length === 0) {
     return (
-      <div className="text-center py-16">
-        <ReptileIcon variant="snake" className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-        <h3 className="text-lg font-medium text-foreground mb-2">No reptiles yet</h3>
-        <p className="text-muted-foreground mb-4">
-          Add your first reptile to start tracking their care.
-        </p>
+      <div className="max-w-md mx-auto py-8">
+        <div className="text-center mb-6">
+          <ReptileIcon variant="snake" className="h-16 w-16 mx-auto mb-4 text-primary-600" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">Add Your First Reptile</h2>
+          <p className="text-muted-foreground">
+            Get started by adding your first reptile to begin tracking their care.
+          </p>
+        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <ReptileForm
+              onSuccess={(reptile) => {
+                router.push(`/reptiles/${reptile.id}`)
+              }}
+            />
+          </CardContent>
+        </Card>
       </div>
     )
   }
