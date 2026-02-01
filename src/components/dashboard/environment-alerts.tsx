@@ -11,15 +11,15 @@ export function EnvironmentAlerts() {
   if (isPending) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-warm-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--color-muted-foreground)]" />
       </div>
     )
   }
 
   if (isError) {
     return (
-      <div className="text-center py-8 text-warm-500">
-        <AlertCircle className="h-8 w-8 mx-auto mb-2 text-red-400" />
+      <div className="text-center py-8 text-[var(--color-muted-foreground)]">
+        <AlertCircle className="h-8 w-8 mx-auto mb-2 text-[var(--color-destructive)]" />
         <p>Could not load alerts</p>
         <p className="text-sm">Please try again later</p>
       </div>
@@ -28,7 +28,7 @@ export function EnvironmentAlerts() {
 
   if (!alerts || alerts.length === 0) {
     return (
-      <div className="text-center py-8 text-warm-500">
+      <div className="text-center py-8 text-[var(--color-muted-foreground)]">
         <Thermometer className="h-8 w-8 mx-auto mb-2 opacity-50" />
         <p>No environment alerts</p>
         <p className="text-sm">All enclosures within safe ranges</p>

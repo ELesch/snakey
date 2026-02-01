@@ -18,13 +18,13 @@ function StatCard({ name, value, icon: Icon, color, isPending }: StatCardProps) 
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-warm-600">{name}</p>
+            <p className="text-sm font-medium text-[var(--color-muted-foreground)]">{name}</p>
             {isPending ? (
               <div className="h-8 w-12 flex items-center">
-                <Loader2 className="h-5 w-5 animate-spin text-warm-400" />
+                <Loader2 className="h-5 w-5 animate-spin text-[var(--color-muted-foreground)]" />
               </div>
             ) : (
-              <p className="text-2xl font-bold text-warm-900">{value}</p>
+              <p className="text-2xl font-bold text-[var(--color-foreground)]">{value}</p>
             )}
           </div>
           <Icon className={`h-8 w-8 ${color}`} />
@@ -45,10 +45,10 @@ export function CollectionStats() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-warm-600">Error</p>
-                  <p className="text-sm text-red-500">Could not load</p>
+                  <p className="text-sm font-medium text-[var(--color-muted-foreground)]">Error</p>
+                  <p className="text-sm text-[var(--color-destructive)]">Could not load</p>
                 </div>
-                <AlertCircle className="h-8 w-8 text-red-400" />
+                <AlertCircle className="h-8 w-8 text-[var(--color-destructive)]" />
               </div>
             </CardContent>
           </Card>

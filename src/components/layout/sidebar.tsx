@@ -7,9 +7,7 @@ import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
   Bug,
-  Calendar,
-  BarChart3,
-  Settings,
+  Egg,
   LogOut,
 } from 'lucide-react'
 import { signOut } from '@/lib/supabase/actions'
@@ -17,9 +15,7 @@ import { signOut } from '@/lib/supabase/actions'
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'My Reptiles', href: '/reptiles', icon: Bug },
-  { name: 'Schedule', href: '/schedule', icon: Calendar },
-  { name: 'Reports', href: '/reports', icon: BarChart3 },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Breeding', href: '/breeding', icon: Egg },
 ]
 
 export function Sidebar() {
