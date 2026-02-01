@@ -6,15 +6,19 @@ import { useTransition } from 'react'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
-  Bug,
   Egg,
   LogOut,
+  ClipboardList,
+  BarChart3,
 } from 'lucide-react'
+import { ReptileIcon } from '@/components/icons/reptile-icon'
 import { signOut } from '@/lib/supabase/actions'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'My Reptiles', href: '/reptiles', icon: Bug },
+  { name: 'My Reptiles', href: '/reptiles', icon: ReptileIcon },
+  { name: 'Log Event', href: '/tracker', icon: ClipboardList },
+  { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Breeding', href: '/breeding', icon: Egg },
 ]
 

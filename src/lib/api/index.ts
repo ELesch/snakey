@@ -78,3 +78,12 @@ export {
   deleteHatchling,
   BreedingApiError,
 } from './breeding.api'
+
+export {
+  fetchGrowthData,
+  fetchFeedingStats,
+  fetchShedStats,
+  fetchEnvironmentStats,
+  fetchReportsSummary,
+  ReportsApiError,
+} from './reports.api'

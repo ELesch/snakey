@@ -50,8 +50,8 @@ export function UpcomingFeedings() {
     return (
       <div className="text-center py-8 text-[var(--color-muted-foreground)]">
         <UtensilsCrossed className="h-8 w-8 mx-auto mb-2 opacity-50" />
-        <p>No upcoming feedings</p>
-        <p className="text-sm">Add reptiles to start tracking</p>
+        <p className="font-medium">All caught up!</p>
+        <p className="text-sm">No feedings scheduled for the next 7 days</p>
       </div>
     )
   }

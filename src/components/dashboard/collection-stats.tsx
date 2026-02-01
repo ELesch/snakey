@@ -1,8 +1,10 @@
 'use client'
 
 import { Card, CardContent } from '@/components/ui/card'
-import { Bug, UtensilsCrossed, Thermometer, Scale, AlertCircle, Loader2 } from 'lucide-react'
+import { UtensilsCrossed, Thermometer, Scale, AlertCircle, Loader2 } from 'lucide-react'
 import { useDashboardStats } from '@/hooks/use-dashboard'
+import { ReptileIcon } from '@/components/icons/reptile-icon'
+import { EmptyCollectionCTA } from './empty-collection-cta'
 
 interface StatCardProps {
   name: string
@@ -37,6 +39,11 @@ function StatCard({ name, value, icon: Icon, color, isPending }: StatCardProps) 
 export function CollectionStats() {
   const { stats, isPending, isError } = useDashboardStats()
 
+  // Show welcome CTA for new users with empty collection
+  if (!isPending && !isError && stats?.totalReptiles === 0) {
+    return <EmptyCollectionCTA />
+  }
+
   if (isError) {
     return (
       <>
@@ -61,7 +68,7 @@ export function CollectionStats() {
     {
       name: 'Total Reptiles',
       value: stats?.totalReptiles ?? 0,
-      icon: Bug,
+      icon: ReptileIcon,
       color: 'text-primary-600',
     },
     {

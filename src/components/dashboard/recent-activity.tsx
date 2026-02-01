@@ -56,8 +56,8 @@ export function RecentActivity() {
     return (
       <div className="text-center py-8 text-[var(--color-muted-foreground)]">
         <Layers className="h-8 w-8 mx-auto mb-2 opacity-50" />
-        <p>No recent activity</p>
-        <p className="text-sm">Start logging events for your reptiles</p>
+        <p className="font-medium">No activity yet</p>
+        <p className="text-sm">Events will appear here as you log them</p>
       </div>
     )
   }

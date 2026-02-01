@@ -75,3 +75,11 @@ export {
   useDeleteHatchling,
   breedingKeys,
 } from './use-breeding'
+export {
+  useGrowthData,
+  useFeedingStats,
+  useShedStats,
+  useEnvironmentStats,
+  useReportsSummary,
+  reportsKeys,
+} from './use-reports'
