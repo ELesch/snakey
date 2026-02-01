@@ -7,7 +7,17 @@ import type { Sex } from '@/generated/prisma/client'
 
 // Mock the repositories
 vi.mock('@/repositories/environment.repository')
-vi.mock('@/repositories/reptile.repository')
+
+// Mock the reptile repository for ownership checks (used by base.service)
+vi.mock('@/repositories/reptile.repository', () => {
+  const instance = {
+    findById: vi.fn(),
+  }
+  return {
+    ReptileRepository: vi.fn().mockImplementation(() => instance),
+    reptileRepository: instance,
+  }
+})
 
 // Mock the prisma client
 vi.mock('@/lib/db/client', () => ({
@@ -124,8 +134,11 @@ describe('EnvironmentService', () => {
     findById: Mock
   }
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
+
+    // Get the mock instance from the module (used by base.service)
+    const { reptileRepository } = await import('@/repositories/reptile.repository')
 
     mockEnvRepository = {
       findMany: vi.fn(),
@@ -136,15 +149,10 @@ describe('EnvironmentService', () => {
       count: vi.fn(),
     }
 
-    mockReptileRepository = {
-      findById: vi.fn(),
-    }
+    mockReptileRepository = reptileRepository as unknown as typeof mockReptileRepository
 
     vi.mocked(EnvironmentRepository).mockImplementation(
       () => mockEnvRepository as unknown as EnvironmentRepository
-    )
-    vi.mocked(ReptileRepository).mockImplementation(
-      () => mockReptileRepository as unknown as ReptileRepository
     )
 
     service = new EnvironmentService()
@@ -239,12 +247,15 @@ describe('EnvironmentService', () => {
 
   describe('getById', () => {
     it('should return environment log by id', async () => {
-      mockEnvRepository.findById.mockResolvedValue(mockEnvironmentLog)
-      mockReptileRepository.findById.mockResolvedValue(mockReptile)
+      // verifyRecordOwnership calls findById with includeReptile: true
+      mockEnvRepository.findById.mockResolvedValue({
+        ...mockEnvironmentLog,
+        reptile: mockReptile,
+      })
 
       const result = await service.getById('user-123', 'envlog-123')
 
-      expect(result).toEqual(mockEnvironmentLog)
+      expect(result.id).toBe(mockEnvironmentLog.id)
     })
 
     it('should throw NotFoundError when log does not exist', async () => {
@@ -256,10 +267,13 @@ describe('EnvironmentService', () => {
     })
 
     it('should throw ForbiddenError when user does not own reptile', async () => {
-      mockEnvRepository.findById.mockResolvedValue(mockEnvironmentLog)
-      mockReptileRepository.findById.mockResolvedValue(mockReptile)
+      // verifyRecordOwnership checks ownership via the reptile relation
+      mockEnvRepository.findById.mockResolvedValue({
+        ...mockEnvironmentLog,
+        reptile: { ...mockReptile, userId: 'different-user' },
+      })
 
-      await expect(service.getById('different-user', 'envlog-123')).rejects.toThrow(
+      await expect(service.getById('user-123', 'envlog-123')).rejects.toThrow(
         'Access denied'
       )
     })
@@ -407,7 +421,11 @@ describe('EnvironmentService', () => {
 
   describe('update', () => {
     it('should update an existing environment log', async () => {
-      mockEnvRepository.findById.mockResolvedValue(mockEnvironmentLog)
+      // verifyRecordOwnership calls findById with includeReptile: true
+      mockEnvRepository.findById.mockResolvedValue({
+        ...mockEnvironmentLog,
+        reptile: mockReptile,
+      })
       mockReptileRepository.findById.mockResolvedValue(mockReptile)
       const updatedLog = { ...mockEnvironmentLog, temperature: 90 }
       mockEnvRepository.update.mockResolvedValue(updatedLog)
@@ -430,16 +448,22 @@ describe('EnvironmentService', () => {
     })
 
     it('should throw ForbiddenError when user does not own reptile', async () => {
-      mockEnvRepository.findById.mockResolvedValue(mockEnvironmentLog)
-      mockReptileRepository.findById.mockResolvedValue(mockReptile)
+      // verifyRecordOwnership checks ownership via the reptile relation
+      mockEnvRepository.findById.mockResolvedValue({
+        ...mockEnvironmentLog,
+        reptile: { ...mockReptile, userId: 'different-user' },
+      })
 
       await expect(
-        service.update('different-user', 'envlog-123', { temperature: 90 })
+        service.update('user-123', 'envlog-123', { temperature: 90 })
       ).rejects.toThrow('Access denied')
     })
 
     it('should validate temperature range on update', async () => {
-      mockEnvRepository.findById.mockResolvedValue(mockEnvironmentLog)
+      mockEnvRepository.findById.mockResolvedValue({
+        ...mockEnvironmentLog,
+        reptile: mockReptile,
+      })
       mockReptileRepository.findById.mockResolvedValue(mockReptile)
 
       await expect(
@@ -448,7 +472,10 @@ describe('EnvironmentService', () => {
     })
 
     it('should recalculate isAlert on update', async () => {
-      mockEnvRepository.findById.mockResolvedValue(mockEnvironmentLog)
+      mockEnvRepository.findById.mockResolvedValue({
+        ...mockEnvironmentLog,
+        reptile: mockReptile,
+      })
       mockReptileRepository.findById.mockResolvedValue(mockReptile)
       mockEnvRepository.update.mockResolvedValue({ ...mockEnvironmentLog, temperature: 98, isAlert: true })
 
@@ -463,8 +490,11 @@ describe('EnvironmentService', () => {
 
   describe('delete', () => {
     it('should delete an environment log', async () => {
-      mockEnvRepository.findById.mockResolvedValue(mockEnvironmentLog)
-      mockReptileRepository.findById.mockResolvedValue(mockReptile)
+      // verifyRecordOwnership calls findById with includeReptile: true
+      mockEnvRepository.findById.mockResolvedValue({
+        ...mockEnvironmentLog,
+        reptile: mockReptile,
+      })
       mockEnvRepository.delete.mockResolvedValue(mockEnvironmentLog)
 
       const result = await service.delete('user-123', 'envlog-123')
@@ -482,10 +512,13 @@ describe('EnvironmentService', () => {
     })
 
     it('should throw ForbiddenError when user does not own reptile', async () => {
-      mockEnvRepository.findById.mockResolvedValue(mockEnvironmentLog)
-      mockReptileRepository.findById.mockResolvedValue(mockReptile)
+      // verifyRecordOwnership checks ownership via the reptile relation
+      mockEnvRepository.findById.mockResolvedValue({
+        ...mockEnvironmentLog,
+        reptile: { ...mockReptile, userId: 'different-user' },
+      })
 
-      await expect(service.delete('different-user', 'envlog-123')).rejects.toThrow(
+      await expect(service.delete('user-123', 'envlog-123')).rejects.toThrow(
         'Access denied'
       )
     })

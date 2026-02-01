@@ -1,15 +1,16 @@
 // Environment Service - Business Logic Layer
 import { createLogger } from '@/lib/logger'
 import { NotFoundError, ForbiddenError, ValidationError } from '@/lib/errors'
+import { createPaginationMeta, validateSchema } from '@/lib/utils'
 import type { PaginatedResult } from '@/types/pagination'
 import { EnvironmentRepository } from '@/repositories/environment.repository'
-import { ReptileRepository } from '@/repositories/reptile.repository'
 import {
   EnvironmentCreateSchema,
   EnvironmentUpdateSchema,
   type EnvironmentQuery,
 } from '@/validations/environment'
 import { isTemperatureSafe, isHumiditySafe } from '@/lib/species/defaults'
+import { verifyReptileOwnership, verifyRecordOwnership } from './base.service'
 import type { EnvironmentLog } from '@/generated/prisma/client'
 
 const log = createLogger('EnvironmentService')
@@ -20,11 +21,9 @@ export type { PaginatedResult }
 
 export class EnvironmentService {
   private repository: EnvironmentRepository
-  private reptileRepository: ReptileRepository
 
   constructor() {
     this.repository = new EnvironmentRepository()
-    this.reptileRepository = new ReptileRepository()
   }
 
   async list(
@@ -33,17 +32,7 @@ export class EnvironmentService {
     query: Partial<EnvironmentQuery> = {}
   ): Promise<PaginatedResult<EnvironmentLog>> {
     // Verify reptile ownership
-    const reptile = await this.reptileRepository.findById(reptileId)
-
-    if (!reptile) {
-      log.warn({ reptileId }, 'Reptile not found')
-      throw new NotFoundError('Reptile not found')
-    }
-
-    if (reptile.userId !== userId) {
-      log.warn({ userId, reptileId }, 'Access denied to reptile')
-      throw new ForbiddenError('Access denied')
-    }
+    await verifyReptileOwnership(reptileId, userId)
 
     const {
       page = 1,
@@ -81,67 +70,31 @@ export class EnvironmentService {
       }),
     ])
 
-    const totalPages = Math.ceil(total / limit)
-
     return {
       data: logs,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
+      meta: createPaginationMeta({ total, page, limit }),
     }
   }
 
   async getById(userId: string, id: string): Promise<EnvironmentLog> {
     log.info({ userId, logId: id }, 'Getting environment log by id')
 
-    const envLog = await this.repository.findById(id)
-
-    if (!envLog) {
-      log.warn({ logId: id }, 'Environment log not found')
-      throw new NotFoundError('Environment log not found')
-    }
-
-    // Verify ownership through reptile
-    const reptile = await this.reptileRepository.findById(envLog.reptileId)
-
-    if (!reptile || reptile.userId !== userId) {
-      log.warn({ userId, logId: id }, 'Access denied to environment log')
-      throw new ForbiddenError('Access denied')
-    }
+    const envLog = await verifyRecordOwnership(
+      this.repository,
+      id,
+      userId,
+      { entityLabel: 'Environment log' }
+    )
 
     return envLog
   }
 
   async create(userId: string, reptileId: string, data: unknown): Promise<EnvironmentLog> {
     // Verify reptile ownership
-    const reptile = await this.reptileRepository.findById(reptileId)
-
-    if (!reptile) {
-      log.warn({ reptileId }, 'Reptile not found')
-      throw new NotFoundError('Reptile not found')
-    }
-
-    if (reptile.userId !== userId) {
-      log.warn({ userId, reptileId }, 'Access denied to reptile')
-      throw new ForbiddenError('Access denied')
-    }
+    const reptile = await verifyReptileOwnership(reptileId, userId)
 
     // Validate input data
-    const validationResult = EnvironmentCreateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ reptileId, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(EnvironmentCreateSchema, data)
 
     // Determine if this reading should trigger an alert
     const isAlert = this.shouldAlert(
@@ -169,33 +122,19 @@ export class EnvironmentService {
   }
 
   async update(userId: string, id: string, data: unknown): Promise<EnvironmentLog> {
-    // First verify existence
-    const existing = await this.repository.findById(id)
+    // Verify ownership and get existing record
+    const existing = await verifyRecordOwnership(
+      this.repository,
+      id,
+      userId,
+      { entityLabel: 'Environment log' }
+    )
 
-    if (!existing) {
-      log.warn({ logId: id }, 'Environment log not found for update')
-      throw new NotFoundError('Environment log not found')
-    }
-
-    // Verify ownership through reptile
-    const reptile = await this.reptileRepository.findById(existing.reptileId)
-
-    if (!reptile || reptile.userId !== userId) {
-      log.warn({ userId, logId: id }, 'Access denied for update')
-      throw new ForbiddenError('Access denied')
-    }
+    // Get reptile for species info (needed for alert calculation)
+    const reptile = await verifyReptileOwnership(existing.reptileId, userId)
 
     // Validate update data
-    const validationResult = EnvironmentUpdateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ logId: id, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(EnvironmentUpdateSchema, data)
 
     // Recalculate alert status with merged data
     const newTemp = validated.temperature !== undefined ? validated.temperature : existing.temperature
@@ -221,21 +160,13 @@ export class EnvironmentService {
   }
 
   async delete(userId: string, id: string): Promise<{ id: string }> {
-    // First verify existence
-    const existing = await this.repository.findById(id)
-
-    if (!existing) {
-      log.warn({ logId: id }, 'Environment log not found for delete')
-      throw new NotFoundError('Environment log not found')
-    }
-
-    // Verify ownership through reptile
-    const reptile = await this.reptileRepository.findById(existing.reptileId)
-
-    if (!reptile || reptile.userId !== userId) {
-      log.warn({ userId, logId: id }, 'Access denied for delete')
-      throw new ForbiddenError('Access denied')
-    }
+    // Verify ownership
+    await verifyRecordOwnership(
+      this.repository,
+      id,
+      userId,
+      { entityLabel: 'Environment log' }
+    )
 
     log.info({ userId, logId: id }, 'Deleting environment log')
 

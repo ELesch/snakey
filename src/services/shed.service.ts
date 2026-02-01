@@ -1,14 +1,15 @@
 // Shed Service - Business Logic Layer
 import { createLogger } from '@/lib/logger'
 import { NotFoundError, ForbiddenError, ValidationError } from '@/lib/errors'
+import { createPaginationMeta, validateSchema } from '@/lib/utils'
 import type { PaginatedResult } from '@/types/pagination'
 import { ShedRepository } from '@/repositories/shed.repository'
-import { ReptileRepository } from '@/repositories/reptile.repository'
 import {
   ShedCreateSchema,
   ShedUpdateSchema,
   type ShedQuery,
 } from '@/validations/shed'
+import { verifyReptileOwnership, verifyRecordOwnership } from './base.service'
 import type { Shed, ShedQuality } from '@/generated/prisma/client'
 
 const log = createLogger('ShedService')
@@ -19,62 +20,9 @@ export type { PaginatedResult }
 
 export class ShedService {
   private shedRepository: ShedRepository
-  private reptileRepository: ReptileRepository
 
   constructor() {
     this.shedRepository = new ShedRepository()
-    this.reptileRepository = new ReptileRepository()
-  }
-
-  /**
-   * Verify reptile exists and user has access
-   */
-  private async verifyReptileAccess(
-    userId: string,
-    reptileId: string
-  ): Promise<void> {
-    const reptile = await this.reptileRepository.findById(reptileId)
-
-    if (!reptile) {
-      log.warn({ reptileId }, 'Reptile not found')
-      throw new NotFoundError('Reptile not found')
-    }
-
-    if (reptile.userId !== userId) {
-      log.warn({ userId, reptileId }, 'Access denied to reptile')
-      throw new ForbiddenError('Access denied')
-    }
-
-    if (reptile.deletedAt) {
-      log.warn({ reptileId }, 'Reptile is deleted')
-      throw new NotFoundError('Reptile not found')
-    }
-  }
-
-  /**
-   * Verify shed exists and user has access via reptile ownership
-   */
-  private async verifyShedAccess(
-    userId: string,
-    shedId: string
-  ): Promise<Shed> {
-    const shed = await this.shedRepository.findById(shedId, {
-      include: { reptile: true },
-    })
-
-    if (!shed) {
-      log.warn({ shedId }, 'Shed not found')
-      throw new NotFoundError('Shed not found')
-    }
-
-    const reptile = await this.reptileRepository.findById(shed.reptileId)
-
-    if (!reptile || reptile.userId !== userId) {
-      log.warn({ userId, shedId }, 'Access denied to shed')
-      throw new ForbiddenError('Access denied')
-    }
-
-    return shed
   }
 
   async list(
@@ -93,7 +41,7 @@ export class ShedService {
     } = query
 
     // Verify reptile access first
-    await this.verifyReptileAccess(userId, reptileId)
+    await verifyReptileOwnership(reptileId, userId)
 
     const skip = (page - 1) * limit
     const orderBy = { [sort]: order }
@@ -118,43 +66,30 @@ export class ShedService {
       }),
     ])
 
-    const totalPages = Math.ceil(total / limit)
-
     return {
       data: sheds,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
+      meta: createPaginationMeta({ total, page, limit }),
     }
   }
 
   async getById(userId: string, shedId: string): Promise<Shed> {
     log.info({ userId, shedId }, 'Getting shed by id')
 
-    const shed = await this.verifyShedAccess(userId, shedId)
+    const shed = await verifyRecordOwnership(
+      this.shedRepository,
+      shedId,
+      userId,
+      { entityLabel: 'Shed' }
+    )
     return shed
   }
 
   async create(userId: string, reptileId: string, data: unknown): Promise<Shed> {
     // Verify reptile access first
-    await this.verifyReptileAccess(userId, reptileId)
+    await verifyReptileOwnership(reptileId, userId)
 
     // Validate input data
-    const validationResult = ShedCreateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ reptileId, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(ShedCreateSchema, data)
 
     log.info(
       { userId, reptileId, quality: validated.quality },
@@ -178,19 +113,15 @@ export class ShedService {
 
   async update(userId: string, shedId: string, data: unknown): Promise<Shed> {
     // Verify shed access
-    await this.verifyShedAccess(userId, shedId)
+    await verifyRecordOwnership(
+      this.shedRepository,
+      shedId,
+      userId,
+      { entityLabel: 'Shed' }
+    )
 
     // Validate update data
-    const validationResult = ShedUpdateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ shedId, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(ShedUpdateSchema, data)
 
     log.info({ userId, shedId }, 'Updating shed')
 
@@ -205,7 +136,12 @@ export class ShedService {
     shedId: string
   ): Promise<{ id: string; deletedAt: Date }> {
     // Verify shed access
-    await this.verifyShedAccess(userId, shedId)
+    await verifyRecordOwnership(
+      this.shedRepository,
+      shedId,
+      userId,
+      { entityLabel: 'Shed' }
+    )
 
     log.info({ userId, shedId }, 'Deleting shed')
 

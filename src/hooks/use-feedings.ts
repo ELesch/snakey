@@ -9,8 +9,8 @@ import {
   createFeeding,
   updateFeeding,
   deleteFeeding,
-  FeedingApiError,
 } from '@/lib/api/feeding.api'
+import { ApiClientError } from '@/lib/api/utils'
 import type { Feeding } from '@/generated/prisma/client'
 import type { FeedingCreate, FeedingUpdate, FeedingQuery } from '@/validations/feeding'
 
@@ -89,7 +89,7 @@ export function useFeedings(reptileId: string, query: Partial<FeedingQuery> = {}
     meta,
     isPending: isOnline ? isPending : offlineFeedings === undefined,
     isError,
-    error: error as FeedingApiError | null,
+    error: error as ApiClientError | null,
     isOnline,
     isOfflineData: !isOnline || !apiData,
     refetch,

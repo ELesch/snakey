@@ -7,8 +7,8 @@ import {
   fetchShedStats,
   fetchEnvironmentStats,
   fetchReportsSummary,
-  ReportsApiError,
 } from '@/lib/api/reports.api'
+import { ApiClientError } from '@/lib/api/utils'
 import type {
   GrowthDataPoint,
   FeedingDataPoint,
@@ -52,7 +52,7 @@ export function useGrowthData(filters: ReportFilters = {}) {
     growthData: growthData as GrowthDataPoint[] | undefined,
     isPending,
     isError,
-    error: error as ReportsApiError | null,
+    error: error as ApiClientError | null,
     refetch,
   }
 }
@@ -79,7 +79,7 @@ export function useFeedingStats(filters: ReportFilters = {}) {
     feedingSummary: data?.summary as FeedingStatsSummary | undefined,
     isPending,
     isError,
-    error: error as ReportsApiError | null,
+    error: error as ApiClientError | null,
     refetch,
   }
 }
@@ -106,7 +106,7 @@ export function useShedStats(filters: ReportFilters = {}) {
     shedSummary: data?.summary as ShedStatsSummary | undefined,
     isPending,
     isError,
-    error: error as ReportsApiError | null,
+    error: error as ApiClientError | null,
     refetch,
   }
 }
@@ -133,7 +133,7 @@ export function useEnvironmentStats(filters: ReportFilters = {}) {
     environmentSummary: data?.summary as EnvironmentStatsSummary | undefined,
     isPending,
     isError,
-    error: error as ReportsApiError | null,
+    error: error as ApiClientError | null,
     refetch,
   }
 }
@@ -159,7 +159,7 @@ export function useReportsSummary() {
     summary: summary as SummaryResponse | undefined,
     isPending,
     isError,
-    error: error as ReportsApiError | null,
+    error: error as ApiClientError | null,
     refetch,
   }
 }

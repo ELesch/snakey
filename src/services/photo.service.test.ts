@@ -21,12 +21,16 @@ vi.mock('@/repositories/photo.repository', () => ({
   })),
 }))
 
-// Mock the reptile repository for ownership checks
-vi.mock('@/repositories/reptile.repository', () => ({
-  ReptileRepository: vi.fn().mockImplementation(() => ({
+// Mock the reptile repository for ownership checks (used by base.service)
+vi.mock('@/repositories/reptile.repository', () => {
+  const instance = {
     findById: vi.fn(),
-  })),
-}))
+  }
+  return {
+    ReptileRepository: vi.fn().mockImplementation(() => instance),
+    reptileRepository: instance,
+  }
+})
 
 // Mock Supabase storage
 vi.mock('@/lib/supabase/storage', () => ({
@@ -95,6 +99,8 @@ describe('PhotoService', () => {
 
     // Get mock instances
     const { uploadPhoto, deletePhoto, getSignedUrl } = await import('@/lib/supabase/storage')
+    const { reptileRepository } = await import('@/repositories/reptile.repository')
+
     mockStorage = {
       uploadPhoto: uploadPhoto as Mock,
       deletePhoto: deletePhoto as Mock,
@@ -105,7 +111,7 @@ describe('PhotoService', () => {
 
     // Access the mocked repositories
     mockPhotoRepo = (service as unknown as { photoRepository: typeof mockPhotoRepo }).photoRepository
-    mockReptileRepo = (service as unknown as { reptileRepository: typeof mockReptileRepo }).reptileRepository
+    mockReptileRepo = reptileRepository as unknown as typeof mockReptileRepo
   })
 
   describe('list', () => {

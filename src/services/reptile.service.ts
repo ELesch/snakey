@@ -1,6 +1,7 @@
 // Reptile Service - Business Logic Layer
 import { createLogger } from '@/lib/logger'
 import { NotFoundError, ForbiddenError, ValidationError } from '@/lib/errors'
+import { createPaginationMeta, validateSchema } from '@/lib/utils'
 import type { PaginatedResult } from '@/types/pagination'
 import {
   ReptileRepository,
@@ -71,18 +72,9 @@ export class ReptileService {
       }),
     ])
 
-    const totalPages = Math.ceil(total / limit)
-
     return {
       data: reptiles,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
+      meta: createPaginationMeta({ total, page, limit }),
     }
   }
 
@@ -117,17 +109,7 @@ export class ReptileService {
 
   async create(userId: string, data: unknown): Promise<Reptile> {
     // Validate input data
-    const validationResult = ReptileCreateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      // Zod 4 uses 'issues' property for errors
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ userId, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(ReptileCreateSchema, data)
 
     log.info({ userId, species: validated.species, name: validated.name }, 'Creating reptile')
 
@@ -169,17 +151,7 @@ export class ReptileService {
     }
 
     // Validate update data
-    const validationResult = ReptileUpdateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      // Zod 4 uses 'issues' property for errors
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ reptileId: id, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(ReptileUpdateSchema, data)
 
     log.info({ userId, reptileId: id }, 'Updating reptile')
 

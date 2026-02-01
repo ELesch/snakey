@@ -2,6 +2,7 @@
 // This module provides backward compatibility by composing both services
 import { createLogger } from '@/lib/logger'
 import { NotFoundError, ForbiddenError, ValidationError } from '@/lib/errors'
+import { createPaginationMeta, validateSchema } from '@/lib/utils'
 import type { PaginatedResult } from '@/types/pagination'
 import { VetRepository } from '@/repositories/vet.repository'
 import { ReptileRepository } from '@/repositories/reptile.repository'
@@ -51,8 +52,7 @@ export class VetService {
       this.vetRepository.findManyVisits({ reptileId, skip, take: limit, orderBy: { [sort]: order }, startDate, endDate }),
       this.vetRepository.countVisits({ reptileId, startDate, endDate }),
     ])
-    const totalPages = Math.ceil(total / limit)
-    return { data: visits, meta: { page, limit, total, totalPages, hasNext: page < totalPages, hasPrev: page > 1 } }
+    return { data: visits, meta: createPaginationMeta({ total, page, limit }) }
   }
 
   async getVisitById(userId: string, visitId: string): Promise<VetVisit> {
@@ -64,9 +64,7 @@ export class VetService {
 
   async createVisit(userId: string, reptileId: string, data: unknown): Promise<VetVisit> {
     await this.verifyOwnership(userId, reptileId)
-    const result = VetVisitCreateSchema.safeParse(data)
-    if (!result.success) throw new ValidationError(result.error.issues[0]?.message || 'Validation failed')
-    const v = result.data
+    const v = validateSchema(VetVisitCreateSchema, data)
     log.info({ userId, reptileId, reason: v.reason }, 'Creating vet visit')
     return this.vetRepository.createVisit({ ...(v.id && { id: v.id }), reptileId, date: v.date, reason: v.reason, diagnosis: v.diagnosis, treatment: v.treatment, vetName: v.vetName, vetClinic: v.vetClinic, cost: v.cost, followUp: v.followUp, notes: v.notes })
   }
@@ -75,10 +73,9 @@ export class VetService {
     const existing = await this.vetRepository.findVisitById(visitId, { includeReptile: true })
     if (!existing) throw new NotFoundError('Vet visit not found')
     if (!existing.reptile || existing.reptile.userId !== userId) throw new ForbiddenError('Access denied')
-    const result = VetVisitUpdateSchema.safeParse(data)
-    if (!result.success) throw new ValidationError(result.error.issues[0]?.message || 'Validation failed')
+    const validated = validateSchema(VetVisitUpdateSchema, data)
     log.info({ userId, visitId }, 'Updating vet visit')
-    return this.vetRepository.updateVisit(visitId, result.data)
+    return this.vetRepository.updateVisit(visitId, validated)
   }
 
   async deleteVisit(userId: string, visitId: string): Promise<{ id: string }> {
@@ -100,8 +97,7 @@ export class VetService {
       this.vetRepository.findManyMedications({ reptileId, skip, take: limit, orderBy: { [sort]: order }, activeOnly }),
       this.vetRepository.countMedications({ reptileId, activeOnly }),
     ])
-    const totalPages = Math.ceil(total / limit)
-    return { data: medications, meta: { page, limit, total, totalPages, hasNext: page < totalPages, hasPrev: page > 1 } }
+    return { data: medications, meta: createPaginationMeta({ total, page, limit }) }
   }
 
   async getMedicationById(userId: string, medicationId: string): Promise<Medication> {
@@ -113,9 +109,7 @@ export class VetService {
 
   async createMedication(userId: string, reptileId: string, data: unknown): Promise<Medication> {
     await this.verifyOwnership(userId, reptileId)
-    const result = MedicationCreateSchema.safeParse(data)
-    if (!result.success) throw new ValidationError(result.error.issues[0]?.message || 'Validation failed')
-    const v = result.data
+    const v = validateSchema(MedicationCreateSchema, data)
     log.info({ userId, reptileId, name: v.name }, 'Creating medication')
     return this.vetRepository.createMedication({ ...(v.id && { id: v.id }), reptileId, name: v.name, dosage: v.dosage, frequency: v.frequency, startDate: v.startDate, endDate: v.endDate, notes: v.notes, reminders: v.reminders })
   }
@@ -124,10 +118,9 @@ export class VetService {
     const existing = await this.vetRepository.findMedicationById(medicationId, { includeReptile: true })
     if (!existing) throw new NotFoundError('Medication not found')
     if (!existing.reptile || existing.reptile.userId !== userId) throw new ForbiddenError('Access denied')
-    const result = MedicationUpdateSchema.safeParse(data)
-    if (!result.success) throw new ValidationError(result.error.issues[0]?.message || 'Validation failed')
+    const validated = validateSchema(MedicationUpdateSchema, data)
     log.info({ userId, medicationId }, 'Updating medication')
-    return this.vetRepository.updateMedication(medicationId, result.data)
+    return this.vetRepository.updateMedication(medicationId, validated)
   }
 
   async deleteMedication(userId: string, medicationId: string): Promise<{ id: string }> {

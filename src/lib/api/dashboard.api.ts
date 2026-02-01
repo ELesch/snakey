@@ -5,66 +5,11 @@ import type {
   EnvironmentAlert,
   Activity,
 } from '@/services/dashboard.service'
+import type { SingleResponse } from './types'
+import { handleResponse } from './utils'
 
-// API Response Types
-export interface ApiError {
-  code: string
-  message: string
-  details?: unknown
-}
-
-export interface SingleResponse<T> {
-  data: T
-}
-
-export interface ErrorResponse {
-  error: ApiError
-}
-
-// Type guard
-function isErrorResponse(response: unknown): response is ErrorResponse {
-  return (
-    typeof response === 'object' &&
-    response !== null &&
-    'error' in response &&
-    typeof (response as ErrorResponse).error === 'object'
-  )
-}
-
-// API Error class
-export class DashboardApiError extends Error {
-  code: string
-  status: number
-
-  constructor(code: string, message: string, status: number) {
-    super(message)
-    this.name = 'DashboardApiError'
-    this.code = code
-    this.status = status
-  }
-}
-
-// Helper to handle API responses
-async function handleResponse<T>(response: Response): Promise<T> {
-  const data = await response.json()
-
-  if (!response.ok) {
-    if (isErrorResponse(data)) {
-      throw new DashboardApiError(
-        data.error.code,
-        data.error.message,
-        response.status
-      )
-    }
-    throw new DashboardApiError(
-      'UNKNOWN_ERROR',
-      'An unexpected error occurred',
-      response.status
-    )
-  }
-
-  return data as T
-}
+// Re-export ApiClientError for backwards compatibility
+export { ApiClientError } from './utils'
 
 /**
  * Fetch dashboard stats

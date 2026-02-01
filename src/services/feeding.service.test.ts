@@ -19,12 +19,16 @@ vi.mock('@/repositories/feeding.repository', () => ({
   })),
 }))
 
-// Mock the reptile repository for ownership checks
-vi.mock('@/repositories/reptile.repository', () => ({
-  ReptileRepository: vi.fn().mockImplementation(() => ({
+// Mock the reptile repository for ownership checks (used by base.service)
+vi.mock('@/repositories/reptile.repository', () => {
+  const instance = {
     findById: vi.fn(),
-  })),
-}))
+  }
+  return {
+    ReptileRepository: vi.fn().mockImplementation(() => instance),
+    reptileRepository: instance,
+  }
+})
 
 // Mock logger
 vi.mock('@/lib/logger', () => ({
@@ -80,15 +84,14 @@ describe('FeedingService', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
 
-    // Get mock instances
-    const { FeedingRepository } = await import('@/repositories/feeding.repository')
-    const { ReptileRepository } = await import('@/repositories/reptile.repository')
+    // Get the mock instance from the module (used by base.service)
+    const { reptileRepository } = await import('@/repositories/reptile.repository')
 
     service = new FeedingService()
 
     // Access the mocked repositories
     mockFeedingRepo = (service as unknown as { feedingRepository: typeof mockFeedingRepo }).feedingRepository
-    mockReptileRepo = (service as unknown as { reptileRepository: typeof mockReptileRepo }).reptileRepository
+    mockReptileRepo = reptileRepository as unknown as typeof mockReptileRepo
   })
 
   describe('list', () => {

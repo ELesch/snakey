@@ -12,8 +12,8 @@ import {
   createMedication,
   updateMedication,
   deleteMedication,
-  VetApiError,
 } from '@/lib/api/vet.api'
+import { ApiClientError } from '@/lib/api/utils'
 import type { VetVisit, Medication } from '@/generated/prisma/client'
 import type {
   VetVisitCreate,
@@ -65,7 +65,7 @@ export function useVetVisits(reptileId: string, query: Partial<VetQuery> = {}) {
     meta: apiData?.meta,
     isPending,
     isError,
-    error: error as VetApiError | null,
+    error: error as ApiClientError | null,
     refetch,
   }
 }
@@ -152,7 +152,7 @@ export function useMedications(reptileId: string, query: Partial<MedicationQuery
     meta: apiData?.meta,
     isPending,
     isError,
-    error: error as VetApiError | null,
+    error: error as ApiClientError | null,
     refetch,
   }
 }

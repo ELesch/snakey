@@ -13,6 +13,10 @@ export interface FindManyOptions {
   alertsOnly?: boolean
 }
 
+export interface FindByIdOptions {
+  includeReptile?: boolean
+}
+
 export class EnvironmentRepository {
   async findMany(options: FindManyOptions): Promise<EnvironmentLog[]> {
     const {
@@ -66,9 +70,23 @@ export class EnvironmentRepository {
     return prisma.environmentLog.count({ where })
   }
 
-  async findById(id: string): Promise<EnvironmentLog | null> {
+  async findById(
+    id: string,
+    options?: FindByIdOptions
+  ): Promise<(EnvironmentLog & { reptile?: { id: string; userId: string; deletedAt: Date | null } }) | null> {
     return prisma.environmentLog.findUnique({
       where: { id },
+      include: options?.includeReptile
+        ? {
+            reptile: {
+              select: {
+                id: true,
+                userId: true,
+                deletedAt: true,
+              },
+            },
+          }
+        : undefined,
     })
   }
 

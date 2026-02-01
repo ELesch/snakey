@@ -214,7 +214,7 @@ describe('ShedRepository', () => {
       expect(result).toEqual(mockShed)
       expect(prisma.shed.findUnique).toHaveBeenCalledWith({
         where: { id: 'clshed123456789' },
-        include: undefined,
+        include: {},
       })
     })
 
@@ -233,7 +233,15 @@ describe('ShedRepository', () => {
 
       expect(prisma.shed.findUnique).toHaveBeenCalledWith({
         where: { id: 'clshed123456789' },
-        include: { reptile: true },
+        include: {
+          reptile: {
+            select: {
+              id: true,
+              userId: true,
+              deletedAt: true,
+            },
+          },
+        },
       })
     })
 

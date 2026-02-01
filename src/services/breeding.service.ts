@@ -1,6 +1,7 @@
 // Breeding Service - Business Logic Layer
 import { createLogger } from '@/lib/logger'
 import { NotFoundError, ForbiddenError, ValidationError } from '@/lib/errors'
+import { createPaginationMeta, validateSchema } from '@/lib/utils'
 import type { PaginatedResult } from '@/types/pagination'
 import {
   PairingRepository,
@@ -103,18 +104,9 @@ export class PairingService {
       }),
     ])
 
-    const totalPages = Math.ceil(total / limit)
-
     return {
       data: pairings,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
+      meta: createPaginationMeta({ total, page, limit }),
     }
   }
 
@@ -142,16 +134,7 @@ export class PairingService {
 
   async create(userId: string, data: unknown): Promise<Pairing> {
     // Validate input data
-    const validationResult = PairingCreateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(PairingCreateSchema, data)
 
     // Verify ownership of both reptiles
     await this.verifyReptileOwnership(userId, validated.maleId, 'Male')
@@ -192,16 +175,7 @@ export class PairingService {
     }
 
     // Validate update data
-    const validationResult = PairingUpdateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ pairingId, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(PairingUpdateSchema, data)
 
     // If changing male or female, verify ownership
     if (validated.maleId) {
@@ -305,18 +279,9 @@ export class ClutchService {
       this.clutchRepository.count({ pairingId }),
     ])
 
-    const totalPages = Math.ceil(total / limit)
-
     return {
       data: clutches,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
+      meta: createPaginationMeta({ total, page, limit }),
     }
   }
 
@@ -346,16 +311,7 @@ export class ClutchService {
     await this.verifyPairingOwnership(userId, pairingId)
 
     // Validate input data
-    const validationResult = ClutchCreateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ pairingId, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(ClutchCreateSchema, data)
 
     log.info(
       { userId, pairingId, eggCount: validated.eggCount },
@@ -394,16 +350,7 @@ export class ClutchService {
     }
 
     // Validate update data
-    const validationResult = ClutchUpdateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ clutchId, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(ClutchUpdateSchema, data)
 
     log.info({ userId, clutchId }, 'Updating clutch')
 
@@ -508,18 +455,9 @@ export class HatchlingService {
       }),
     ])
 
-    const totalPages = Math.ceil(total / limit)
-
     return {
       data: hatchlings,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
+      meta: createPaginationMeta({ total, page, limit }),
     }
   }
 
@@ -548,16 +486,7 @@ export class HatchlingService {
     await this.verifyClutchOwnership(userId, clutchId)
 
     // Validate input data
-    const validationResult = HatchlingCreateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ clutchId, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(HatchlingCreateSchema, data)
 
     log.info(
       { userId, clutchId, status: validated.status },
@@ -596,16 +525,7 @@ export class HatchlingService {
     }
 
     // Validate update data
-    const validationResult = HatchlingUpdateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ hatchlingId, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(HatchlingUpdateSchema, data)
 
     log.info({ userId, hatchlingId }, 'Updating hatchling')
 

@@ -9,8 +9,8 @@ import {
   createEnvironmentLog,
   updateEnvironmentLog,
   deleteEnvironmentLog,
-  EnvironmentApiError,
 } from '@/lib/api/environment.api'
+import { ApiClientError } from '@/lib/api/utils'
 import type { EnvironmentLog } from '@/generated/prisma/client'
 import type { EnvironmentCreate, EnvironmentUpdate, EnvironmentQuery } from '@/validations/environment'
 
@@ -90,7 +90,7 @@ export function useEnvironmentLogs(reptileId: string, query: Partial<Environment
     meta,
     isPending: isOnline ? isPending : offlineLogs === undefined,
     isError,
-    error: error as EnvironmentApiError | null,
+    error: error as ApiClientError | null,
     isOnline,
     isOfflineData: !isOnline || !apiData,
     refetch,

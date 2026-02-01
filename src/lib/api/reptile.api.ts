@@ -1,96 +1,11 @@
 // Reptile API Client - Handles HTTP requests to /api/reptiles
 import type { Reptile } from '@/generated/prisma/client'
 import type { ReptileCreate, ReptileUpdate, ReptileQuery } from '@/validations/reptile'
+import type { PaginatedResponse, SingleResponse } from './types'
+import { handleResponse, buildQueryString } from './utils'
 
-// API Response Types
-export interface ApiError {
-  code: string
-  message: string
-  details?: unknown
-}
-
-export interface PaginatedResponse<T> {
-  data: T[]
-  meta: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-    hasNext: boolean
-    hasPrev: boolean
-  }
-}
-
-export interface SingleResponse<T> {
-  data: T
-}
-
-export interface ErrorResponse {
-  error: ApiError
-}
-
-// Type guards
-function isErrorResponse(response: unknown): response is ErrorResponse {
-  return (
-    typeof response === 'object' &&
-    response !== null &&
-    'error' in response &&
-    typeof (response as ErrorResponse).error === 'object'
-  )
-}
-
-// API Error class for better error handling
-export class ReptileApiError extends Error {
-  code: string
-  status: number
-
-  constructor(code: string, message: string, status: number) {
-    super(message)
-    this.name = 'ReptileApiError'
-    this.code = code
-    this.status = status
-  }
-}
-
-// Helper to handle API responses
-async function handleResponse<T>(response: Response): Promise<T> {
-  const data = await response.json()
-
-  if (!response.ok) {
-    if (isErrorResponse(data)) {
-      throw new ReptileApiError(
-        data.error.code,
-        data.error.message,
-        response.status
-      )
-    }
-    throw new ReptileApiError(
-      'UNKNOWN_ERROR',
-      'An unexpected error occurred',
-      response.status
-    )
-  }
-
-  return data as T
-}
-
-// Build query string from params
-function buildQueryString(params: Record<string, unknown>): string {
-  const searchParams = new URLSearchParams()
-
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      if (Array.isArray(value)) {
-        searchParams.set(key, value.join(','))
-      } else {
-        searchParams.set(key, String(value))
-      }
-    }
-  })
-
-  const queryString = searchParams.toString()
-  return queryString ? `?${queryString}` : ''
-}
+// Re-export ApiClientError for backwards compatibility
+export { ApiClientError } from './utils'
 
 /**
  * Fetch all reptiles with optional filtering and pagination

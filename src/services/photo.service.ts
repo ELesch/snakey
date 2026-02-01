@@ -1,9 +1,9 @@
 // Photo Service - Business Logic Layer
 import { createLogger } from '@/lib/logger'
 import { NotFoundError, ForbiddenError, ValidationError, StorageError } from '@/lib/errors'
+import { createPaginationMeta, validateSchema } from '@/lib/utils'
 import type { PaginatedResult } from '@/types/pagination'
 import { PhotoRepository } from '@/repositories/photo.repository'
-import { ReptileRepository } from '@/repositories/reptile.repository'
 import {
   PhotoCreateSchema,
   PhotoUpdateSchema,
@@ -11,6 +11,7 @@ import {
   type PhotoQuery,
 } from '@/validations/photo'
 import { deletePhoto, getSignedUrl } from '@/lib/supabase/storage'
+import { verifyReptileOwnership, verifyRecordOwnership } from './base.service'
 import type { Photo, PhotoCategory } from '@/generated/prisma/client'
 import { randomUUID } from 'crypto'
 
@@ -28,33 +29,9 @@ export interface UploadUrlResult {
 
 export class PhotoService {
   private photoRepository: PhotoRepository
-  private reptileRepository: ReptileRepository
 
   constructor() {
     this.photoRepository = new PhotoRepository()
-    this.reptileRepository = new ReptileRepository()
-  }
-
-  private async verifyReptileOwnership(
-    userId: string,
-    reptileId: string
-  ): Promise<void> {
-    const reptile = await this.reptileRepository.findById(reptileId)
-
-    if (!reptile) {
-      log.warn({ reptileId }, 'Reptile not found')
-      throw new NotFoundError('Reptile not found')
-    }
-
-    if (reptile.userId !== userId) {
-      log.warn({ userId, reptileId }, 'Access denied to reptile')
-      throw new ForbiddenError('Access denied')
-    }
-
-    if (reptile.deletedAt) {
-      log.warn({ reptileId }, 'Reptile is deleted')
-      throw new NotFoundError('Reptile not found')
-    }
   }
 
   async list(
@@ -62,7 +39,7 @@ export class PhotoService {
     reptileId: string,
     query: Partial<PhotoQuery> = {}
   ): Promise<PaginatedResult<Photo>> {
-    await this.verifyReptileOwnership(userId, reptileId)
+    await verifyReptileOwnership(reptileId, userId)
 
     const {
       page = 1,
@@ -99,59 +76,29 @@ export class PhotoService {
       }),
     ])
 
-    const totalPages = Math.ceil(total / limit)
-
     return {
       data: photos,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
+      meta: createPaginationMeta({ total, page, limit }),
     }
   }
 
   async getById(userId: string, photoId: string): Promise<Photo> {
     log.info({ userId, photoId }, 'Getting photo by id')
 
-    const photo = await this.photoRepository.findById(photoId, {
-      includeReptile: true,
-    })
-
-    if (!photo) {
-      log.warn({ photoId }, 'Photo not found')
-      throw new NotFoundError('Photo not found')
-    }
-
-    if (!photo.reptile || photo.reptile.userId !== userId) {
-      log.warn({ userId, photoId }, 'Access denied to photo')
-      throw new ForbiddenError('Access denied')
-    }
-
-    if (photo.deletedAt) {
-      log.warn({ photoId }, 'Photo is deleted')
-      throw new NotFoundError('Photo not found')
-    }
+    const photo = await verifyRecordOwnership(
+      this.photoRepository,
+      photoId,
+      userId,
+      { entityLabel: 'Photo' }
+    )
 
     return photo
   }
 
   async create(userId: string, reptileId: string, data: unknown): Promise<Photo> {
-    await this.verifyReptileOwnership(userId, reptileId)
+    await verifyReptileOwnership(reptileId, userId)
 
-    const validationResult = PhotoCreateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ reptileId, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(PhotoCreateSchema, data)
 
     log.info({ userId, reptileId, category: validated.category }, 'Creating photo')
 
@@ -178,35 +125,14 @@ export class PhotoService {
   }
 
   async update(userId: string, photoId: string, data: unknown): Promise<Photo> {
-    const existing = await this.photoRepository.findById(photoId, {
-      includeReptile: true,
-    })
+    const existing = await verifyRecordOwnership(
+      this.photoRepository,
+      photoId,
+      userId,
+      { entityLabel: 'Photo' }
+    )
 
-    if (!existing) {
-      log.warn({ photoId }, 'Photo not found for update')
-      throw new NotFoundError('Photo not found')
-    }
-
-    if (!existing.reptile || existing.reptile.userId !== userId) {
-      log.warn({ userId, photoId }, 'Access denied for update')
-      throw new ForbiddenError('Access denied')
-    }
-
-    if (existing.deletedAt) {
-      log.warn({ photoId }, 'Photo is deleted')
-      throw new NotFoundError('Photo not found')
-    }
-
-    const validationResult = PhotoUpdateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ photoId, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(PhotoUpdateSchema, data)
 
     log.info({ userId, photoId }, 'Updating photo')
 
@@ -222,19 +148,12 @@ export class PhotoService {
   }
 
   async delete(userId: string, photoId: string): Promise<{ id: string }> {
-    const existing = await this.photoRepository.findById(photoId, {
-      includeReptile: true,
-    })
-
-    if (!existing) {
-      log.warn({ photoId }, 'Photo not found for delete')
-      throw new NotFoundError('Photo not found')
-    }
-
-    if (!existing.reptile || existing.reptile.userId !== userId) {
-      log.warn({ userId, photoId }, 'Access denied for delete')
-      throw new ForbiddenError('Access denied')
-    }
+    const existing = await verifyRecordOwnership(
+      this.photoRepository,
+      photoId,
+      userId,
+      { entityLabel: 'Photo', allowDeleted: true }
+    )
 
     log.info({ userId, photoId }, 'Deleting photo')
 
@@ -261,18 +180,9 @@ export class PhotoService {
     reptileId: string,
     data: unknown
   ): Promise<UploadUrlResult> {
-    await this.verifyReptileOwnership(userId, reptileId)
+    await verifyReptileOwnership(reptileId, userId)
 
-    const validationResult = UploadUrlRequestSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ reptileId, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const { filename } = validationResult.data
+    const { filename } = validateSchema(UploadUrlRequestSchema, data)
 
     // Generate unique paths
     const fileId = randomUUID()

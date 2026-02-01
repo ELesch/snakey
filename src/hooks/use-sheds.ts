@@ -9,8 +9,8 @@ import {
   createShed,
   updateShed,
   deleteShed,
-  ShedApiError,
 } from '@/lib/api/shed.api'
+import { ApiClientError } from '@/lib/api/utils'
 import type { Shed } from '@/generated/prisma/client'
 import type { ShedCreate, ShedUpdate, ShedQuery } from '@/validations/shed'
 
@@ -87,7 +87,7 @@ export function useSheds(reptileId: string, query: Partial<ShedQuery> = {}) {
     meta,
     isPending: isOnline ? isPending : offlineSheds === undefined,
     isError,
-    error: error as ShedApiError | null,
+    error: error as ApiClientError | null,
     isOnline,
     isOfflineData: !isOnline || !apiData,
     refetch,

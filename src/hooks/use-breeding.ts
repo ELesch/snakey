@@ -18,8 +18,8 @@ import {
   createHatchling,
   updateHatchling,
   deleteHatchling,
-  BreedingApiError,
 } from '@/lib/api/breeding.api'
+import { ApiClientError } from '@/lib/api/utils'
 import type { Pairing, Clutch, Hatchling } from '@/generated/prisma/client'
 import type {
   PairingCreate,
@@ -91,7 +91,7 @@ export function usePairings(query: Partial<PairingQuery> = {}) {
     meta: apiData?.meta,
     isPending,
     isError,
-    error: error as BreedingApiError | null,
+    error: error as ApiClientError | null,
     isOnline,
     refetch,
   }
@@ -121,7 +121,7 @@ export function usePairing(pairingId: string, options: { enabled?: boolean } = {
     pairing: pairing as Pairing | undefined,
     isPending,
     isError,
-    error: error as BreedingApiError | null,
+    error: error as ApiClientError | null,
     isOnline,
     refetch,
   }
@@ -224,7 +224,7 @@ export function useClutches(pairingId: string, query: Partial<ClutchQuery> = {})
     meta: apiData?.meta,
     isPending,
     isError,
-    error: error as BreedingApiError | null,
+    error: error as ApiClientError | null,
     isOnline,
     refetch,
   }
@@ -254,7 +254,7 @@ export function useClutch(clutchId: string, options: { enabled?: boolean } = {})
     clutch: clutch as Clutch | undefined,
     isPending,
     isError,
-    error: error as BreedingApiError | null,
+    error: error as ApiClientError | null,
     isOnline,
     refetch,
   }
@@ -361,7 +361,7 @@ export function useHatchlings(clutchId: string, query: Partial<HatchlingQuery> =
     meta: apiData?.meta,
     isPending,
     isError,
-    error: error as BreedingApiError | null,
+    error: error as ApiClientError | null,
     isOnline,
     refetch,
   }
@@ -391,7 +391,7 @@ export function useHatchling(hatchlingId: string, options: { enabled?: boolean }
     hatchling: hatchling as Hatchling | undefined,
     isPending,
     isError,
-    error: error as BreedingApiError | null,
+    error: error as ApiClientError | null,
     isOnline,
     refetch,
   }

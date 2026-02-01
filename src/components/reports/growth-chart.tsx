@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGrowthData } from '@/hooks/use-reports'
 import { Loader2, Scale } from 'lucide-react'
 import type { ReportFilters } from '@/services/reports.service'
+import { formatChartDate } from './chart-utils'
 
 // Dynamic import for chart content - only loaded when component mounts
 const GrowthChartContent = dynamic(
@@ -17,11 +18,6 @@ const GrowthChartContent = dynamic(
 
 interface GrowthChartProps {
   filters: ReportFilters
-}
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 function ChartLoadingSkeleton() {
@@ -56,7 +52,7 @@ export function GrowthChart({ filters }: GrowthChartProps) {
   // Transform data for chart - format dates
   const chartData = growthData?.map((point) => ({
     ...point,
-    dateFormatted: formatDate(point.date),
+    dateFormatted: formatChartDate(point.date),
   }))
 
   return (

@@ -11,6 +11,10 @@ export interface FindManyOptions {
   endDate?: Date
 }
 
+export interface FindByIdOptions {
+  includeReptile?: boolean
+}
+
 export class WeightRepository {
   async findMany(options: FindManyOptions): Promise<Weight[]> {
     const {
@@ -60,9 +64,23 @@ export class WeightRepository {
     return prisma.weight.count({ where })
   }
 
-  async findById(id: string): Promise<Weight | null> {
+  async findById(
+    id: string,
+    options?: FindByIdOptions
+  ): Promise<(Weight & { reptile?: { id: string; userId: string; deletedAt: Date | null } }) | null> {
     return prisma.weight.findUnique({
       where: { id },
+      include: options?.includeReptile
+        ? {
+            reptile: {
+              select: {
+                id: true,
+                userId: true,
+                deletedAt: true,
+              },
+            },
+          }
+        : undefined,
     })
   }
 

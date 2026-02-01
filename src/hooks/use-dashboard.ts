@@ -6,8 +6,8 @@ import {
   fetchRecentActivity,
   fetchUpcomingFeedings,
   fetchEnvironmentAlerts,
-  DashboardApiError,
 } from '@/lib/api/dashboard.api'
+import { ApiClientError } from '@/lib/api/utils'
 import type {
   DashboardStats,
   UpcomingFeeding,
@@ -45,7 +45,7 @@ export function useDashboardStats() {
     stats: stats as DashboardStats | undefined,
     isPending,
     isError,
-    error: error as DashboardApiError | null,
+    error: error as ApiClientError | null,
     refetch,
   }
 }
@@ -70,7 +70,7 @@ export function useRecentActivity(limit: number = 10) {
     activity: activity as Activity[] | undefined,
     isPending,
     isError,
-    error: error as DashboardApiError | null,
+    error: error as ApiClientError | null,
     refetch,
   }
 }
@@ -96,7 +96,7 @@ export function useUpcomingFeedings(days: number = 7) {
     feedings: feedings as UpcomingFeeding[] | undefined,
     isPending,
     isError,
-    error: error as DashboardApiError | null,
+    error: error as ApiClientError | null,
     refetch,
   }
 }
@@ -122,7 +122,7 @@ export function useEnvironmentAlerts() {
     alerts: alerts as EnvironmentAlert[] | undefined,
     isPending,
     isError,
-    error: error as DashboardApiError | null,
+    error: error as ApiClientError | null,
     refetch,
   }
 }

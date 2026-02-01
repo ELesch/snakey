@@ -1,53 +1,71 @@
 // API Client exports
+
+// Shared types and utilities
+export {
+  type ApiError,
+  type ErrorResponse,
+  type SingleResponse,
+  type PaginatedResponse,
+  type PaginationMeta,
+  type DeleteResponse,
+  type BaseQueryParams,
+} from './types'
+
+export {
+  ApiClientError,
+  isErrorResponse,
+  handleResponse,
+  buildQueryString,
+  createJsonHeaders,
+  createJsonRequestOptions,
+} from './utils'
+
+// Reptile API
 export {
   fetchReptiles,
   fetchReptile,
   createReptile,
   updateReptile,
   deleteReptile,
-  ReptileApiError,
-  type ApiError,
-  type PaginatedResponse,
-  type SingleResponse,
-  type ErrorResponse,
 } from './reptile.api'
 
+// Feeding API
 export {
   fetchFeedings,
   fetchFeeding,
   createFeeding,
   updateFeeding,
   deleteFeeding,
-  FeedingApiError,
 } from './feeding.api'
 
+// Weight API
 export {
   fetchWeights,
   fetchWeight,
   createWeight,
   updateWeight,
   deleteWeight,
-  WeightApiError,
 } from './weight.api'
 
+// Shed API
 export {
   fetchSheds,
   fetchShed,
   createShed,
   updateShed,
   deleteShed,
-  ShedApiError,
 } from './shed.api'
 
+// Environment API
 export {
   fetchEnvironmentLogs,
   fetchEnvironmentLog,
   createEnvironmentLog,
   updateEnvironmentLog,
   deleteEnvironmentLog,
-  EnvironmentApiError,
 } from './environment.api'
 
+// Photo API
 export {
   fetchPhotos,
   fetchPhoto,
@@ -56,10 +74,24 @@ export {
   deletePhoto,
   getUploadUrl,
   uploadToStorage,
-  PhotoApiError,
   type UploadUrlResponse,
 } from './photo.api'
 
+// Vet API
+export {
+  fetchVetVisits,
+  fetchVetVisit,
+  createVetVisit,
+  updateVetVisit,
+  deleteVetVisit,
+  fetchMedications,
+  fetchMedication,
+  createMedication,
+  updateMedication,
+  deleteMedication,
+} from './vet.api'
+
+// Breeding API
 export {
   fetchPairings,
   fetchPairing,
@@ -76,14 +108,21 @@ export {
   createHatchling,
   updateHatchling,
   deleteHatchling,
-  BreedingApiError,
 } from './breeding.api'
 
+// Dashboard API
+export {
+  fetchDashboardStats,
+  fetchRecentActivity,
+  fetchUpcomingFeedings,
+  fetchEnvironmentAlerts,
+} from './dashboard.api'
+
+// Reports API
 export {
   fetchGrowthData,
   fetchFeedingStats,
   fetchShedStats,
   fetchEnvironmentStats,
   fetchReportsSummary,
-  ReportsApiError,
 } from './reports.api'

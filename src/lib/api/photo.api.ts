@@ -1,76 +1,11 @@
 // Photo API Client - Handles HTTP requests to /api/reptiles/[id]/photos
 import type { Photo } from '@/generated/prisma/client'
 import type { PhotoCreate, PhotoUpdate, PhotoQuery } from '@/validations/photo'
-import {
-  type PaginatedResponse,
-  type SingleResponse,
-  type ErrorResponse,
-} from './reptile.api'
+import type { PaginatedResponse, SingleResponse } from './types'
+import { ApiClientError, handleResponse, buildQueryString } from './utils'
 
-// Type guards
-function isErrorResponse(response: unknown): response is ErrorResponse {
-  return (
-    typeof response === 'object' &&
-    response !== null &&
-    'error' in response &&
-    typeof (response as ErrorResponse).error === 'object'
-  )
-}
-
-// API Error class for better error handling
-export class PhotoApiError extends Error {
-  code: string
-  status: number
-
-  constructor(code: string, message: string, status: number) {
-    super(message)
-    this.name = 'PhotoApiError'
-    this.code = code
-    this.status = status
-  }
-}
-
-// Helper to handle API responses
-async function handleResponse<T>(response: Response): Promise<T> {
-  const data = await response.json()
-
-  if (!response.ok) {
-    if (isErrorResponse(data)) {
-      throw new PhotoApiError(
-        data.error.code,
-        data.error.message,
-        response.status
-      )
-    }
-    throw new PhotoApiError(
-      'UNKNOWN_ERROR',
-      'An unexpected error occurred',
-      response.status
-    )
-  }
-
-  return data as T
-}
-
-// Build query string from params
-function buildQueryString(params: Record<string, unknown>): string {
-  const searchParams = new URLSearchParams()
-
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      if (Array.isArray(value)) {
-        searchParams.set(key, value.join(','))
-      } else if (value instanceof Date) {
-        searchParams.set(key, value.toISOString())
-      } else {
-        searchParams.set(key, String(value))
-      }
-    }
-  })
-
-  const queryString = searchParams.toString()
-  return queryString ? `?${queryString}` : ''
-}
+// Re-export ApiClientError for backwards compatibility
+export { ApiClientError } from './utils'
 
 // Upload URL response type
 export interface UploadUrlResponse {
@@ -190,12 +125,12 @@ export async function uploadToStorage(
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve()
       } else {
-        reject(new PhotoApiError('UPLOAD_FAILED', 'Failed to upload file', xhr.status))
+        reject(new ApiClientError('UPLOAD_FAILED', 'Failed to upload file', xhr.status, 'photo'))
       }
     })
 
     xhr.addEventListener('error', () => {
-      reject(new PhotoApiError('UPLOAD_FAILED', 'Network error during upload', 0))
+      reject(new ApiClientError('UPLOAD_FAILED', 'Network error during upload', 0, 'photo'))
     })
 
     xhr.open('PUT', uploadUrl)

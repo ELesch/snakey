@@ -60,3 +60,7 @@ export function daysSince(date: Date | string): number {
   const diffMs = now.getTime() - d.getTime()
   return Math.floor(diffMs / (1000 * 60 * 60 * 24))
 }
+
+// Re-export utilities from utils/ directory
+export { createPaginationMeta, calculateSkip, type PaginationParams } from './utils/pagination'
+export { validateSchema, safeValidateSchema } from './utils/validation'

@@ -17,6 +17,8 @@ export interface FindByIdOptions {
     reptile?: boolean
     photos?: boolean | { take: number; orderBy: { takenAt: 'desc' } }
   }
+  /** Alias for include.reptile for consistency with other repositories */
+  includeReptile?: boolean
 }
 
 export class ShedRepository {
@@ -59,10 +61,24 @@ export class ShedRepository {
     return prisma.shed.count({ where })
   }
 
-  async findById(id: string, options?: FindByIdOptions): Promise<Shed | null> {
+  async findById(id: string, options?: FindByIdOptions): Promise<(Shed & { reptile?: { id: string; userId: string; deletedAt: Date | null } }) | null> {
+    // Support both include.reptile and includeReptile patterns
+    const includeReptile = options?.includeReptile || options?.include?.reptile
+
     return prisma.shed.findUnique({
       where: { id },
-      include: options?.include,
+      include: {
+        ...options?.include,
+        ...(includeReptile && {
+          reptile: {
+            select: {
+              id: true,
+              userId: true,
+              deletedAt: true,
+            },
+          },
+        }),
+      },
     })
   }
 

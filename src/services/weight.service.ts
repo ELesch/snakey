@@ -1,14 +1,15 @@
 // Weight Service - Business Logic Layer
 import { createLogger } from '@/lib/logger'
 import { NotFoundError, ForbiddenError, ValidationError } from '@/lib/errors'
+import { createPaginationMeta, validateSchema } from '@/lib/utils'
 import type { PaginatedResult } from '@/types/pagination'
 import { WeightRepository } from '@/repositories/weight.repository'
-import { ReptileRepository } from '@/repositories/reptile.repository'
 import {
   WeightCreateSchema,
   WeightUpdateSchema,
   type WeightQuery,
 } from '@/validations/weight'
+import { verifyReptileOwnership, verifyRecordOwnership } from './base.service'
 import type { Weight } from '@/generated/prisma/client'
 
 const log = createLogger('WeightService')
@@ -19,46 +20,9 @@ export type { PaginatedResult }
 
 export class WeightService {
   private weightRepository: WeightRepository
-  private reptileRepository: ReptileRepository
 
   constructor() {
     this.weightRepository = new WeightRepository()
-    this.reptileRepository = new ReptileRepository()
-  }
-
-  /**
-   * Verify the user owns the reptile
-   */
-  private async verifyReptileOwnership(userId: string, reptileId: string) {
-    const reptile = await this.reptileRepository.findById(reptileId)
-
-    if (!reptile) {
-      log.warn({ reptileId }, 'Reptile not found')
-      throw new NotFoundError('Reptile not found')
-    }
-
-    if (reptile.userId !== userId) {
-      log.warn({ userId, reptileId }, 'Access denied to reptile')
-      throw new ForbiddenError('Access denied')
-    }
-
-    return reptile
-  }
-
-  /**
-   * Verify the user owns the weight record (via reptile ownership)
-   */
-  private async verifyWeightOwnership(userId: string, weightId: string) {
-    const weight = await this.weightRepository.findById(weightId)
-
-    if (!weight) {
-      log.warn({ weightId }, 'Weight not found')
-      throw new NotFoundError('Weight not found')
-    }
-
-    await this.verifyReptileOwnership(userId, weight.reptileId)
-
-    return weight
   }
 
   async list(
@@ -76,7 +40,7 @@ export class WeightService {
     } = query
 
     // Verify ownership first
-    await this.verifyReptileOwnership(userId, reptileId)
+    await verifyReptileOwnership(reptileId, userId)
 
     const skip = (page - 1) * limit
     const orderBy = { [sort]: order }
@@ -99,43 +63,30 @@ export class WeightService {
       }),
     ])
 
-    const totalPages = Math.ceil(total / limit)
-
     return {
       data: weights,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
+      meta: createPaginationMeta({ total, page, limit }),
     }
   }
 
   async getById(userId: string, id: string): Promise<Weight> {
     log.info({ userId, weightId: id }, 'Getting weight by id')
 
-    const weight = await this.verifyWeightOwnership(userId, id)
+    const weight = await verifyRecordOwnership(
+      this.weightRepository,
+      id,
+      userId,
+      { entityLabel: 'Weight' }
+    )
     return weight
   }
 
   async create(userId: string, reptileId: string, data: unknown): Promise<Weight> {
     // Verify ownership first
-    await this.verifyReptileOwnership(userId, reptileId)
+    await verifyReptileOwnership(reptileId, userId)
 
     // Validate input data
-    const validationResult = WeightCreateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ reptileId, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(WeightCreateSchema, data)
 
     log.info({ userId, reptileId, weight: validated.weight }, 'Creating weight')
 
@@ -153,19 +104,15 @@ export class WeightService {
 
   async update(userId: string, id: string, data: unknown): Promise<Weight> {
     // Verify ownership
-    await this.verifyWeightOwnership(userId, id)
+    await verifyRecordOwnership(
+      this.weightRepository,
+      id,
+      userId,
+      { entityLabel: 'Weight' }
+    )
 
     // Validate update data
-    const validationResult = WeightUpdateSchema.safeParse(data)
-
-    if (!validationResult.success) {
-      const issues = validationResult.error.issues
-      const errorMessage = issues[0]?.message || 'Validation failed'
-      log.warn({ weightId: id, errors: issues }, 'Validation failed')
-      throw new ValidationError(errorMessage)
-    }
-
-    const validated = validationResult.data
+    const validated = validateSchema(WeightUpdateSchema, data)
 
     log.info({ userId, weightId: id }, 'Updating weight')
 
@@ -177,7 +124,12 @@ export class WeightService {
 
   async delete(userId: string, id: string): Promise<Weight> {
     // Verify ownership
-    await this.verifyWeightOwnership(userId, id)
+    await verifyRecordOwnership(
+      this.weightRepository,
+      id,
+      userId,
+      { entityLabel: 'Weight' }
+    )
 
     log.info({ userId, weightId: id }, 'Deleting weight')
 

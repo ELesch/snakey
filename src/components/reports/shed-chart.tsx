@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useShedStats } from '@/hooks/use-reports'
 import { Loader2, Sparkles } from 'lucide-react'
 import type { ReportFilters } from '@/services/reports.service'
+import { formatChartDate, getQualityColor, QUALITY_LEGEND_ITEMS } from './chart-utils'
 
 // Dynamic import for chart content - only loaded when component mounts
 const ShedChartContent = dynamic(
@@ -17,27 +18,6 @@ const ShedChartContent = dynamic(
 
 interface ShedChartProps {
   filters: ReportFilters
-}
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-
-// Color based on shed quality
-function getQualityColor(quality: string): string {
-  switch (quality.toUpperCase()) {
-    case 'EXCELLENT':
-      return '#22c55e' // green
-    case 'GOOD':
-      return '#84cc16' // lime
-    case 'FAIR':
-      return '#f59e0b' // amber
-    case 'POOR':
-      return '#ef4444' // red
-    default:
-      return '#6b7280' // gray
-  }
 }
 
 function ChartLoadingSkeleton() {
@@ -72,7 +52,7 @@ export function ShedChart({ filters }: ShedChartProps) {
   // Transform data for chart - include duration and formatted date
   const chartData = shedData?.map((point) => ({
     ...point,
-    dateFormatted: formatDate(point.date),
+    dateFormatted: formatChartDate(point.date),
     duration: point.durationDays ?? 0,
     color: getQualityColor(point.quality),
   }))
@@ -133,22 +113,12 @@ export function ShedChart({ filters }: ShedChartProps) {
         {/* Quality Legend */}
         {!isPending && !isError && chartData && chartData.length > 0 && (
           <div className="flex justify-center gap-4 mt-4 text-xs">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#22c55e' }} />
-              <span>Excellent</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#84cc16' }} />
-              <span>Good</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#f59e0b' }} />
-              <span>Fair</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#ef4444' }} />
-              <span>Poor</span>
-            </div>
+            {QUALITY_LEGEND_ITEMS.map((item) => (
+              <div key={item.label} className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
+                <span>{item.label}</span>
+              </div>
+            ))}
           </div>
         )}
       </CardContent>

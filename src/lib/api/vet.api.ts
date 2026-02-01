@@ -8,74 +8,11 @@ import type {
   MedicationUpdate,
   MedicationQuery,
 } from '@/validations/vet'
-import {
-  type PaginatedResponse,
-  type SingleResponse,
-  type ErrorResponse,
-} from './reptile.api'
+import type { PaginatedResponse, SingleResponse } from './types'
+import { handleResponse, buildQueryString } from './utils'
 
-// Type guard
-function isErrorResponse(response: unknown): response is ErrorResponse {
-  return (
-    typeof response === 'object' &&
-    response !== null &&
-    'error' in response &&
-    typeof (response as ErrorResponse).error === 'object'
-  )
-}
-
-// API Error class
-export class VetApiError extends Error {
-  code: string
-  status: number
-
-  constructor(code: string, message: string, status: number) {
-    super(message)
-    this.name = 'VetApiError'
-    this.code = code
-    this.status = status
-  }
-}
-
-// Helper to handle API responses
-async function handleResponse<T>(response: Response): Promise<T> {
-  const data = await response.json()
-
-  if (!response.ok) {
-    if (isErrorResponse(data)) {
-      throw new VetApiError(
-        data.error.code,
-        data.error.message,
-        response.status
-      )
-    }
-    throw new VetApiError(
-      'UNKNOWN_ERROR',
-      'An unexpected error occurred',
-      response.status
-    )
-  }
-
-  return data as T
-}
-
-// Build query string from params
-function buildQueryString(params: Record<string, unknown>): string {
-  const searchParams = new URLSearchParams()
-
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      if (value instanceof Date) {
-        searchParams.set(key, value.toISOString())
-      } else {
-        searchParams.set(key, String(value))
-      }
-    }
-  })
-
-  const queryString = searchParams.toString()
-  return queryString ? `?${queryString}` : ''
-}
+// Re-export ApiClientError for backwards compatibility
+export { ApiClientError } from './utils'
 
 // ============================================================================
 // VET VISIT API FUNCTIONS

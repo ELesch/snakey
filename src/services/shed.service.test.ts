@@ -119,12 +119,15 @@ describe('ShedService', () => {
 
   describe('getById', () => {
     it('should return a shed by ID', async () => {
-      ;(prisma.shed.findUnique as Mock).mockResolvedValue(mockShed)
-      ;(prisma.reptile.findUnique as Mock).mockResolvedValue(mockReptile)
+      // verifyRecordOwnership calls findById with includeReptile: true
+      ;(prisma.shed.findUnique as Mock).mockResolvedValue({
+        ...mockShed,
+        reptile: mockReptile,
+      })
 
       const result = await service.getById(userId, shedId)
 
-      expect(result).toEqual(mockShed)
+      expect(result.id).toBe(shedId)
     })
 
     it('should throw NotFoundError if shed does not exist', async () => {
@@ -134,10 +137,10 @@ describe('ShedService', () => {
     })
 
     it('should throw ForbiddenError if user does not own the reptile', async () => {
-      ;(prisma.shed.findUnique as Mock).mockResolvedValue(mockShed)
-      ;(prisma.reptile.findUnique as Mock).mockResolvedValue({
-        ...mockReptile,
-        userId: 'other-user',
+      // verifyRecordOwnership checks ownership via the reptile relation
+      ;(prisma.shed.findUnique as Mock).mockResolvedValue({
+        ...mockShed,
+        reptile: { ...mockReptile, userId: 'other-user' },
       })
 
       await expect(service.getById(userId, shedId)).rejects.toThrow(ForbiddenError)
@@ -248,8 +251,11 @@ describe('ShedService', () => {
 
     it('should update an existing shed', async () => {
       const updatedShed = { ...mockShed, ...validUpdateData }
-      ;(prisma.shed.findUnique as Mock).mockResolvedValue(mockShed)
-      ;(prisma.reptile.findUnique as Mock).mockResolvedValue(mockReptile)
+      // verifyRecordOwnership calls findById with includeReptile: true
+      ;(prisma.shed.findUnique as Mock).mockResolvedValue({
+        ...mockShed,
+        reptile: mockReptile,
+      })
       ;(prisma.shed.update as Mock).mockResolvedValue(updatedShed)
 
       const result = await service.update(userId, shedId, validUpdateData)
@@ -267,10 +273,10 @@ describe('ShedService', () => {
     })
 
     it('should throw ForbiddenError if user does not own the reptile', async () => {
-      ;(prisma.shed.findUnique as Mock).mockResolvedValue(mockShed)
-      ;(prisma.reptile.findUnique as Mock).mockResolvedValue({
-        ...mockReptile,
-        userId: 'other-user',
+      // verifyRecordOwnership checks ownership via the reptile relation
+      ;(prisma.shed.findUnique as Mock).mockResolvedValue({
+        ...mockShed,
+        reptile: { ...mockReptile, userId: 'other-user' },
       })
 
       await expect(
@@ -279,8 +285,10 @@ describe('ShedService', () => {
     })
 
     it('should throw ValidationError for invalid quality value', async () => {
-      ;(prisma.shed.findUnique as Mock).mockResolvedValue(mockShed)
-      ;(prisma.reptile.findUnique as Mock).mockResolvedValue(mockReptile)
+      ;(prisma.shed.findUnique as Mock).mockResolvedValue({
+        ...mockShed,
+        reptile: mockReptile,
+      })
 
       await expect(
         service.update(userId, shedId, { quality: 'INVALID' })
@@ -290,8 +298,10 @@ describe('ShedService', () => {
     it('should allow partial updates', async () => {
       const partialUpdate = { notes: 'Only updating notes' }
       const updatedShed = { ...mockShed, notes: 'Only updating notes' }
-      ;(prisma.shed.findUnique as Mock).mockResolvedValue(mockShed)
-      ;(prisma.reptile.findUnique as Mock).mockResolvedValue(mockReptile)
+      ;(prisma.shed.findUnique as Mock).mockResolvedValue({
+        ...mockShed,
+        reptile: mockReptile,
+      })
       ;(prisma.shed.update as Mock).mockResolvedValue(updatedShed)
 
       const result = await service.update(userId, shedId, partialUpdate)
@@ -303,8 +313,11 @@ describe('ShedService', () => {
 
   describe('delete', () => {
     it('should delete a shed', async () => {
-      ;(prisma.shed.findUnique as Mock).mockResolvedValue(mockShed)
-      ;(prisma.reptile.findUnique as Mock).mockResolvedValue(mockReptile)
+      // verifyRecordOwnership calls findById with includeReptile: true
+      ;(prisma.shed.findUnique as Mock).mockResolvedValue({
+        ...mockShed,
+        reptile: mockReptile,
+      })
       ;(prisma.shed.delete as Mock).mockResolvedValue(mockShed)
 
       const result = await service.delete(userId, shedId)
@@ -320,10 +333,10 @@ describe('ShedService', () => {
     })
 
     it('should throw ForbiddenError if user does not own the reptile', async () => {
-      ;(prisma.shed.findUnique as Mock).mockResolvedValue(mockShed)
-      ;(prisma.reptile.findUnique as Mock).mockResolvedValue({
-        ...mockReptile,
-        userId: 'other-user',
+      // verifyRecordOwnership checks ownership via the reptile relation
+      ;(prisma.shed.findUnique as Mock).mockResolvedValue({
+        ...mockShed,
+        reptile: { ...mockReptile, userId: 'other-user' },
       })
 
       await expect(service.delete(userId, shedId)).rejects.toThrow(ForbiddenError)

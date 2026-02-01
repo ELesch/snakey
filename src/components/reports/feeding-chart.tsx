@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useFeedingStats } from '@/hooks/use-reports'
 import { Loader2, UtensilsCrossed } from 'lucide-react'
 import type { ReportFilters } from '@/services/reports.service'
+import { formatChartDate } from './chart-utils'
 
 // Dynamic import for chart content - only loaded when component mounts
 const FeedingChartContent = dynamic(
@@ -17,11 +18,6 @@ const FeedingChartContent = dynamic(
 
 interface FeedingChartProps {
   filters: ReportFilters
-}
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 function ChartLoadingSkeleton() {
@@ -56,7 +52,7 @@ export function FeedingChart({ filters }: FeedingChartProps) {
   // Transform data for chart - format dates
   const chartData = feedingData?.map((point) => ({
     ...point,
-    dateFormatted: formatDate(point.date),
+    dateFormatted: formatChartDate(point.date),
   }))
 
   return (

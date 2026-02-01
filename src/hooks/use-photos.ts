@@ -12,8 +12,8 @@ import {
   deletePhoto,
   getUploadUrl,
   uploadToStorage,
-  PhotoApiError,
 } from '@/lib/api/photo.api'
+import { ApiClientError } from '@/lib/api/utils'
 import type { Photo } from '@/generated/prisma/client'
 import type { PhotoCreate, PhotoUpdate, PhotoQuery } from '@/validations/photo'
 
@@ -91,7 +91,7 @@ export function usePhotos(reptileId: string, query: Partial<PhotoQuery> = {}) {
     meta,
     isPending: isOnline ? isPending : offlinePhotos === undefined,
     isError,
-    error: error as PhotoApiError | null,
+    error: error as ApiClientError | null,
     isOnline,
     isOfflineData: !isOnline || !apiData,
     refetch,

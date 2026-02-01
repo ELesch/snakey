@@ -9,8 +9,8 @@ import {
   createWeight,
   updateWeight,
   deleteWeight,
-  WeightApiError,
 } from '@/lib/api/weight.api'
+import { ApiClientError } from '@/lib/api/utils'
 import type { Weight } from '@/generated/prisma/client'
 import type { WeightCreate, WeightUpdate, WeightQuery } from '@/validations/weight'
 
@@ -84,7 +84,7 @@ export function useWeights(reptileId: string, query: Partial<WeightQuery> = {}) 
     meta,
     isPending: isOnline ? isPending : offlineWeights === undefined,
     isError,
-    error: error as WeightApiError | null,
+    error: error as ApiClientError | null,
     isOnline,
     isOfflineData: !isOnline || !apiData,
     refetch,

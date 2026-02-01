@@ -10,8 +10,8 @@ import {
   createReptile,
   updateReptile,
   deleteReptile,
-  ReptileApiError,
 } from '@/lib/api/reptile.api'
+import { ApiClientError } from '@/lib/api/utils'
 import type { Reptile } from '@/generated/prisma/client'
 import type { ReptileCreate, ReptileUpdate, ReptileQuery } from '@/validations/reptile'
 
@@ -98,7 +98,7 @@ export function useReptiles(query: Partial<ReptileQuery> = {}) {
     meta,
     isPending: isOnline ? isPending : offlineReptiles === undefined,
     isError,
-    error: error as ReptileApiError | null,
+    error: error as ApiClientError | null,
     isOnline,
     isOfflineData: !isOnline || !apiData,
     refetch,
@@ -150,7 +150,7 @@ export function useReptile(
     reptile: data as Reptile | OfflineReptile | undefined,
     isPending: isOnline ? isPending : offlineReptile === undefined,
     isError,
-    error: error as ReptileApiError | null,
+    error: error as ApiClientError | null,
     isOnline,
     isOfflineData: !isOnline || !reptile,
     refetch,

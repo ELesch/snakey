@@ -19,12 +19,16 @@ vi.mock('@/repositories/weight.repository', () => ({
   })),
 }))
 
-// Mock the reptile repository for ownership checks
-vi.mock('@/repositories/reptile.repository', () => ({
-  ReptileRepository: vi.fn().mockImplementation(() => ({
+// Mock the reptile repository for ownership checks (used by base.service)
+vi.mock('@/repositories/reptile.repository', () => {
+  const instance = {
     findById: vi.fn(),
-  })),
-}))
+  }
+  return {
+    ReptileRepository: vi.fn().mockImplementation(() => instance),
+    reptileRepository: instance,
+  }
+})
 
 // Mock logger
 vi.mock('@/lib/logger', () => ({
@@ -75,15 +79,15 @@ describe('WeightService', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
 
-    // Get fresh instances of the mocked classes
-    const { WeightRepository } = await import('@/repositories/weight.repository')
-    const { ReptileRepository } = await import('@/repositories/reptile.repository')
+    // Get the mock instance from the module
+    const { reptileRepository } = await import('@/repositories/reptile.repository')
 
     service = new WeightService()
 
-    // Get the mock instances from the service
+    // Get the mock instance from the service
     mockWeightRepo = (service as unknown as { weightRepository: typeof mockWeightRepo }).weightRepository
-    mockReptileRepo = (service as unknown as { reptileRepository: typeof mockReptileRepo }).reptileRepository
+    // Use the global mock for ReptileRepository (used by base.service)
+    mockReptileRepo = reptileRepository as unknown as typeof mockReptileRepo
   })
 
   describe('list', () => {
@@ -147,8 +151,8 @@ describe('WeightService', () => {
 
   describe('getById', () => {
     it('should return a weight by id', async () => {
-      mockWeightRepo.findById.mockResolvedValue(mockWeight)
-      mockReptileRepo.findById.mockResolvedValue(mockReptile)
+      // verifyRecordOwnership calls findById with includeReptile: true
+      mockWeightRepo.findById.mockResolvedValue({ ...mockWeight, reptile: mockReptile })
 
       const result = await service.getById(userId, weightId)
 
@@ -163,8 +167,11 @@ describe('WeightService', () => {
     })
 
     it('should throw ForbiddenError if user does not own reptile', async () => {
-      mockWeightRepo.findById.mockResolvedValue(mockWeight)
-      mockReptileRepo.findById.mockResolvedValue({ ...mockReptile, userId: 'other-user' })
+      // verifyRecordOwnership checks ownership via the reptile relation
+      mockWeightRepo.findById.mockResolvedValue({
+        ...mockWeight,
+        reptile: { ...mockReptile, userId: 'other-user' },
+      })
 
       await expect(service.getById(userId, weightId)).rejects.toThrow(ForbiddenError)
     })
@@ -236,8 +243,8 @@ describe('WeightService', () => {
     }
 
     it('should update a weight owned by user', async () => {
-      mockWeightRepo.findById.mockResolvedValue(mockWeight)
-      mockReptileRepo.findById.mockResolvedValue(mockReptile)
+      // verifyRecordOwnership calls findById with includeReptile: true
+      mockWeightRepo.findById.mockResolvedValue({ ...mockWeight, reptile: mockReptile })
       mockWeightRepo.update.mockResolvedValue({ ...mockWeight, ...updateData })
 
       const result = await service.update(userId, weightId, updateData)
@@ -253,15 +260,17 @@ describe('WeightService', () => {
     })
 
     it('should throw ForbiddenError if user does not own reptile', async () => {
-      mockWeightRepo.findById.mockResolvedValue(mockWeight)
-      mockReptileRepo.findById.mockResolvedValue({ ...mockReptile, userId: 'other-user' })
+      // verifyRecordOwnership checks ownership via the reptile relation
+      mockWeightRepo.findById.mockResolvedValue({
+        ...mockWeight,
+        reptile: { ...mockReptile, userId: 'other-user' },
+      })
 
       await expect(service.update(userId, weightId, updateData)).rejects.toThrow(ForbiddenError)
     })
 
     it('should throw ValidationError if updating to negative weight', async () => {
-      mockWeightRepo.findById.mockResolvedValue(mockWeight)
-      mockReptileRepo.findById.mockResolvedValue(mockReptile)
+      mockWeightRepo.findById.mockResolvedValue({ ...mockWeight, reptile: mockReptile })
 
       await expect(
         service.update(userId, weightId, { weight: -5 })
@@ -271,8 +280,8 @@ describe('WeightService', () => {
 
   describe('delete', () => {
     it('should delete a weight owned by user', async () => {
-      mockWeightRepo.findById.mockResolvedValue(mockWeight)
-      mockReptileRepo.findById.mockResolvedValue(mockReptile)
+      // verifyRecordOwnership calls findById with includeReptile: true
+      mockWeightRepo.findById.mockResolvedValue({ ...mockWeight, reptile: mockReptile })
       mockWeightRepo.delete.mockResolvedValue(mockWeight)
 
       const result = await service.delete(userId, weightId)
@@ -288,8 +297,11 @@ describe('WeightService', () => {
     })
 
     it('should throw ForbiddenError if user does not own reptile', async () => {
-      mockWeightRepo.findById.mockResolvedValue(mockWeight)
-      mockReptileRepo.findById.mockResolvedValue({ ...mockReptile, userId: 'other-user' })
+      // verifyRecordOwnership checks ownership via the reptile relation
+      mockWeightRepo.findById.mockResolvedValue({
+        ...mockWeight,
+        reptile: { ...mockReptile, userId: 'other-user' },
+      })
 
       await expect(service.delete(userId, weightId)).rejects.toThrow(ForbiddenError)
     })
