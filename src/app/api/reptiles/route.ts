@@ -27,18 +27,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Parse query parameters
+    // Parse query parameters - filter out null values so defaults apply
     const searchParams = request.nextUrl.searchParams
-    const queryResult = ReptileQuerySchema.safeParse({
-      page: searchParams.get('page'),
-      limit: searchParams.get('limit'),
-      sort: searchParams.get('sort'),
-      order: searchParams.get('order'),
-      species: searchParams.get('species'),
-      sex: searchParams.get('sex'),
-      search: searchParams.get('search'),
-      includeDeleted: searchParams.get('includeDeleted'),
-    })
+    const rawParams: Record<string, string> = {}
+    for (const [key, value] of searchParams.entries()) {
+      if (value) rawParams[key] = value
+    }
+    const queryResult = ReptileQuerySchema.safeParse(rawParams)
 
     if (!queryResult.success) {
       const issues = queryResult.error.issues || []
