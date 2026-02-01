@@ -93,9 +93,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    log.error({ error }, 'Error creating reptile')
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
+    log.error({ error, message: errorMessage, stack: errorStack }, 'Error creating reptile')
     return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
+      { error: { code: 'INTERNAL_ERROR', message: errorMessage, debug: errorStack } },
       { status: 500 }
     )
   }
