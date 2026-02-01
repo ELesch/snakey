@@ -32,15 +32,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Parse include parameters
+    // Parse include parameters - filter out null values so defaults apply
     const searchParams = request.nextUrl.searchParams
-    const includeResult = ReptileIncludeSchema.safeParse({
-      include: searchParams.get('include'),
-      feedingsLimit: searchParams.get('feedingsLimit'),
-      shedsLimit: searchParams.get('shedsLimit'),
-      weightsLimit: searchParams.get('weightsLimit'),
-      photosLimit: searchParams.get('photosLimit'),
-    })
+    const rawParams: Record<string, string> = {}
+    for (const [key, value] of searchParams.entries()) {
+      if (value) rawParams[key] = value
+    }
+    const includeResult = ReptileIncludeSchema.safeParse(rawParams)
 
     if (!includeResult.success) {
       const issues = includeResult.error.issues || []

@@ -32,18 +32,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Parse query parameters
+    // Parse query parameters - filter out null values so defaults apply
     const searchParams = request.nextUrl.searchParams
-    const queryResult = EnvironmentQuerySchema.safeParse({
-      page: searchParams.get('page'),
-      limit: searchParams.get('limit'),
-      sort: searchParams.get('sort'),
-      order: searchParams.get('order'),
-      startDate: searchParams.get('startDate'),
-      endDate: searchParams.get('endDate'),
-      location: searchParams.get('location'),
-      alertsOnly: searchParams.get('alertsOnly'),
-    })
+    const rawParams: Record<string, string> = {}
+    for (const [key, value] of searchParams.entries()) {
+      if (value) rawParams[key] = value
+    }
+    const queryResult = EnvironmentQuerySchema.safeParse(rawParams)
 
     if (!queryResult.success) {
       const issues = queryResult.error.issues || []
