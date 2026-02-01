@@ -56,6 +56,16 @@ export function ReptileGrid() {
   const router = useRouter()
   const { reptiles, isPending, isError, error, isOnline, isOfflineData } = useReptiles()
 
+  // Debug logging
+  console.log('ReptileGrid render:', {
+    reptileCount: reptiles?.length,
+    isPending,
+    isError,
+    isOnline,
+    isOfflineData,
+    reptiles: reptiles?.map(r => ({ id: r.id, name: r.name }))
+  })
+
   if (isPending) {
     return <ReptileGridSkeleton />
   }

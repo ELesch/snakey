@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
 
     const result = await reptileService.list(userId, queryResult.data)
 
+    log.info({ userId, count: result.data.length, reptiles: result.data.map(r => r.name) }, 'Returning reptiles list')
     return NextResponse.json(result)
   } catch (error) {
     log.error({ error }, 'Error listing reptiles')
