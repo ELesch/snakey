@@ -51,7 +51,6 @@ export async function GET(request: NextRequest) {
 
     const result = await reptileService.list(userId, queryResult.data)
 
-    log.info({ userId, count: result.data.length, reptiles: result.data.map(r => r.name) }, 'Returning reptiles list')
     return NextResponse.json(result)
   } catch (error) {
     log.error({ error }, 'Error listing reptiles')
@@ -89,11 +88,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    const errorStack = error instanceof Error ? error.stack : undefined
-    log.error({ error, message: errorMessage, stack: errorStack }, 'Error creating reptile')
+    log.error({ error }, 'Error creating reptile')
     return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: errorMessage, debug: errorStack } },
+      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
       { status: 500 }
     )
   }

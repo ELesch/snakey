@@ -35,6 +35,27 @@ z.coerce.date().refine(
 
 **Why tests don't catch this:** Unit tests run in a fresh process where the module just loaded, so `new Date()` is always current. The bug only manifests when modules are cached across requests in serverless environments.
 
+### Zod + searchParams.get() Returns Null
+
+**Problem:** `searchParams.get('param')` returns `null` when the param isn't in the URL. Passing `null` to `z.coerce.number()` converts it to `0`, which fails `.positive()` validation.
+
+**Solution:** Filter out null/empty values before passing to Zod:
+```typescript
+// BAD - null breaks Zod coercion
+const result = Schema.safeParse({
+  page: searchParams.get('page'), // null → 0 → fails .positive()
+})
+
+// GOOD - filter nulls so defaults apply
+const rawParams: Record<string, string> = {}
+for (const [key, value] of searchParams.entries()) {
+  if (value) rawParams[key] = value
+}
+const result = Schema.safeParse(rawParams)
+```
+
+**Why tests don't catch this:** Unit tests mock requests with explicit values. Integration tests that make actual HTTP requests with missing query params would catch this.
+
 ---
 
 ## Patterns That Work
