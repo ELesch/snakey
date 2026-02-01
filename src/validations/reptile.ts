@@ -21,12 +21,18 @@ export const ReptileCreateSchema = z
     sex: SexEnum.default('UNKNOWN'),
     birthDate: z.coerce
       .date()
-      .max(new Date(), 'Birth date cannot be in the future')
       .optional()
-      .nullable(),
+      .nullable()
+      .refine(
+        (date) => !date || date <= new Date(),
+        'Birth date cannot be in the future'
+      ),
     acquisitionDate: z.coerce
       .date()
-      .max(new Date(), 'Acquisition date cannot be in the future'),
+      .refine(
+        (date) => date <= new Date(),
+        'Acquisition date cannot be in the future'
+      ),
     currentWeight: z
       .number()
       .positive('Weight must be positive')
@@ -72,13 +78,19 @@ export const ReptileUpdateSchema = z.object({
   sex: SexEnum.optional(),
   birthDate: z.coerce
     .date()
-    .max(new Date(), 'Birth date cannot be in the future')
     .optional()
-    .nullable(),
+    .nullable()
+    .refine(
+      (date) => !date || date <= new Date(),
+      'Birth date cannot be in the future'
+    ),
   acquisitionDate: z.coerce
     .date()
-    .max(new Date(), 'Acquisition date cannot be in the future')
-    .optional(),
+    .optional()
+    .refine(
+      (date) => !date || date <= new Date(),
+      'Acquisition date cannot be in the future'
+    ),
   currentWeight: z
     .number()
     .positive('Weight must be positive')
