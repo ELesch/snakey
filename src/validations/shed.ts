@@ -7,12 +7,18 @@ export const ShedCreateSchema = z.object({
   id: z.string().cuid2().optional(), // For offline-created records
   startDate: z.coerce
     .date()
-    .max(new Date(), 'Start date cannot be in the future')
     .optional()
-    .nullable(),
+    .nullable()
+    .refine(
+      (date) => !date || date <= new Date(),
+      'Start date cannot be in the future'
+    ),
   completedDate: z.coerce
     .date()
-    .max(new Date(), 'Completed date cannot be in the future'),
+    .refine(
+      (date) => date <= new Date(),
+      'Completed date cannot be in the future'
+    ),
   quality: ShedQualityEnum,
   isComplete: z.boolean().default(true),
   issues: z
@@ -45,13 +51,19 @@ export type ShedCreate = z.infer<typeof ShedCreateSchema>
 export const ShedUpdateSchema = z.object({
   startDate: z.coerce
     .date()
-    .max(new Date(), 'Start date cannot be in the future')
     .optional()
-    .nullable(),
+    .nullable()
+    .refine(
+      (date) => !date || date <= new Date(),
+      'Start date cannot be in the future'
+    ),
   completedDate: z.coerce
     .date()
-    .max(new Date(), 'Completed date cannot be in the future')
-    .optional(),
+    .optional()
+    .refine(
+      (date) => !date || date <= new Date(),
+      'Completed date cannot be in the future'
+    ),
   quality: ShedQualityEnum.optional(),
   isComplete: z.boolean().optional(),
   issues: z
