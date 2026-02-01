@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatDate } from '@/lib/utils'
 import { useVetVisits, useDeleteVetVisit } from '@/hooks/use-vet'
-import { VetForm } from './vet-form'
+import { VetForm } from '@/components/forms'
 import {
   Plus,
   Stethoscope,

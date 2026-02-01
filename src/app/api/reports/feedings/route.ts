@@ -2,9 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserId } from '@/lib/supabase/server'
 import { reportsService } from '@/services/reports.service'
-import { createLogger } from '@/lib/logger'
-
-const log = createLogger('ReportsFeedingsAPI')
+import { withErrorHandler } from '@/lib/api/error-handler'
+import { unauthorizedResponse } from '@/lib/api/response'
 
 /**
  * GET /api/reports/feedings - Get feeding statistics
@@ -16,43 +15,32 @@ const log = createLogger('ReportsFeedingsAPI')
  * - limit (optional): Max records to return (default 100, max 1000)
  * - offset (optional): Number of records to skip (default 0)
  */
-export async function GET(request: NextRequest) {
-  try {
-    const userId = await getUserId()
+export const GET = withErrorHandler(async (request: NextRequest) => {
+  const userId = await getUserId()
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
-    }
-
-    const searchParams = request.nextUrl.searchParams
-    const reptileId = searchParams.get('reptileId') ?? undefined
-    const startDate = searchParams.get('startDate') ?? undefined
-    const endDate = searchParams.get('endDate') ?? undefined
-    const limitParam = searchParams.get('limit')
-    const offsetParam = searchParams.get('offset')
-
-    const limit = limitParam ? parseInt(limitParam, 10) : undefined
-    const offset = offsetParam ? parseInt(offsetParam, 10) : undefined
-
-    const result = await reportsService.getFeedingStats(
-      userId,
-      { reptileId, startDate, endDate },
-      { limit, offset }
-    )
-
-    return NextResponse.json({
-      data: result.data,
-      summary: result.summary,
-      meta: result.meta,
-    })
-  } catch (error) {
-    log.error({ error }, 'Error fetching feeding stats')
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
+  if (!userId) {
+    return unauthorizedResponse()
   }
-}
+
+  const searchParams = request.nextUrl.searchParams
+  const reptileId = searchParams.get('reptileId') ?? undefined
+  const startDate = searchParams.get('startDate') ?? undefined
+  const endDate = searchParams.get('endDate') ?? undefined
+  const limitParam = searchParams.get('limit')
+  const offsetParam = searchParams.get('offset')
+
+  const limit = limitParam ? parseInt(limitParam, 10) : undefined
+  const offset = offsetParam ? parseInt(offsetParam, 10) : undefined
+
+  const result = await reportsService.getFeedingStats(
+    userId,
+    { reptileId, startDate, endDate },
+    { limit, offset }
+  )
+
+  return NextResponse.json({
+    data: result.data,
+    summary: result.summary,
+    meta: result.meta,
+  })
+}, 'ReportsFeedingsAPI')

@@ -1,16 +1,15 @@
 // API Route: /api/reptiles/[id] - GET, PUT, DELETE
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserId } from '@/lib/supabase/server'
-import {
-  ReptileService,
-  NotFoundError,
-  ForbiddenError,
-  ValidationError,
-} from '@/services/reptile.service'
+import { ReptileService } from '@/services/reptile.service'
 import { ReptileIncludeSchema } from '@/validations/reptile'
-import { createLogger } from '@/lib/logger'
+import { withErrorHandler } from '@/lib/api/error-handler'
+import {
+  successResponse,
+  unauthorizedResponse,
+  invalidQueryParamsResponse,
+} from '@/lib/api/response'
 
-const log = createLogger('ReptileAPI')
 const reptileService = new ReptileService()
 
 interface RouteParams {
@@ -20,16 +19,13 @@ interface RouteParams {
 /**
  * GET /api/reptiles/[id] - Get a single reptile by ID
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
-  try {
+export const GET = withErrorHandler(
+  async (request: NextRequest, { params }: RouteParams) => {
     const { id } = await params
     const userId = await getUserId()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
+      return unauthorizedResponse()
     }
 
     // Parse include parameters - filter out null values so defaults apply
@@ -42,14 +38,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     if (!includeResult.success) {
       const issues = includeResult.error.issues || []
-      return NextResponse.json(
-        {
-          error: {
-            code: 'INVALID_QUERY_PARAMS',
-            message: issues[0]?.message || 'Invalid query parameters',
-          },
-        },
-        { status: 400 }
+      return invalidQueryParamsResponse(
+        issues[0]?.message || 'Invalid query parameters',
+        issues
       )
     }
 
@@ -65,120 +56,49 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       include: includeOptions,
     })
 
-    return NextResponse.json({ data: reptile })
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return NextResponse.json(
-        { error: { code: 'NOT_FOUND', message: error.message } },
-        { status: 404 }
-      )
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: { code: 'FORBIDDEN', message: error.message } },
-        { status: 403 }
-      )
-    }
-
-    log.error({ error }, 'Error getting reptile')
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
-  }
-}
+    return successResponse(reptile)
+  },
+  'ReptileAPI'
+)
 
 /**
  * PUT /api/reptiles/[id] - Update a reptile
  */
-export async function PUT(request: NextRequest, { params }: RouteParams) {
-  try {
+export const PUT = withErrorHandler(
+  async (request: NextRequest, { params }: RouteParams) => {
     const { id } = await params
     const userId = await getUserId()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
+      return unauthorizedResponse()
     }
 
     const body = await request.json()
-
     const reptile = await reptileService.update(userId, id, body)
 
-    return NextResponse.json({ data: reptile })
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return NextResponse.json(
-        { error: { code: 'NOT_FOUND', message: error.message } },
-        { status: 404 }
-      )
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: { code: 'FORBIDDEN', message: error.message } },
-        { status: 403 }
-      )
-    }
-
-    if (error instanceof ValidationError) {
-      return NextResponse.json(
-        { error: { code: 'VALIDATION_ERROR', message: error.message } },
-        { status: 400 }
-      )
-    }
-
-    log.error({ error }, 'Error updating reptile')
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
-  }
-}
+    return successResponse(reptile)
+  },
+  'ReptileAPI'
+)
 
 /**
  * DELETE /api/reptiles/[id] - Soft delete a reptile
  */
-export async function DELETE(_request: NextRequest, { params }: RouteParams) {
-  try {
+export const DELETE = withErrorHandler(
+  async (_request: NextRequest, { params }: RouteParams) => {
     const { id } = await params
     const userId = await getUserId()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
+      return unauthorizedResponse()
     }
 
     const result = await reptileService.softDelete(userId, id)
 
-    return NextResponse.json({ data: result })
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return NextResponse.json(
-        { error: { code: 'NOT_FOUND', message: error.message } },
-        { status: 404 }
-      )
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: { code: 'FORBIDDEN', message: error.message } },
-        { status: 403 }
-      )
-    }
-
-    log.error({ error }, 'Error deleting reptile')
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
-  }
-}
+    return successResponse(result)
+  },
+  'ReptileAPI'
+)
 
 /**
  * Helper to build Prisma include options from validated query params

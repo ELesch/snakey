@@ -3,7 +3,16 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createLogger } from '@/lib/logger'
-import { NotFoundError, ForbiddenError, ValidationError } from '@/lib/errors'
+import {
+  NotFoundError,
+  ForbiddenError,
+  ValidationError,
+  StorageError,
+  SyncValidationError,
+  SyncNotFoundError,
+  SyncForbiddenError,
+  SyncConflictError,
+} from '@/lib/errors'
 import { errorResponse } from './response'
 
 /**
@@ -76,6 +85,27 @@ export function withErrorHandler<T>(
 
       if (error instanceof ValidationError) {
         return errorResponse('VALIDATION_ERROR', error.message, 400)
+      }
+
+      if (error instanceof StorageError) {
+        return errorResponse('STORAGE_ERROR', error.message, 500)
+      }
+
+      // Sync-specific errors
+      if (error instanceof SyncValidationError) {
+        return errorResponse('SYNC_VALIDATION_ERROR', error.message, 400)
+      }
+
+      if (error instanceof SyncNotFoundError) {
+        return errorResponse('SYNC_NOT_FOUND', error.message, 404)
+      }
+
+      if (error instanceof SyncForbiddenError) {
+        return errorResponse('SYNC_FORBIDDEN', error.message, 403)
+      }
+
+      if (error instanceof SyncConflictError) {
+        return errorResponse('SYNC_CONFLICT', error.message, 409)
       }
 
       // Log unexpected errors

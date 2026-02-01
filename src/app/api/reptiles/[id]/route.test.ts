@@ -3,12 +3,86 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
 // Use vi.hoisted for mocks that need to be available during module evaluation
-const { mockGetById, mockUpdate, mockSoftDelete, mockGetUserId } = vi.hoisted(() => ({
-  mockGetById: vi.fn(),
-  mockUpdate: vi.fn(),
-  mockSoftDelete: vi.fn(),
-  mockGetUserId: vi.fn(),
-}))
+// All mock classes and fns must be in hoisted block since vi.mock is hoisted
+const {
+  mockGetById,
+  mockUpdate,
+  mockSoftDelete,
+  mockGetUserId,
+  MockNotFoundError,
+  MockForbiddenError,
+  MockValidationError,
+  MockStorageError,
+  MockSyncValidationError,
+  MockSyncNotFoundError,
+  MockSyncForbiddenError,
+  MockSyncConflictError,
+} = vi.hoisted(() => {
+  // Custom error classes for mocking - shared between service and lib/errors mocks
+  const MockNotFoundError = class NotFoundError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'NotFoundError'
+    }
+  }
+  const MockForbiddenError = class ForbiddenError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'ForbiddenError'
+    }
+  }
+  const MockValidationError = class ValidationError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'ValidationError'
+    }
+  }
+  const MockStorageError = class StorageError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'StorageError'
+    }
+  }
+  const MockSyncValidationError = class SyncValidationError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'SyncValidationError'
+    }
+  }
+  const MockSyncNotFoundError = class SyncNotFoundError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'SyncNotFoundError'
+    }
+  }
+  const MockSyncForbiddenError = class SyncForbiddenError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'SyncForbiddenError'
+    }
+  }
+  const MockSyncConflictError = class SyncConflictError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'SyncConflictError'
+    }
+  }
+
+  return {
+    mockGetById: vi.fn(),
+    mockUpdate: vi.fn(),
+    mockSoftDelete: vi.fn(),
+    mockGetUserId: vi.fn(),
+    MockNotFoundError,
+    MockForbiddenError,
+    MockValidationError,
+    MockStorageError,
+    MockSyncValidationError,
+    MockSyncNotFoundError,
+    MockSyncForbiddenError,
+    MockSyncConflictError,
+  }
+})
 
 vi.mock('@/services/reptile.service', () => ({
   ReptileService: vi.fn().mockImplementation(() => ({
@@ -16,24 +90,21 @@ vi.mock('@/services/reptile.service', () => ({
     update: mockUpdate,
     softDelete: mockSoftDelete,
   })),
-  NotFoundError: class NotFoundError extends Error {
-    constructor(message: string) {
-      super(message)
-      this.name = 'NotFoundError'
-    }
-  },
-  ForbiddenError: class ForbiddenError extends Error {
-    constructor(message: string) {
-      super(message)
-      this.name = 'ForbiddenError'
-    }
-  },
-  ValidationError: class ValidationError extends Error {
-    constructor(message: string) {
-      super(message)
-      this.name = 'ValidationError'
-    }
-  },
+  NotFoundError: MockNotFoundError,
+  ForbiddenError: MockForbiddenError,
+  ValidationError: MockValidationError,
+}))
+
+// Mock @/lib/errors with the SAME classes so instanceof checks work in withErrorHandler
+vi.mock('@/lib/errors', () => ({
+  NotFoundError: MockNotFoundError,
+  ForbiddenError: MockForbiddenError,
+  ValidationError: MockValidationError,
+  StorageError: MockStorageError,
+  SyncValidationError: MockSyncValidationError,
+  SyncNotFoundError: MockSyncNotFoundError,
+  SyncForbiddenError: MockSyncForbiddenError,
+  SyncConflictError: MockSyncConflictError,
 }))
 
 vi.mock('@/lib/supabase/server', () => ({

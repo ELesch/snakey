@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGrowthData } from '@/hooks/use-reports'
+import { EmptyState } from '@/components/shared'
 import { Loader2, Scale } from 'lucide-react'
 import type { ReportFilters } from '@/services/reports.service'
 import { formatChartDate } from './chart-utils'
@@ -36,15 +37,6 @@ function ChartSkeleton() {
   )
 }
 
-function EmptyState() {
-  return (
-    <div className="h-[300px] flex flex-col items-center justify-center text-[var(--color-muted-foreground)]">
-      <Scale className="h-12 w-12 mb-2 opacity-50" />
-      <p className="text-sm">No weight data recorded</p>
-      <p className="text-xs">Add weight measurements to track growth</p>
-    </div>
-  )
-}
 
 export function GrowthChart({ filters }: GrowthChartProps) {
   const { growthData, isPending, isError } = useGrowthData(filters)
@@ -72,7 +64,14 @@ export function GrowthChart({ filters }: GrowthChartProps) {
           </div>
         )}
 
-        {!isPending && !isError && (!chartData || chartData.length === 0) && <EmptyState />}
+        {!isPending && !isError && (!chartData || chartData.length === 0) && (
+          <EmptyState
+            icon={<Scale className="h-12 w-12" />}
+            title="No weight data recorded"
+            description="Add weight measurements to track growth"
+            withCard={false}
+          />
+        )}
 
         {!isPending && !isError && chartData && chartData.length > 0 && (
           <>

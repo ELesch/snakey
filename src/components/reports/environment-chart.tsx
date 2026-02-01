@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useEnvironmentStats } from '@/hooks/use-reports'
+import { EmptyState } from '@/components/shared'
 import { Loader2, Thermometer } from 'lucide-react'
 import type { ReportFilters } from '@/services/reports.service'
 import { formatChartDate } from './chart-utils'
@@ -36,15 +37,6 @@ function ChartSkeleton() {
   )
 }
 
-function EmptyState() {
-  return (
-    <div className="h-[300px] flex flex-col items-center justify-center text-[var(--color-muted-foreground)]">
-      <Thermometer className="h-12 w-12 mb-2 opacity-50" />
-      <p className="text-sm">No environment data recorded</p>
-      <p className="text-xs">Log temperature and humidity readings</p>
-    </div>
-  )
-}
 
 export function EnvironmentChart({ filters }: EnvironmentChartProps) {
   const { environmentData, environmentSummary, isPending, isError } = useEnvironmentStats(filters)
@@ -79,7 +71,14 @@ export function EnvironmentChart({ filters }: EnvironmentChartProps) {
           </div>
         )}
 
-        {!isPending && !isError && (!chartData || chartData.length === 0) && <EmptyState />}
+        {!isPending && !isError && (!chartData || chartData.length === 0) && (
+          <EmptyState
+            icon={<Thermometer className="h-12 w-12" />}
+            title="No environment data recorded"
+            description="Log temperature and humidity readings"
+            withCard={false}
+          />
+        )}
 
         {!isPending && !isError && chartData && chartData.length > 0 && (
           <EnvironmentChartContent data={chartData} />

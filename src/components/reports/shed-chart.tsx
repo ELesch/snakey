@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useShedStats } from '@/hooks/use-reports'
+import { EmptyState } from '@/components/shared'
 import { Loader2, Sparkles } from 'lucide-react'
 import type { ReportFilters } from '@/services/reports.service'
 import { formatChartDate, getQualityColor, QUALITY_LEGEND_ITEMS } from './chart-utils'
@@ -36,15 +37,6 @@ function ChartSkeleton() {
   )
 }
 
-function EmptyState() {
-  return (
-    <div className="h-[300px] flex flex-col items-center justify-center text-[var(--color-muted-foreground)]">
-      <Sparkles className="h-12 w-12 mb-2 opacity-50" />
-      <p className="text-sm">No shed data recorded</p>
-      <p className="text-xs">Log sheds to track shedding patterns</p>
-    </div>
-  )
-}
 
 export function ShedChart({ filters }: ShedChartProps) {
   const { shedData, shedSummary, isPending, isError } = useShedStats(filters)
@@ -81,7 +73,14 @@ export function ShedChart({ filters }: ShedChartProps) {
           </div>
         )}
 
-        {!isPending && !isError && (!chartData || chartData.length === 0) && <EmptyState />}
+        {!isPending && !isError && (!chartData || chartData.length === 0) && (
+          <EmptyState
+            icon={<Sparkles className="h-12 w-12" />}
+            title="No shed data recorded"
+            description="Log sheds to track shedding patterns"
+            withCard={false}
+          />
+        )}
 
         {!isPending && !isError && chartData && chartData.length > 0 && (
           <>

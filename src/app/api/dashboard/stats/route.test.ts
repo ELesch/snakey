@@ -28,7 +28,7 @@ vi.mock('@/lib/logger', () => ({
   }),
 }))
 
-// Mock error classes
+// Mock error classes - must include all classes used by withErrorHandler
 vi.mock('@/lib/errors', () => ({
   NotFoundError: class NotFoundError extends Error {
     constructor(message: string) {
@@ -46,6 +46,36 @@ vi.mock('@/lib/errors', () => ({
     constructor(message: string) {
       super(message)
       this.name = 'ValidationError'
+    }
+  },
+  StorageError: class StorageError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'StorageError'
+    }
+  },
+  SyncValidationError: class SyncValidationError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'SyncValidationError'
+    }
+  },
+  SyncNotFoundError: class SyncNotFoundError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'SyncNotFoundError'
+    }
+  },
+  SyncForbiddenError: class SyncForbiddenError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'SyncForbiddenError'
+    }
+  },
+  SyncConflictError: class SyncConflictError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'SyncConflictError'
     }
   },
 }))

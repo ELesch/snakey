@@ -3,27 +3,44 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useCreateVetVisit } from '@/hooks'
+import { useCreateVetVisit, useUpdateVetVisit } from '@/hooks/use-vet'
 import { Loader2, Check } from 'lucide-react'
+import type { VetVisit } from '@/generated/prisma/client'
 
 interface VetFormProps {
   reptileId: string
+  visit?: VetVisit | null
   onSuccess: () => void
+  onCancel?: () => void
+  /** Compact mode for tracker tab layout (single full-width button) */
+  compact?: boolean
 }
 
-export function VetForm({ reptileId, onSuccess }: VetFormProps) {
+export function VetForm({
+  reptileId,
+  visit,
+  onSuccess,
+  onCancel,
+  compact = false,
+}: VetFormProps) {
+  const isEditing = !!visit
   const createVisit = useCreateVetVisit(reptileId)
+  const updateVisit = useUpdateVetVisit()
 
   const [formData, setFormData] = useState({
-    date: new Date().toISOString().split('T')[0],
-    reason: '',
-    diagnosis: '',
-    treatment: '',
-    vetName: '',
-    vetClinic: '',
-    cost: '',
-    followUp: '',
-    notes: '',
+    date: visit?.date
+      ? new Date(visit.date).toISOString().split('T')[0]
+      : new Date().toISOString().split('T')[0],
+    reason: visit?.reason ?? '',
+    diagnosis: visit?.diagnosis ?? '',
+    treatment: visit?.treatment ?? '',
+    vetName: visit?.vetName ?? '',
+    vetClinic: visit?.vetClinic ?? '',
+    cost: visit?.cost ? String(visit.cost) : '',
+    followUp: visit?.followUp
+      ? new Date(visit.followUp).toISOString().split('T')[0]
+      : '',
+    notes: visit?.notes ?? '',
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -71,24 +88,34 @@ export function VetForm({ reptileId, onSuccess }: VetFormProps) {
     e.preventDefault()
     if (!validate()) return
 
+    const payload = {
+      date: new Date(formData.date),
+      reason: formData.reason.trim(),
+      diagnosis: formData.diagnosis.trim() || null,
+      treatment: formData.treatment.trim() || null,
+      vetName: formData.vetName.trim() || null,
+      vetClinic: formData.vetClinic.trim() || null,
+      cost: formData.cost ? parseFloat(formData.cost) : null,
+      followUp: formData.followUp ? new Date(formData.followUp) : null,
+      notes: formData.notes.trim() || null,
+    }
+
     try {
-      await createVisit.mutateAsync({
-        date: new Date(formData.date),
-        reason: formData.reason.trim(),
-        diagnosis: formData.diagnosis.trim() || null,
-        treatment: formData.treatment.trim() || null,
-        vetName: formData.vetName.trim() || null,
-        vetClinic: formData.vetClinic.trim() || null,
-        cost: formData.cost ? parseFloat(formData.cost) : null,
-        followUp: formData.followUp ? new Date(formData.followUp) : null,
-        notes: formData.notes.trim() || null,
-      })
-      resetForm()
+      if (isEditing && visit) {
+        await updateVisit.mutateAsync({ visitId: visit.id, data: payload })
+      } else {
+        await createVisit.mutateAsync(payload)
+        if (compact) {
+          resetForm()
+        }
+      }
       onSuccess()
     } catch {
-      // Error handling done by mutation
+      // Error handling is done by the mutation hooks
     }
   }
+
+  const isPending = createVisit.isPending || updateVisit.isPending
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -110,7 +137,11 @@ export function VetForm({ reptileId, onSuccess }: VetFormProps) {
             aria-describedby={errors.date ? 'vet-date-error' : undefined}
           />
           {errors.date && (
-            <p id="vet-date-error" className="mt-1 text-sm text-red-500" role="alert">
+            <p
+              id="vet-date-error"
+              className="mt-1 text-sm text-red-500"
+              role="alert"
+            >
               {errors.date}
             </p>
           )}
@@ -136,7 +167,11 @@ export function VetForm({ reptileId, onSuccess }: VetFormProps) {
             aria-describedby={errors.cost ? 'cost-error' : undefined}
           />
           {errors.cost && (
-            <p id="cost-error" className="mt-1 text-sm text-red-500" role="alert">
+            <p
+              id="cost-error"
+              className="mt-1 text-sm text-red-500"
+              role="alert"
+            >
               {errors.cost}
             </p>
           )}
@@ -160,7 +195,11 @@ export function VetForm({ reptileId, onSuccess }: VetFormProps) {
           aria-describedby={errors.reason ? 'reason-error' : undefined}
         />
         {errors.reason && (
-          <p id="reason-error" className="mt-1 text-sm text-red-500" role="alert">
+          <p
+            id="reason-error"
+            className="mt-1 text-sm text-red-500"
+            role="alert"
+          >
             {errors.reason}
           </p>
         )}
@@ -270,23 +309,41 @@ export function VetForm({ reptileId, onSuccess }: VetFormProps) {
         />
       </div>
 
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={createVisit.isPending}
-      >
-        {createVisit.isPending ? (
-          <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
-            Logging...
-          </>
-        ) : (
-          <>
-            <Check className="h-4 w-4 mr-2" aria-hidden="true" />
-            Log Vet Visit
-          </>
-        )}
-      </Button>
+      {compact ? (
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? (
+            <>
+              <Loader2
+                className="h-4 w-4 mr-2 animate-spin"
+                aria-hidden="true"
+              />
+              Logging...
+            </>
+          ) : (
+            <>
+              <Check className="h-4 w-4 mr-2" aria-hidden="true" />
+              Log Vet Visit
+            </>
+          )}
+        </Button>
+      ) : (
+        <div className="flex justify-end gap-3 pt-2">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" disabled={isPending}>
+            {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {isEditing ? 'Update Visit' : 'Add Visit'}
+          </Button>
+        </div>
+      )}
     </form>
   )
 }

@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useCreateWeight } from '@/hooks'
+import { useFormState } from '@/hooks/use-form-state'
 import { Loader2, Check } from 'lucide-react'
 
 interface WeightFormProps {
@@ -11,66 +11,47 @@ interface WeightFormProps {
   onSuccess: () => void
 }
 
+interface WeightFormValues {
+  [key: string]: unknown
+  date: string
+  weight: string
+  notes: string
+}
+
+const initialValues: WeightFormValues = {
+  date: new Date().toISOString().split('T')[0],
+  weight: '',
+  notes: '',
+}
+
 export function WeightForm({ reptileId, onSuccess }: WeightFormProps) {
   const createWeight = useCreateWeight(reptileId)
 
-  const [formData, setFormData] = useState({
-    date: new Date().toISOString().split('T')[0],
-    weight: '',
-    notes: '',
-  })
-
-  const [errors, setErrors] = useState<Record<string, string>>({})
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }))
-    }
-  }
-
-  const validate = () => {
-    const newErrors: Record<string, string> = {}
-    if (!formData.date) newErrors.date = 'Date is required'
-    if (!formData.weight) {
-      newErrors.weight = 'Weight is required'
-    } else if (isNaN(parseFloat(formData.weight))) {
-      newErrors.weight = 'Weight must be a number'
-    } else if (parseFloat(formData.weight) <= 0) {
-      newErrors.weight = 'Weight must be positive'
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const resetForm = () => {
-    setFormData({
-      date: new Date().toISOString().split('T')[0],
-      weight: '',
-      notes: '',
+  const { values, errors, handleChange, handleSubmit, resetForm } =
+    useFormState<WeightFormValues>({
+      initialValues,
+      validate: (values) => {
+        const errors: Partial<Record<keyof WeightFormValues, string>> = {}
+        if (!values.date) errors.date = 'Date is required'
+        if (!values.weight) {
+          errors.weight = 'Weight is required'
+        } else if (isNaN(parseFloat(values.weight))) {
+          errors.weight = 'Weight must be a number'
+        } else if (parseFloat(values.weight) <= 0) {
+          errors.weight = 'Weight must be positive'
+        }
+        return errors
+      },
+      onSubmit: async (values) => {
+        await createWeight.mutateAsync({
+          date: new Date(values.date),
+          weight: parseFloat(values.weight),
+          notes: values.notes || null,
+        })
+        resetForm()
+        onSuccess()
+      },
     })
-    setErrors({})
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validate()) return
-
-    try {
-      await createWeight.mutateAsync({
-        date: new Date(formData.date),
-        weight: parseFloat(formData.weight),
-        notes: formData.notes || null,
-      })
-      resetForm()
-      onSuccess()
-    } catch {
-      // Error handling done by mutation
-    }
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -85,7 +66,7 @@ export function WeightForm({ reptileId, onSuccess }: WeightFormProps) {
           id="weight-date"
           name="date"
           type="date"
-          value={formData.date}
+          value={values.date}
           onChange={handleChange}
           aria-invalid={!!errors.date}
           aria-describedby={errors.date ? 'weight-date-error' : undefined}
@@ -111,7 +92,7 @@ export function WeightForm({ reptileId, onSuccess }: WeightFormProps) {
           step="0.1"
           min="0"
           placeholder="e.g., 150.5"
-          value={formData.weight}
+          value={values.weight}
           onChange={handleChange}
           aria-invalid={!!errors.weight}
           aria-describedby={errors.weight ? 'weight-error' : undefined}
@@ -135,7 +116,7 @@ export function WeightForm({ reptileId, onSuccess }: WeightFormProps) {
           name="notes"
           rows={3}
           placeholder="Any observations about body condition..."
-          value={formData.notes}
+          value={values.notes}
           onChange={handleChange}
           className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />

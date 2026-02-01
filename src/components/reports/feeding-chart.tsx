@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useFeedingStats } from '@/hooks/use-reports'
+import { EmptyState } from '@/components/shared'
 import { Loader2, UtensilsCrossed } from 'lucide-react'
 import type { ReportFilters } from '@/services/reports.service'
 import { formatChartDate } from './chart-utils'
@@ -36,15 +37,6 @@ function ChartSkeleton() {
   )
 }
 
-function EmptyState() {
-  return (
-    <div className="h-[300px] flex flex-col items-center justify-center text-[var(--color-muted-foreground)]">
-      <UtensilsCrossed className="h-12 w-12 mb-2 opacity-50" />
-      <p className="text-sm">No feeding data recorded</p>
-      <p className="text-xs">Log feedings to track your reptiles' eating habits</p>
-    </div>
-  )
-}
 
 export function FeedingChart({ filters }: FeedingChartProps) {
   const { feedingData, feedingSummary, isPending, isError } = useFeedingStats(filters)
@@ -79,7 +71,14 @@ export function FeedingChart({ filters }: FeedingChartProps) {
           </div>
         )}
 
-        {!isPending && !isError && (!chartData || chartData.length === 0) && <EmptyState />}
+        {!isPending && !isError && (!chartData || chartData.length === 0) && (
+          <EmptyState
+            icon={<UtensilsCrossed className="h-12 w-12" />}
+            title="No feeding data recorded"
+            description="Log feedings to track your reptiles' eating habits"
+            withCard={false}
+          />
+        )}
 
         {!isPending && !isError && chartData && chartData.length > 0 && (
           <>

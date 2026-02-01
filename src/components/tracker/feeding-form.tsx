@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -11,11 +10,24 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useCreateFeeding } from '@/hooks'
+import { useFormState } from '@/hooks/use-form-state'
 import { Loader2, Check } from 'lucide-react'
 
 interface FeedingFormProps {
   reptileId: string
   onSuccess: () => void
+}
+
+interface FeedingFormValues {
+  [key: string]: unknown
+  date: string
+  preyType: string
+  preySize: string
+  preySource: 'FROZEN_THAWED' | 'LIVE' | 'PRE_KILLED'
+  accepted: boolean
+  refused: boolean
+  regurgitated: boolean
+  notes: string
 }
 
 const PREY_TYPES = [
@@ -48,85 +60,45 @@ const PREY_SOURCES = [
   { value: 'PRE_KILLED', label: 'Pre-killed' },
 ]
 
+const initialValues: FeedingFormValues = {
+  date: new Date().toISOString().split('T')[0],
+  preyType: '',
+  preySize: '',
+  preySource: 'FROZEN_THAWED',
+  accepted: true,
+  refused: false,
+  regurgitated: false,
+  notes: '',
+}
+
 export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
   const createFeeding = useCreateFeeding(reptileId)
 
-  const [formData, setFormData] = useState({
-    date: new Date().toISOString().split('T')[0],
-    preyType: '',
-    preySize: '',
-    preySource: 'FROZEN_THAWED' as 'FROZEN_THAWED' | 'LIVE' | 'PRE_KILLED',
-    accepted: true,
-    refused: false,
-    regurgitated: false,
-    notes: '',
-  })
-
-  const [errors, setErrors] = useState<Record<string, string>>({})
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type } = e.target
-    const newValue =
-      type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    setFormData((prev) => ({ ...prev, [name]: newValue }))
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }))
-    }
-  }
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }))
-    }
-  }
-
-  const validate = () => {
-    const newErrors: Record<string, string> = {}
-    if (!formData.date) newErrors.date = 'Date is required'
-    if (!formData.preyType) newErrors.preyType = 'Prey type is required'
-    if (!formData.preySize) newErrors.preySize = 'Prey size is required'
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const resetForm = () => {
-    setFormData({
-      date: new Date().toISOString().split('T')[0],
-      preyType: '',
-      preySize: '',
-      preySource: 'FROZEN_THAWED',
-      accepted: true,
-      refused: false,
-      regurgitated: false,
-      notes: '',
+  const { values, errors, handleChange, handleSubmit, resetForm, setFieldValue } =
+    useFormState<FeedingFormValues>({
+      initialValues,
+      validate: (values) => {
+        const errors: Partial<Record<keyof FeedingFormValues, string>> = {}
+        if (!values.date) errors.date = 'Date is required'
+        if (!values.preyType) errors.preyType = 'Prey type is required'
+        if (!values.preySize) errors.preySize = 'Prey size is required'
+        return errors
+      },
+      onSubmit: async (values) => {
+        await createFeeding.mutateAsync({
+          date: new Date(values.date),
+          preyType: values.preyType,
+          preySize: values.preySize,
+          preySource: values.preySource,
+          accepted: values.accepted,
+          refused: values.refused,
+          regurgitated: values.regurgitated,
+          notes: values.notes || null,
+        })
+        resetForm()
+        onSuccess()
+      },
     })
-    setErrors({})
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validate()) return
-
-    try {
-      await createFeeding.mutateAsync({
-        date: new Date(formData.date),
-        preyType: formData.preyType,
-        preySize: formData.preySize,
-        preySource: formData.preySource,
-        accepted: formData.accepted,
-        refused: formData.refused,
-        regurgitated: formData.regurgitated,
-        notes: formData.notes || null,
-      })
-      resetForm()
-      onSuccess()
-    } catch {
-      // Error handling done by mutation
-    }
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -141,7 +113,7 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
           id="feeding-date"
           name="date"
           type="date"
-          value={formData.date}
+          value={values.date}
           onChange={handleChange}
           aria-invalid={!!errors.date}
           aria-describedby={errors.date ? 'feeding-date-error' : undefined}
@@ -162,8 +134,8 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
             Prey Type <span className="text-red-500">*</span>
           </label>
           <Select
-            value={formData.preyType}
-            onValueChange={(val) => handleSelectChange('preyType', val)}
+            value={values.preyType}
+            onValueChange={(val) => setFieldValue('preyType', val)}
           >
             <SelectTrigger
               id="preyType"
@@ -195,8 +167,8 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
             Prey Size <span className="text-red-500">*</span>
           </label>
           <Select
-            value={formData.preySize}
-            onValueChange={(val) => handleSelectChange('preySize', val)}
+            value={values.preySize}
+            onValueChange={(val) => setFieldValue('preySize', val)}
           >
             <SelectTrigger
               id="preySize"
@@ -229,12 +201,9 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
           Prey Source
         </label>
         <Select
-          value={formData.preySource}
+          value={values.preySource}
           onValueChange={(val) =>
-            handleSelectChange(
-              'preySource',
-              val as 'FROZEN_THAWED' | 'LIVE' | 'PRE_KILLED'
-            )
+            setFieldValue('preySource', val as 'FROZEN_THAWED' | 'LIVE' | 'PRE_KILLED')
           }
         >
           <SelectTrigger id="preySource">
@@ -255,7 +224,7 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
           <input
             type="checkbox"
             name="accepted"
-            checked={formData.accepted}
+            checked={values.accepted}
             onChange={handleChange}
             className="h-4 w-4 rounded border-warm-300 text-primary focus:ring-primary"
           />
@@ -266,7 +235,7 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
           <input
             type="checkbox"
             name="refused"
-            checked={formData.refused}
+            checked={values.refused}
             onChange={handleChange}
             className="h-4 w-4 rounded border-warm-300 text-primary focus:ring-primary"
           />
@@ -277,7 +246,7 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
           <input
             type="checkbox"
             name="regurgitated"
-            checked={formData.regurgitated}
+            checked={values.regurgitated}
             onChange={handleChange}
             className="h-4 w-4 rounded border-warm-300 text-primary focus:ring-primary"
           />
@@ -297,7 +266,7 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
           name="notes"
           rows={3}
           placeholder="Additional notes..."
-          value={formData.notes}
+          value={values.notes}
           onChange={handleChange}
           className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2"
         />

@@ -1,15 +1,10 @@
 // API Route: /api/medications/[id] - GET, PUT, DELETE
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getUserId } from '@/lib/supabase/server'
-import {
-  VetService,
-  NotFoundError,
-  ForbiddenError,
-  ValidationError,
-} from '@/services/vet.service'
-import { createLogger } from '@/lib/logger'
+import { VetService } from '@/services/vet.service'
+import { withErrorHandler } from '@/lib/api/error-handler'
+import { successResponse, unauthorizedResponse } from '@/lib/api/response'
 
-const log = createLogger('MedicationAPI')
 const vetService = new VetService()
 
 interface RouteParams {
@@ -19,131 +14,58 @@ interface RouteParams {
 /**
  * GET /api/medications/[id] - Get a single medication by ID
  */
-export async function GET(_request: NextRequest, { params }: RouteParams) {
-  try {
+export const GET = withErrorHandler(
+  async (_request: NextRequest, { params }: RouteParams) => {
     const { id } = await params
     const userId = await getUserId()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
+      return unauthorizedResponse()
     }
 
     const medication = await vetService.getMedicationById(userId, id)
 
-    return NextResponse.json({ data: medication })
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return NextResponse.json(
-        { error: { code: 'NOT_FOUND', message: error.message } },
-        { status: 404 }
-      )
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: { code: 'FORBIDDEN', message: error.message } },
-        { status: 403 }
-      )
-    }
-
-    log.error({ error }, 'Error getting medication')
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
-  }
-}
+    return successResponse(medication)
+  },
+  'MedicationAPI'
+)
 
 /**
  * PUT /api/medications/[id] - Update a medication
  */
-export async function PUT(request: NextRequest, { params }: RouteParams) {
-  try {
+export const PUT = withErrorHandler(
+  async (request: NextRequest, { params }: RouteParams) => {
     const { id } = await params
     const userId = await getUserId()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
+      return unauthorizedResponse()
     }
 
     const body = await request.json()
 
     const medication = await vetService.updateMedication(userId, id, body)
 
-    return NextResponse.json({ data: medication })
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return NextResponse.json(
-        { error: { code: 'NOT_FOUND', message: error.message } },
-        { status: 404 }
-      )
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: { code: 'FORBIDDEN', message: error.message } },
-        { status: 403 }
-      )
-    }
-
-    if (error instanceof ValidationError) {
-      return NextResponse.json(
-        { error: { code: 'VALIDATION_ERROR', message: error.message } },
-        { status: 400 }
-      )
-    }
-
-    log.error({ error }, 'Error updating medication')
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
-  }
-}
+    return successResponse(medication)
+  },
+  'MedicationAPI'
+)
 
 /**
  * DELETE /api/medications/[id] - Delete a medication
  */
-export async function DELETE(_request: NextRequest, { params }: RouteParams) {
-  try {
+export const DELETE = withErrorHandler(
+  async (_request: NextRequest, { params }: RouteParams) => {
     const { id } = await params
     const userId = await getUserId()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
+      return unauthorizedResponse()
     }
 
     const result = await vetService.deleteMedication(userId, id)
 
-    return NextResponse.json({ data: result })
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return NextResponse.json(
-        { error: { code: 'NOT_FOUND', message: error.message } },
-        { status: 404 }
-      )
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: { code: 'FORBIDDEN', message: error.message } },
-        { status: 403 }
-      )
-    }
-
-    log.error({ error }, 'Error deleting medication')
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
-  }
-}
+    return successResponse(result)
+  },
+  'MedicationAPI'
+)

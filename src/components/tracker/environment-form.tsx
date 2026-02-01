@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -11,11 +10,21 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useCreateEnvironmentLog } from '@/hooks'
+import { useFormState } from '@/hooks/use-form-state'
 import { Loader2, Check } from 'lucide-react'
 
 interface EnvironmentFormProps {
   reptileId: string
   onSuccess: () => void
+}
+
+interface EnvironmentFormValues {
+  [key: string]: unknown
+  date: string
+  temperature: string
+  humidity: string
+  location: string
+  notes: string
 }
 
 const LOCATIONS = [
@@ -28,93 +37,58 @@ const LOCATIONS = [
   { value: 'other', label: 'Other' },
 ]
 
+const initialValues: EnvironmentFormValues = {
+  date: new Date().toISOString().split('T')[0],
+  temperature: '',
+  humidity: '',
+  location: '',
+  notes: '',
+}
+
 export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) {
   const createLog = useCreateEnvironmentLog(reptileId)
 
-  const [formData, setFormData] = useState({
-    date: new Date().toISOString().split('T')[0],
-    temperature: '',
-    humidity: '',
-    location: '',
-    notes: '',
-  })
-
-  const [errors, setErrors] = useState<Record<string, string>>({})
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }))
-    }
-  }
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }))
-    }
-  }
-
-  const validate = () => {
-    const newErrors: Record<string, string> = {}
-    if (!formData.date) newErrors.date = 'Date is required'
-    if (!formData.temperature && !formData.humidity) {
-      newErrors.temperature = 'At least temperature or humidity is required'
-    }
-    if (formData.temperature) {
-      const temp = parseFloat(formData.temperature)
-      if (isNaN(temp)) {
-        newErrors.temperature = 'Temperature must be a number'
-      } else if (temp < 0 || temp > 150) {
-        newErrors.temperature = 'Temperature must be between 0 and 150'
-      }
-    }
-    if (formData.humidity) {
-      const humid = parseFloat(formData.humidity)
-      if (isNaN(humid)) {
-        newErrors.humidity = 'Humidity must be a number'
-      } else if (humid < 0 || humid > 100) {
-        newErrors.humidity = 'Humidity must be between 0% and 100%'
-      }
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const resetForm = () => {
-    setFormData({
-      date: new Date().toISOString().split('T')[0],
-      temperature: '',
-      humidity: '',
-      location: '',
-      notes: '',
+  const { values, errors, handleChange, handleSubmit, resetForm, setFieldValue } =
+    useFormState<EnvironmentFormValues>({
+      initialValues,
+      validate: (values) => {
+        const errors: Partial<Record<keyof EnvironmentFormValues, string>> = {}
+        if (!values.date) errors.date = 'Date is required'
+        if (!values.temperature && !values.humidity) {
+          errors.temperature = 'At least temperature or humidity is required'
+        }
+        if (values.temperature) {
+          const temp = parseFloat(values.temperature)
+          if (isNaN(temp)) {
+            errors.temperature = 'Temperature must be a number'
+          } else if (temp < 0 || temp > 150) {
+            errors.temperature = 'Temperature must be between 0 and 150'
+          }
+        }
+        if (values.humidity) {
+          const humid = parseFloat(values.humidity)
+          if (isNaN(humid)) {
+            errors.humidity = 'Humidity must be a number'
+          } else if (humid < 0 || humid > 100) {
+            errors.humidity = 'Humidity must be between 0% and 100%'
+          }
+        }
+        return errors
+      },
+      onSubmit: async (values) => {
+        await createLog.mutateAsync({
+          date: new Date(values.date),
+          temperature: values.temperature
+            ? parseFloat(values.temperature)
+            : null,
+          humidity: values.humidity ? parseFloat(values.humidity) : null,
+          location: values.location || null,
+          notes: values.notes || null,
+        })
+        resetForm()
+        onSuccess()
+      },
     })
-    setErrors({})
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validate()) return
-
-    try {
-      await createLog.mutateAsync({
-        date: new Date(formData.date),
-        temperature: formData.temperature
-          ? parseFloat(formData.temperature)
-          : null,
-        humidity: formData.humidity ? parseFloat(formData.humidity) : null,
-        location: formData.location || null,
-        notes: formData.notes || null,
-      })
-      resetForm()
-      onSuccess()
-    } catch {
-      // Error handling done by mutation
-    }
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -129,7 +103,7 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
           id="env-date"
           name="date"
           type="date"
-          value={formData.date}
+          value={values.date}
           onChange={handleChange}
           aria-invalid={!!errors.date}
           aria-describedby={errors.date ? 'env-date-error' : undefined}
@@ -155,7 +129,7 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
             type="number"
             step="0.1"
             placeholder="e.g., 85"
-            value={formData.temperature}
+            value={values.temperature}
             onChange={handleChange}
             aria-invalid={!!errors.temperature}
             aria-describedby={errors.temperature ? 'temperature-error' : undefined}
@@ -182,7 +156,7 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
             min="0"
             max="100"
             placeholder="e.g., 60"
-            value={formData.humidity}
+            value={values.humidity}
             onChange={handleChange}
             aria-invalid={!!errors.humidity}
             aria-describedby={errors.humidity ? 'humidity-error' : undefined}
@@ -203,8 +177,8 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
           Location
         </label>
         <Select
-          value={formData.location}
-          onValueChange={(val) => handleSelectChange('location', val)}
+          value={values.location}
+          onValueChange={(val) => setFieldValue('location', val)}
         >
           <SelectTrigger id="location">
             <SelectValue placeholder="Select location" />
@@ -231,7 +205,7 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
           name="notes"
           rows={3}
           placeholder="Any environmental observations..."
-          value={formData.notes}
+          value={values.notes}
           onChange={handleChange}
           className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />

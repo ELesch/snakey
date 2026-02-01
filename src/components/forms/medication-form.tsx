@@ -3,25 +3,42 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useCreateMedication } from '@/hooks'
+import { useCreateMedication, useUpdateMedication } from '@/hooks/use-vet'
 import { Loader2, Check } from 'lucide-react'
+import type { Medication } from '@/generated/prisma/client'
 
 interface MedicationFormProps {
   reptileId: string
+  medication?: Medication | null
   onSuccess: () => void
+  onCancel?: () => void
+  /** Compact mode for tracker tab layout (single full-width button) */
+  compact?: boolean
 }
 
-export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
+export function MedicationForm({
+  reptileId,
+  medication,
+  onSuccess,
+  onCancel,
+  compact = false,
+}: MedicationFormProps) {
+  const isEditing = !!medication
   const createMedication = useCreateMedication(reptileId)
+  const updateMedication = useUpdateMedication()
 
   const [formData, setFormData] = useState({
-    name: '',
-    dosage: '',
-    frequency: '',
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: '',
-    notes: '',
-    reminders: false,
+    name: medication?.name ?? '',
+    dosage: medication?.dosage ?? '',
+    frequency: medication?.frequency ?? '',
+    startDate: medication?.startDate
+      ? new Date(medication.startDate).toISOString().split('T')[0]
+      : new Date().toISOString().split('T')[0],
+    endDate: medication?.endDate
+      ? new Date(medication.endDate).toISOString().split('T')[0]
+      : '',
+    notes: medication?.notes ?? '',
+    reminders: medication?.reminders ?? false,
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -79,22 +96,35 @@ export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
     e.preventDefault()
     if (!validate()) return
 
+    const payload = {
+      name: formData.name.trim(),
+      dosage: formData.dosage.trim(),
+      frequency: formData.frequency.trim(),
+      startDate: new Date(formData.startDate),
+      endDate: formData.endDate ? new Date(formData.endDate) : null,
+      notes: formData.notes.trim() || null,
+      reminders: formData.reminders,
+    }
+
     try {
-      await createMedication.mutateAsync({
-        name: formData.name.trim(),
-        dosage: formData.dosage.trim(),
-        frequency: formData.frequency.trim(),
-        startDate: new Date(formData.startDate),
-        endDate: formData.endDate ? new Date(formData.endDate) : null,
-        notes: formData.notes.trim() || null,
-        reminders: formData.reminders,
-      })
-      resetForm()
+      if (isEditing && medication) {
+        await updateMedication.mutateAsync({
+          medicationId: medication.id,
+          data: payload,
+        })
+      } else {
+        await createMedication.mutateAsync(payload)
+        if (compact) {
+          resetForm()
+        }
+      }
       onSuccess()
     } catch {
-      // Error handling done by mutation
+      // Error handling is done by the mutation hooks
     }
   }
+
+  const isPending = createMedication.isPending || updateMedication.isPending
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -115,7 +145,11 @@ export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
           aria-describedby={errors.name ? 'med-name-error' : undefined}
         />
         {errors.name && (
-          <p id="med-name-error" className="mt-1 text-sm text-red-500" role="alert">
+          <p
+            id="med-name-error"
+            className="mt-1 text-sm text-red-500"
+            role="alert"
+          >
             {errors.name}
           </p>
         )}
@@ -139,7 +173,11 @@ export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
             aria-describedby={errors.dosage ? 'dosage-error' : undefined}
           />
           {errors.dosage && (
-            <p id="dosage-error" className="mt-1 text-sm text-red-500" role="alert">
+            <p
+              id="dosage-error"
+              className="mt-1 text-sm text-red-500"
+              role="alert"
+            >
               {errors.dosage}
             </p>
           )}
@@ -162,7 +200,11 @@ export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
             aria-describedby={errors.frequency ? 'frequency-error' : undefined}
           />
           {errors.frequency && (
-            <p id="frequency-error" className="mt-1 text-sm text-red-500" role="alert">
+            <p
+              id="frequency-error"
+              className="mt-1 text-sm text-red-500"
+              role="alert"
+            >
               {errors.frequency}
             </p>
           )}
@@ -187,7 +229,11 @@ export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
             aria-describedby={errors.startDate ? 'med-startDate-error' : undefined}
           />
           {errors.startDate && (
-            <p id="med-startDate-error" className="mt-1 text-sm text-red-500" role="alert">
+            <p
+              id="med-startDate-error"
+              className="mt-1 text-sm text-red-500"
+              role="alert"
+            >
               {errors.startDate}
             </p>
           )}
@@ -210,7 +256,11 @@ export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
             aria-describedby={errors.endDate ? 'med-endDate-error' : undefined}
           />
           {errors.endDate && (
-            <p id="med-endDate-error" className="mt-1 text-sm text-red-500" role="alert">
+            <p
+              id="med-endDate-error"
+              className="mt-1 text-sm text-red-500"
+              role="alert"
+            >
               {errors.endDate}
             </p>
           )}
@@ -248,23 +298,41 @@ export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
         </span>
       </label>
 
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={createMedication.isPending}
-      >
-        {createMedication.isPending ? (
-          <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
-            Adding...
-          </>
-        ) : (
-          <>
-            <Check className="h-4 w-4 mr-2" aria-hidden="true" />
-            Add Medication
-          </>
-        )}
-      </Button>
+      {compact ? (
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? (
+            <>
+              <Loader2
+                className="h-4 w-4 mr-2 animate-spin"
+                aria-hidden="true"
+              />
+              Adding...
+            </>
+          ) : (
+            <>
+              <Check className="h-4 w-4 mr-2" aria-hidden="true" />
+              Add Medication
+            </>
+          )}
+        </Button>
+      ) : (
+        <div className="flex justify-end gap-3 pt-2">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" disabled={isPending}>
+            {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {isEditing ? 'Update Medication' : 'Add Medication'}
+          </Button>
+        </div>
+      )}
     </form>
   )
 }

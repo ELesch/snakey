@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -11,11 +10,22 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useCreateShed } from '@/hooks'
+import { useFormState } from '@/hooks/use-form-state'
 import { Loader2, Check } from 'lucide-react'
 
 interface ShedFormProps {
   reptileId: string
   onSuccess: () => void
+}
+
+interface ShedFormValues {
+  [key: string]: unknown
+  startDate: string
+  completedDate: string
+  quality: 'COMPLETE' | 'PARTIAL' | 'PROBLEMATIC'
+  isComplete: boolean
+  issues: string
+  notes: string
 }
 
 const SHED_QUALITIES = [
@@ -24,85 +34,47 @@ const SHED_QUALITIES = [
   { value: 'PROBLEMATIC', label: 'Problematic - Stuck shed' },
 ]
 
+const initialValues: ShedFormValues = {
+  startDate: '',
+  completedDate: new Date().toISOString().split('T')[0],
+  quality: 'COMPLETE',
+  isComplete: true,
+  issues: '',
+  notes: '',
+}
+
 export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
   const createShed = useCreateShed(reptileId)
 
-  const [formData, setFormData] = useState({
-    startDate: '',
-    completedDate: new Date().toISOString().split('T')[0],
-    quality: 'COMPLETE' as 'COMPLETE' | 'PARTIAL' | 'PROBLEMATIC',
-    isComplete: true,
-    issues: '',
-    notes: '',
-  })
-
-  const [errors, setErrors] = useState<Record<string, string>>({})
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type } = e.target
-    const newValue =
-      type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    setFormData((prev) => ({ ...prev, [name]: newValue }))
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }))
-    }
-  }
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }))
-    }
-  }
-
-  const validate = () => {
-    const newErrors: Record<string, string> = {}
-    if (!formData.completedDate)
-      newErrors.completedDate = 'Completed date is required'
-    if (
-      formData.startDate &&
-      formData.completedDate &&
-      new Date(formData.startDate) > new Date(formData.completedDate)
-    ) {
-      newErrors.startDate = 'Start date must be before completed date'
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const resetForm = () => {
-    setFormData({
-      startDate: '',
-      completedDate: new Date().toISOString().split('T')[0],
-      quality: 'COMPLETE',
-      isComplete: true,
-      issues: '',
-      notes: '',
+  const { values, errors, handleChange, handleSubmit, resetForm, setFieldValue } =
+    useFormState<ShedFormValues>({
+      initialValues,
+      validate: (values) => {
+        const errors: Partial<Record<keyof ShedFormValues, string>> = {}
+        if (!values.completedDate)
+          errors.completedDate = 'Completed date is required'
+        if (
+          values.startDate &&
+          values.completedDate &&
+          new Date(values.startDate) > new Date(values.completedDate)
+        ) {
+          errors.startDate = 'Start date must be before completed date'
+        }
+        return errors
+      },
+      onSubmit: async (values) => {
+        await createShed.mutateAsync({
+          startDate: values.startDate ? new Date(values.startDate) : null,
+          completedDate: new Date(values.completedDate),
+          quality: values.quality,
+          isComplete: values.isComplete,
+          issues: values.issues || null,
+          notes: values.notes || null,
+        })
+        resetForm()
+        onSuccess()
+      },
     })
-    setErrors({})
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validate()) return
-
-    try {
-      await createShed.mutateAsync({
-        startDate: formData.startDate ? new Date(formData.startDate) : null,
-        completedDate: new Date(formData.completedDate),
-        quality: formData.quality,
-        isComplete: formData.isComplete,
-        issues: formData.issues || null,
-        notes: formData.notes || null,
-      })
-      resetForm()
-      onSuccess()
-    } catch {
-      // Error handling done by mutation
-    }
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -118,7 +90,7 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
             id="startDate"
             name="startDate"
             type="date"
-            value={formData.startDate}
+            value={values.startDate}
             onChange={handleChange}
             aria-invalid={!!errors.startDate}
             aria-describedby={errors.startDate ? 'startDate-error' : undefined}
@@ -141,7 +113,7 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
             id="completedDate"
             name="completedDate"
             type="date"
-            value={formData.completedDate}
+            value={values.completedDate}
             onChange={handleChange}
             aria-invalid={!!errors.completedDate}
             aria-describedby={errors.completedDate ? 'completedDate-error' : undefined}
@@ -162,12 +134,9 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
           Shed Quality
         </label>
         <Select
-          value={formData.quality}
+          value={values.quality}
           onValueChange={(val) =>
-            handleSelectChange(
-              'quality',
-              val as 'COMPLETE' | 'PARTIAL' | 'PROBLEMATIC'
-            )
+            setFieldValue('quality', val as 'COMPLETE' | 'PARTIAL' | 'PROBLEMATIC')
           }
         >
           <SelectTrigger id="quality">
@@ -187,14 +156,14 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
         <input
           type="checkbox"
           name="isComplete"
-          checked={formData.isComplete}
+          checked={values.isComplete}
           onChange={handleChange}
           className="h-4 w-4 rounded border-warm-300 text-primary focus:ring-primary"
         />
         <span className="text-sm text-warm-700">Shed is complete</span>
       </label>
 
-      {formData.quality === 'PROBLEMATIC' && (
+      {values.quality === 'PROBLEMATIC' && (
         <div>
           <label
             htmlFor="issues"
@@ -207,7 +176,7 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
             name="issues"
             rows={2}
             placeholder="Describe stuck shed areas, retained eye caps, etc..."
-            value={formData.issues}
+            value={values.issues}
             onChange={handleChange}
             className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2"
           />
@@ -226,7 +195,7 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
           name="notes"
           rows={3}
           placeholder="Additional observations..."
-          value={formData.notes}
+          value={values.notes}
           onChange={handleChange}
           className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2"
         />

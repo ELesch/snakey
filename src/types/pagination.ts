@@ -1,20 +1,15 @@
 // Shared Pagination Types
-// Used across services for consistent pagination responses
+// Re-exports from centralized API types plus additional service-layer types
+
+// Re-export PaginationMeta from the canonical location
+export type { PaginationMeta } from '@/lib/api/types'
+
+// Import for use in local types
+import type { PaginationMeta } from '@/lib/api/types'
 
 /**
- * Metadata for paginated results
- */
-export interface PaginationMeta {
-  page: number
-  limit: number
-  total: number
-  totalPages: number
-  hasNext: boolean
-  hasPrev: boolean
-}
-
-/**
- * Generic paginated result wrapper
+ * Generic paginated result wrapper for service layer.
+ * This is the same structure as PaginatedResponse from API types.
  */
 export interface PaginatedResult<T> {
   data: T[]
@@ -22,7 +17,7 @@ export interface PaginatedResult<T> {
 }
 
 /**
- * Common pagination query parameters
+ * Common pagination query parameters for service methods.
  */
 export interface PaginationQuery {
   page?: number

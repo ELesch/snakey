@@ -7,8 +7,7 @@ import { FeedingForm } from './feeding-form'
 import { ShedForm } from './shed-form'
 import { WeightForm } from './weight-form'
 import { EnvironmentForm } from './environment-form'
-import { VetForm } from './vet-form'
-import { MedicationForm } from './medication-form'
+import { VetForm, MedicationForm } from '@/components/forms'
 import { PhotoAttachment } from './photo-attachment'
 import { CheckCircle2 } from 'lucide-react'
 
@@ -101,6 +100,7 @@ export function TrackerTabs({ reptileId }: TrackerTabsProps) {
               <VetForm
                 reptileId={reptileId}
                 onSuccess={() => handleSuccess('Vet visit')}
+                compact
               />
               <PhotoAttachment reptileId={reptileId} category="VET" />
             </TabsContent>
@@ -109,6 +109,7 @@ export function TrackerTabs({ reptileId }: TrackerTabsProps) {
               <MedicationForm
                 reptileId={reptileId}
                 onSuccess={() => handleSuccess('Medication')}
+                compact
               />
             </TabsContent>
           </CardContent>

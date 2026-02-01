@@ -2,10 +2,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserId } from '@/lib/supabase/server'
 import { syncService, type SyncOperation } from '@/services/sync.service'
-import { createLogger } from '@/lib/logger'
 import { z } from 'zod'
-
-const log = createLogger('SyncTableAPI')
+import { withErrorHandler } from '@/lib/api/error-handler'
+import {
+  successResponse,
+  errorResponse,
+  unauthorizedResponse,
+  validationErrorResponse,
+} from '@/lib/api/response'
 
 // Schema for validating sync operations
 const SyncOperationSchema = z.object({
@@ -15,39 +19,34 @@ const SyncOperationSchema = z.object({
   clientTimestamp: z.number().optional(),
 })
 
+const validTables = [
+  'reptiles',
+  'feedings',
+  'sheds',
+  'weights',
+  'environmentLogs',
+  'photos',
+]
+
 /**
  * POST /api/sync/[table] - Process a sync operation for a specific table
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ table: string }> }
-) {
-  try {
+export const POST = withErrorHandler(
+  async (
+    request: NextRequest,
+    { params }: { params: Promise<{ table: string }> }
+  ) => {
     const userId = await getUserId()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
+      return unauthorizedResponse()
     }
 
     const { table } = await params
 
     // Validate table name
-    const validTables = [
-      'reptiles',
-      'feedings',
-      'sheds',
-      'weights',
-      'environmentLogs',
-      'photos',
-    ]
     if (!validTables.includes(table)) {
-      return NextResponse.json(
-        { error: { code: 'INVALID_TABLE', message: `Unsupported table: ${table}` } },
-        { status: 400 }
-      )
+      return validationErrorResponse(`Unsupported table: ${table}`)
     }
 
     const body = await request.json()
@@ -56,15 +55,9 @@ export async function POST(
     const validationResult = SyncOperationSchema.safeParse(body)
     if (!validationResult.success) {
       const issues = validationResult.error.issues
-      return NextResponse.json(
-        {
-          error: {
-            code: 'INVALID_OPERATION',
-            message: issues[0]?.message || 'Invalid sync operation',
-            details: issues,
-          },
-        },
-        { status: 400 }
+      return validationErrorResponse(
+        issues[0]?.message || 'Invalid sync operation',
+        issues
       )
     }
 
@@ -75,19 +68,14 @@ export async function POST(
       clientTimestamp: validationResult.data.clientTimestamp ?? Date.now(),
     }
 
-    log.info(
-      { userId, table, operation: operation.operation, recordId: operation.recordId },
-      'Processing sync operation'
-    )
-
     const result = await syncService.processSyncOperation(userId, table, operation)
 
     // Return appropriate status based on result
     if (result.success) {
-      return NextResponse.json({ data: result })
+      return successResponse(result)
     }
 
-    // Handle specific error types
+    // Handle specific error types from sync service
     if (result.conflict) {
       return NextResponse.json(
         {
@@ -99,44 +87,19 @@ export async function POST(
     }
 
     if (result.errorType === 'NOT_FOUND') {
-      return NextResponse.json(
-        { error: { code: 'NOT_FOUND', message: result.error } },
-        { status: 404 }
-      )
+      return errorResponse('NOT_FOUND', result.error || 'Record not found', 404)
     }
 
     if (result.errorType === 'FORBIDDEN') {
-      return NextResponse.json(
-        { error: { code: 'FORBIDDEN', message: result.error } },
-        { status: 403 }
-      )
+      return errorResponse('FORBIDDEN', result.error || 'Access denied', 403)
     }
 
     if (result.errorType === 'VALIDATION_ERROR') {
-      return NextResponse.json(
-        { error: { code: 'VALIDATION_ERROR', message: result.error } },
-        { status: 400 }
-      )
+      return errorResponse('VALIDATION_ERROR', result.error || 'Validation failed', 400)
     }
 
-    // Generic error
-    return NextResponse.json(
-      { error: { code: 'SYNC_ERROR', message: result.error } },
-      { status: 500 }
-    )
-  } catch (error) {
-    log.error({ error }, 'Error processing sync operation')
-
-    if (error instanceof Error && error.message.startsWith('Unsupported table')) {
-      return NextResponse.json(
-        { error: { code: 'INVALID_TABLE', message: error.message } },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
-  }
-}
+    // Generic sync error
+    return errorResponse('SYNC_ERROR', result.error || 'Sync operation failed', 500)
+  },
+  'SyncTableAPI'
+)

@@ -116,9 +116,10 @@ describe('GET /api/sync/pull', () => {
     const response = await GET(request)
 
     // This should fail validation because it's not a valid ISO date either
+    // Route uses validationErrorResponse which returns VALIDATION_ERROR code
     expect(response.status).toBe(400)
     const body = await response.json()
-    expect(body.error.code).toBe('INVALID_TIMESTAMP')
+    expect(body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it('should prefer Unix timestamp when value is numeric', async () => {
@@ -148,8 +149,9 @@ describe('GET /api/sync/pull', () => {
     const response = await GET(request)
     const body = await response.json()
 
+    // Route uses validationErrorResponse which returns VALIDATION_ERROR code
     expect(response.status).toBe(400)
-    expect(body.error.code).toBe('INVALID_TIMESTAMP')
+    expect(body.error.code).toBe('VALIDATION_ERROR')
     expect(body.error.message).toContain('Invalid since timestamp')
   })
 

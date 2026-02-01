@@ -1,15 +1,10 @@
 // API Route: /api/feedings/[id] - GET, PUT, DELETE
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getUserId } from '@/lib/supabase/server'
-import {
-  FeedingService,
-  NotFoundError,
-  ForbiddenError,
-  ValidationError,
-} from '@/services/feeding.service'
-import { createLogger } from '@/lib/logger'
+import { FeedingService } from '@/services/feeding.service'
+import { withErrorHandler } from '@/lib/api/error-handler'
+import { successResponse, unauthorizedResponse } from '@/lib/api/response'
 
-const log = createLogger('FeedingAPI')
 const feedingService = new FeedingService()
 
 interface RouteParams {
@@ -19,131 +14,57 @@ interface RouteParams {
 /**
  * GET /api/feedings/[id] - Get a single feeding by ID
  */
-export async function GET(_request: NextRequest, { params }: RouteParams) {
-  try {
+export const GET = withErrorHandler(
+  async (_request: NextRequest, { params }: RouteParams) => {
     const { id } = await params
     const userId = await getUserId()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
+      return unauthorizedResponse()
     }
 
     const feeding = await feedingService.getById(userId, id)
 
-    return NextResponse.json({ data: feeding })
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return NextResponse.json(
-        { error: { code: 'NOT_FOUND', message: error.message } },
-        { status: 404 }
-      )
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: { code: 'FORBIDDEN', message: error.message } },
-        { status: 403 }
-      )
-    }
-
-    log.error({ error }, 'Error getting feeding')
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
-  }
-}
+    return successResponse(feeding)
+  },
+  'FeedingAPI'
+)
 
 /**
  * PUT /api/feedings/[id] - Update a feeding
  */
-export async function PUT(request: NextRequest, { params }: RouteParams) {
-  try {
+export const PUT = withErrorHandler(
+  async (request: NextRequest, { params }: RouteParams) => {
     const { id } = await params
     const userId = await getUserId()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
+      return unauthorizedResponse()
     }
 
     const body = await request.json()
-
     const feeding = await feedingService.update(userId, id, body)
 
-    return NextResponse.json({ data: feeding })
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return NextResponse.json(
-        { error: { code: 'NOT_FOUND', message: error.message } },
-        { status: 404 }
-      )
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: { code: 'FORBIDDEN', message: error.message } },
-        { status: 403 }
-      )
-    }
-
-    if (error instanceof ValidationError) {
-      return NextResponse.json(
-        { error: { code: 'VALIDATION_ERROR', message: error.message } },
-        { status: 400 }
-      )
-    }
-
-    log.error({ error }, 'Error updating feeding')
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
-  }
-}
+    return successResponse(feeding)
+  },
+  'FeedingAPI'
+)
 
 /**
  * DELETE /api/feedings/[id] - Delete a feeding
  */
-export async function DELETE(_request: NextRequest, { params }: RouteParams) {
-  try {
+export const DELETE = withErrorHandler(
+  async (_request: NextRequest, { params }: RouteParams) => {
     const { id } = await params
     const userId = await getUserId()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
+      return unauthorizedResponse()
     }
 
     const result = await feedingService.delete(userId, id)
 
-    return NextResponse.json({ data: result })
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return NextResponse.json(
-        { error: { code: 'NOT_FOUND', message: error.message } },
-        { status: 404 }
-      )
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: { code: 'FORBIDDEN', message: error.message } },
-        { status: 403 }
-      )
-    }
-
-    log.error({ error }, 'Error deleting feeding')
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
-  }
-}
+    return successResponse(result)
+  },
+  'FeedingAPI'
+)
