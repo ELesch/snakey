@@ -1,19 +1,19 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useShedStats } from '@/hooks/use-reports'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from 'recharts'
 import { Loader2, Sparkles } from 'lucide-react'
 import type { ReportFilters } from '@/services/reports.service'
+
+// Dynamic import for chart content - only loaded when component mounts
+const ShedChartContent = dynamic(
+  () => import('./shed-chart-content').then((mod) => mod.ShedChartContent),
+  {
+    loading: () => <ChartLoadingSkeleton />,
+    ssr: false, // Charts don't need server rendering
+  }
+)
 
 interface ShedChartProps {
   filters: ReportFilters
@@ -38,6 +38,14 @@ function getQualityColor(quality: string): string {
     default:
       return '#6b7280' // gray
   }
+}
+
+function ChartLoadingSkeleton() {
+  return (
+    <div className="h-[300px] flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-[var(--color-muted-foreground)]" />
+    </div>
+  )
 }
 
 function ChartSkeleton() {
@@ -96,51 +104,30 @@ export function ShedChart({ filters }: ShedChartProps) {
         {!isPending && !isError && (!chartData || chartData.length === 0) && <EmptyState />}
 
         {!isPending && !isError && chartData && chartData.length > 0 && (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={chartData}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" className="stroke-[var(--color-border)]" />
-              <XAxis
-                dataKey="dateFormatted"
-                tick={{ fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-                className="text-[var(--color-muted-foreground)]"
-              />
-              <YAxis
-                tick={{ fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-                className="text-[var(--color-muted-foreground)]"
-                label={{
-                  value: 'Days',
-                  angle: -90,
-                  position: 'insideLeft',
-                  style: { textAnchor: 'middle', fontSize: 12 },
-                }}
-                allowDecimals={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'var(--color-card)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '8px',
-                }}
-                labelStyle={{ color: 'var(--color-foreground)' }}
-                formatter={(value, name, props) => [
-                  `${value} days`,
-                  `Quality: ${(props.payload as { quality?: string })?.quality || 'Unknown'}`,
-                ]}
-              />
-              <Bar dataKey="duration" name="Shed Duration" radius={[4, 4, 0, 0]}>
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+          <>
+            {/* Screen reader accessible data table - always rendered immediately */}
+            <table className="sr-only">
+              <caption>Shedding history data showing duration and quality</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Duration (days)</th>
+                  <th scope="col">Quality</th>
+                </tr>
+              </thead>
+              <tbody>
+                {chartData.map((point, index) => (
+                  <tr key={index}>
+                    <td>{point.dateFormatted}</td>
+                    <td>{point.duration} days</td>
+                    <td>{point.quality}</td>
+                  </tr>
                 ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+              </tbody>
+            </table>
+            {/* Visual chart - dynamically loaded */}
+            <ShedChartContent data={chartData} />
+          </>
         )}
 
         {/* Quality Legend */}

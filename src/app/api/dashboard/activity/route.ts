@@ -1,23 +1,19 @@
 // API Route: GET /api/dashboard/activity - Recent activity feed
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getUserId } from '@/lib/supabase/server'
 import { dashboardService } from '@/services/dashboard.service'
-import { createLogger } from '@/lib/logger'
-
-const log = createLogger('DashboardActivityAPI')
+import { withErrorHandler } from '@/lib/api/error-handler'
+import { listResponse, unauthorizedResponse } from '@/lib/api/response'
 
 /**
  * GET /api/dashboard/activity - Get recent activity for authenticated user
  */
-export async function GET(request: NextRequest) {
-  try {
+export const GET = withErrorHandler(
+  async (request: NextRequest) => {
     const userId = await getUserId()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
+      return unauthorizedResponse()
     }
 
     // Parse optional limit from query params
@@ -29,12 +25,7 @@ export async function GET(request: NextRequest) {
       Math.min(limit, 50) // Cap at 50
     )
 
-    return NextResponse.json({ data: activity })
-  } catch (error) {
-    log.error({ error }, 'Error fetching recent activity')
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
-  }
-}
+    return listResponse(activity)
+  },
+  'DashboardActivityAPI'
+)

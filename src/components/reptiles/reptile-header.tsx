@@ -52,7 +52,7 @@ export function ReptileHeader({ reptileId }: ReptileHeaderProps) {
   if (!reptile) {
     return (
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+        <Button variant="ghost" size="icon" asChild aria-label="Go back to reptiles list">
           <Link href="/reptiles">
             <ArrowLeft className="h-5 w-5" />
           </Link>
@@ -69,7 +69,7 @@ export function ReptileHeader({ reptileId }: ReptileHeaderProps) {
     <>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
+          <Button variant="ghost" size="icon" asChild aria-label="Go back to reptiles list">
             <Link href="/reptiles">
               <ArrowLeft className="h-5 w-5" />
             </Link>

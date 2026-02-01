@@ -1,33 +1,24 @@
 // API Route: GET /api/dashboard/stats - Collection stats
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getUserId } from '@/lib/supabase/server'
 import { dashboardService } from '@/services/dashboard.service'
-import { createLogger } from '@/lib/logger'
-
-const log = createLogger('DashboardStatsAPI')
+import { withErrorHandler } from '@/lib/api/error-handler'
+import { successResponse, unauthorizedResponse } from '@/lib/api/response'
 
 /**
  * GET /api/dashboard/stats - Get dashboard stats for authenticated user
  */
-export async function GET(request: NextRequest) {
-  try {
+export const GET = withErrorHandler(
+  async (request: NextRequest) => {
     const userId = await getUserId()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
+      return unauthorizedResponse()
     }
 
     const stats = await dashboardService.getStats(userId)
 
-    return NextResponse.json({ data: stats })
-  } catch (error) {
-    log.error({ error }, 'Error fetching dashboard stats')
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
-  }
-}
+    return successResponse(stats)
+  },
+  'DashboardStatsAPI'
+)

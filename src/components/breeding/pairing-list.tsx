@@ -125,10 +125,12 @@ export function PairingList({ onPairingSelect }: PairingListProps) {
           {(pairings as PairingWithRelations[]).map((pairing) => (
             <Card key={pairing.id}>
               <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-primary-500" />
-                    {pairing.male?.name ?? 'Male'} x {pairing.female?.name ?? 'Female'}
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className="text-base flex items-center gap-2 min-w-0">
+                    <Heart className="h-4 w-4 text-primary-500 shrink-0" />
+                    <span className="truncate">
+                      {pairing.male?.name ?? 'Male'} x {pairing.female?.name ?? 'Female'}
+                    </span>
                   </CardTitle>
                   <div className="flex items-center gap-2">
                     {pairing.successful !== null && (
@@ -151,6 +153,7 @@ export function PairingList({ onPairingSelect }: PairingListProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => setEditingPairing(pairing)}
+                      aria-label={`Edit pairing ${pairing.male?.name ?? 'Male'} x ${pairing.female?.name ?? 'Female'}`}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -159,6 +162,7 @@ export function PairingList({ onPairingSelect }: PairingListProps) {
                       size="sm"
                       onClick={() => handleDelete(pairing.id)}
                       disabled={deleteMutation.isPending}
+                      aria-label={`Delete pairing ${pairing.male?.name ?? 'Male'} x ${pairing.female?.name ?? 'Female'}`}
                     >
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>

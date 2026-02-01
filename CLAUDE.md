@@ -107,6 +107,41 @@ MCP configuration is in `.mcp.json`. See roster.md for full documentation.
 
 ---
 
+## App Design Phase
+
+Before implementing new features or major changes, run the App Design Phase:
+
+```
+/app-design
+```
+
+This creates a structured design document at `.claude/design/app-design.md` that:
+- Defines feature specifications and user stories
+- Inventories all pages and routes
+- Maps user flows through key workflows
+- Specifies component hierarchies
+- Documents data requirements per component
+- Prioritizes implementation order
+
+**When to use /app-design:**
+- Starting a new project after tech stack is ready
+- Adding major new features
+- Redesigning existing UI/UX
+- When implementation keeps going off-track
+
+**Workflow:**
+```
+PROJECT SETUP → APP DESIGN → IMPLEMENTATION
+    ↓              ↓              ↓
+ Tech stack    /app-design    dev-frontend
+ Database      Design doc     dev-backend
+ Auth          Blueprint      dev-test
+```
+
+The design document becomes the blueprint for `dev-frontend` and `dev-backend` agents.
+
+---
+
 ## Claude Code Workflow
 
 This project uses Claude Code's **orchestrator/agent pattern**:

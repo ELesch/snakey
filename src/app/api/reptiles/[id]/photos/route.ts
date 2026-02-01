@@ -1,16 +1,15 @@
 // API Route: /api/reptiles/[id]/photos - GET (list), POST (create)
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserId } from '@/lib/supabase/server'
-import {
-  PhotoService,
-  NotFoundError,
-  ForbiddenError,
-  ValidationError,
-} from '@/services/photo.service'
+import { PhotoService } from '@/services/photo.service'
 import { PhotoQuerySchema } from '@/validations/photo'
-import { createLogger } from '@/lib/logger'
+import { withErrorHandler } from '@/lib/api/error-handler'
+import {
+  successResponse,
+  unauthorizedResponse,
+  invalidQueryParamsResponse,
+} from '@/lib/api/response'
 
-const log = createLogger('PhotoAPI')
 const photoService = new PhotoService()
 
 interface RouteParams {
@@ -20,16 +19,13 @@ interface RouteParams {
 /**
  * GET /api/reptiles/[id]/photos - List all photos for a reptile
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
-  try {
+export const GET = withErrorHandler(
+  async (request: NextRequest, { params }: RouteParams) => {
     const { id: reptileId } = await params
     const userId = await getUserId()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
+      return unauthorizedResponse()
     }
 
     // Parse query parameters - filter out null values so defaults apply
@@ -42,90 +38,35 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     if (!queryResult.success) {
       const issues = queryResult.error.issues || []
-      return NextResponse.json(
-        {
-          error: {
-            code: 'INVALID_QUERY_PARAMS',
-            message: issues[0]?.message || 'Invalid query parameters',
-            details: issues,
-          },
-        },
-        { status: 400 }
+      return invalidQueryParamsResponse(
+        issues[0]?.message || 'Invalid query parameters',
+        issues
       )
     }
 
     const result = await photoService.list(userId, reptileId, queryResult.data)
 
     return NextResponse.json(result)
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return NextResponse.json(
-        { error: { code: 'NOT_FOUND', message: error.message } },
-        { status: 404 }
-      )
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: { code: 'FORBIDDEN', message: error.message } },
-        { status: 403 }
-      )
-    }
-
-    log.error({ error }, 'Error listing photos')
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
-  }
-}
+  },
+  'PhotoAPI'
+)
 
 /**
  * POST /api/reptiles/[id]/photos - Create a new photo
  */
-export async function POST(request: NextRequest, { params }: RouteParams) {
-  try {
+export const POST = withErrorHandler(
+  async (request: NextRequest, { params }: RouteParams) => {
     const { id: reptileId } = await params
     const userId = await getUserId()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
+      return unauthorizedResponse()
     }
 
     const body = await request.json()
-
     const photo = await photoService.create(userId, reptileId, body)
 
-    return NextResponse.json({ data: photo }, { status: 201 })
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return NextResponse.json(
-        { error: { code: 'NOT_FOUND', message: error.message } },
-        { status: 404 }
-      )
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: { code: 'FORBIDDEN', message: error.message } },
-        { status: 403 }
-      )
-    }
-
-    if (error instanceof ValidationError) {
-      return NextResponse.json(
-        { error: { code: 'VALIDATION_ERROR', message: error.message } },
-        { status: 400 }
-      )
-    }
-
-    log.error({ error }, 'Error creating photo')
-    return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
-      { status: 500 }
-    )
-  }
-}
+    return successResponse(photo, undefined, 201)
+  },
+  'PhotoAPI'
+)

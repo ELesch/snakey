@@ -24,6 +24,7 @@ vi.mock('@/lib/db/client', () => ({
       findMany: vi.fn(),
       count: vi.fn(),
     },
+    $queryRaw: vi.fn(),
   },
 }))
 
@@ -45,14 +46,8 @@ describe('DashboardService', () => {
       // Mock for reptile count
       mockedPrisma.reptile.count.mockResolvedValue(5)
 
-      // Mock for countFeedingsDue (internal call to findMany)
-      mockedPrisma.reptile.findMany.mockResolvedValue([
-        {
-          id: 'reptile-1',
-          species: 'Ball Python',
-          feedings: [{ date: new Date() }],
-        },
-      ] as never)
+      // Mock for countFeedingsDue - uses optimized $queryRaw
+      mockedPrisma.$queryRaw = vi.fn().mockResolvedValue([{ count: BigInt(1) }])
 
       // Mock for weight count
       mockedPrisma.weight.count.mockResolvedValue(2)
@@ -64,7 +59,7 @@ describe('DashboardService', () => {
 
       expect(stats).toEqual({
         totalReptiles: 5,
-        feedingsDue: 0, // Not due since just fed
+        feedingsDue: 1,
         recentWeights: 2,
         environmentAlerts: 1,
       })
@@ -73,32 +68,37 @@ describe('DashboardService', () => {
       })
     })
 
-    it('should count overdue feedings correctly', async () => {
+    it('should count overdue feedings correctly using optimized query', async () => {
       mockedPrisma.reptile.count.mockResolvedValue(2)
 
-      // One reptile with old feeding, one never fed
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-      mockedPrisma.reptile.findMany.mockResolvedValue([
-        {
-          id: 'reptile-1',
-          species: 'Ball Python',
-          feedings: [{ date: thirtyDaysAgo }],
-        },
-        {
-          id: 'reptile-2',
-          species: 'Corn Snake',
-          feedings: [], // Never fed
-        },
-      ] as never)
+      // Mock the optimized feeding due count query using raw SQL
+      // The service should use a single aggregation query instead of N+1
+      mockedPrisma.$queryRaw = vi.fn().mockResolvedValue([{ count: BigInt(2) }])
 
       mockedPrisma.weight.count.mockResolvedValue(0)
       mockedPrisma.environmentLog.count.mockResolvedValue(0)
 
       const stats = await service.getStats(userId)
 
-      expect(stats.feedingsDue).toBe(2) // Both are overdue
+      expect(stats.feedingsDue).toBe(2)
+      // Verify the optimized query was used instead of findMany + loop
+      expect(mockedPrisma.$queryRaw).toHaveBeenCalled()
+    })
+
+    it('should count feedings due without N+1 query pattern', async () => {
+      mockedPrisma.reptile.count.mockResolvedValue(100)
+
+      // Mock the optimized query result
+      mockedPrisma.$queryRaw = vi.fn().mockResolvedValue([{ count: BigInt(42) }])
+
+      mockedPrisma.weight.count.mockResolvedValue(0)
+      mockedPrisma.environmentLog.count.mockResolvedValue(0)
+
+      const stats = await service.getStats(userId)
+
+      expect(stats.feedingsDue).toBe(42)
+      // Should use $queryRaw, not findMany for counting feedings due
+      expect(mockedPrisma.reptile.findMany).not.toHaveBeenCalled()
     })
   })
 

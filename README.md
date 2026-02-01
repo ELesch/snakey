@@ -64,9 +64,6 @@ See `.env.example` for required environment variables.
 # Start development server
 npm run dev
 
-# Run tests
-npm run test
-
 # Type checking
 npm run type-check
 
@@ -76,6 +73,63 @@ npm run lint
 # Format code
 npm run format
 ```
+
+## Testing
+
+```bash
+# Run tests
+npm test
+
+# Watch mode (re-runs on file changes)
+npm run test:watch
+
+# Coverage report
+npm run test:coverage
+```
+
+Tests are colocated with source files (e.g., `ReptileService.test.ts` next to `ReptileService.ts`).
+
+## API Response Format
+
+All API endpoints follow a standardized response format:
+
+```json
+// Success (single resource)
+{
+  "data": {
+    "id": "...",
+    "name": "..."
+  }
+}
+
+// Success (list)
+{
+  "data": [...],
+  "meta": {
+    "count": 10
+  }
+}
+
+// Error
+{
+  "error": {
+    "message": "Human-readable error message",
+    "code": "ERROR_CODE"
+  }
+}
+```
+
+### HTTP Status Codes
+
+| Status | Usage |
+|--------|-------|
+| 200 | Success |
+| 201 | Created |
+| 400 | Validation error |
+| 401 | Unauthorized |
+| 403 | Forbidden |
+| 404 | Not found |
+| 500 | Server error |
 
 ## Database
 

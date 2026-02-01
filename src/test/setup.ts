@@ -1,6 +1,39 @@
 import '@testing-library/jest-dom/vitest'
 import { vi } from 'vitest'
 
+// Polyfill for pointer capture functions (needed for Radix UI components)
+// jsdom doesn't implement these, but Radix UI Select uses them
+if (typeof Element.prototype.hasPointerCapture !== 'function') {
+  Element.prototype.hasPointerCapture = function () {
+    return false
+  }
+}
+if (typeof Element.prototype.setPointerCapture !== 'function') {
+  Element.prototype.setPointerCapture = function () {
+    // no-op
+  }
+}
+if (typeof Element.prototype.releasePointerCapture !== 'function') {
+  Element.prototype.releasePointerCapture = function () {
+    // no-op
+  }
+}
+
+// Polyfill scrollIntoView (used by Radix UI Select)
+if (typeof Element.prototype.scrollIntoView !== 'function') {
+  Element.prototype.scrollIntoView = function () {
+    // no-op
+  }
+}
+
+// Mock ResizeObserver (used by some UI components)
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+vi.stubGlobal('ResizeObserver', ResizeObserverMock)
+
 // Mock Prisma client
 vi.mock('@/lib/db/client', () => ({
   prisma: {

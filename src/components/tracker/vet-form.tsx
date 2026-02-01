@@ -92,7 +92,7 @@ export function VetForm({ reptileId, onSuccess }: VetFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label
             htmlFor="vet-date"
@@ -107,9 +107,12 @@ export function VetForm({ reptileId, onSuccess }: VetFormProps) {
             value={formData.date}
             onChange={handleChange}
             aria-invalid={!!errors.date}
+            aria-describedby={errors.date ? 'vet-date-error' : undefined}
           />
           {errors.date && (
-            <p className="mt-1 text-sm text-red-500">{errors.date}</p>
+            <p id="vet-date-error" className="mt-1 text-sm text-red-500" role="alert">
+              {errors.date}
+            </p>
           )}
         </div>
 
@@ -130,9 +133,12 @@ export function VetForm({ reptileId, onSuccess }: VetFormProps) {
             value={formData.cost}
             onChange={handleChange}
             aria-invalid={!!errors.cost}
+            aria-describedby={errors.cost ? 'cost-error' : undefined}
           />
           {errors.cost && (
-            <p className="mt-1 text-sm text-red-500">{errors.cost}</p>
+            <p id="cost-error" className="mt-1 text-sm text-red-500" role="alert">
+              {errors.cost}
+            </p>
           )}
         </div>
       </div>
@@ -151,13 +157,16 @@ export function VetForm({ reptileId, onSuccess }: VetFormProps) {
           value={formData.reason}
           onChange={handleChange}
           aria-invalid={!!errors.reason}
+          aria-describedby={errors.reason ? 'reason-error' : undefined}
         />
         {errors.reason && (
-          <p className="mt-1 text-sm text-red-500">{errors.reason}</p>
+          <p id="reason-error" className="mt-1 text-sm text-red-500" role="alert">
+            {errors.reason}
+          </p>
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label
             htmlFor="vetName"
@@ -205,7 +214,7 @@ export function VetForm({ reptileId, onSuccess }: VetFormProps) {
           placeholder="What was diagnosed..."
           value={formData.diagnosis}
           onChange={handleChange}
-          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2"
         />
       </div>
 
@@ -223,7 +232,7 @@ export function VetForm({ reptileId, onSuccess }: VetFormProps) {
           placeholder="Treatment prescribed..."
           value={formData.treatment}
           onChange={handleChange}
-          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2"
         />
       </div>
 
@@ -257,7 +266,7 @@ export function VetForm({ reptileId, onSuccess }: VetFormProps) {
           placeholder="Additional notes..."
           value={formData.notes}
           onChange={handleChange}
-          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2"
         />
       </div>
 
@@ -268,12 +277,12 @@ export function VetForm({ reptileId, onSuccess }: VetFormProps) {
       >
         {createVisit.isPending ? (
           <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
             Logging...
           </>
         ) : (
           <>
-            <Check className="h-4 w-4 mr-2" />
+            <Check className="h-4 w-4 mr-2" aria-hidden="true" />
             Log Vet Visit
           </>
         )}

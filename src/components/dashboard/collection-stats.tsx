@@ -23,7 +23,8 @@ function StatCard({ name, value, icon: Icon, color, isPending }: StatCardProps) 
             <p className="text-sm font-medium text-[var(--color-muted-foreground)]">{name}</p>
             {isPending ? (
               <div className="h-8 w-12 flex items-center">
-                <Loader2 className="h-5 w-5 animate-spin text-[var(--color-muted-foreground)]" />
+                <Loader2 className="h-5 w-5 animate-spin text-[var(--color-muted-foreground)]" aria-hidden="true" />
+                <span className="sr-only">Loading...</span>
               </div>
             ) : (
               <p className="text-2xl font-bold text-[var(--color-foreground)]">{value}</p>

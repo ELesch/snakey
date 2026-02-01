@@ -1,19 +1,19 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useEnvironmentStats } from '@/hooks/use-reports'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts'
 import { Loader2, Thermometer } from 'lucide-react'
 import type { ReportFilters } from '@/services/reports.service'
+
+// Dynamic import for chart content - only loaded when component mounts
+const EnvironmentChartContent = dynamic(
+  () => import('./environment-chart-content').then((mod) => mod.EnvironmentChartContent),
+  {
+    loading: () => <ChartLoadingSkeleton />,
+    ssr: false, // Charts don't need server rendering
+  }
+)
 
 interface EnvironmentChartProps {
   filters: ReportFilters
@@ -22,6 +22,14 @@ interface EnvironmentChartProps {
 function formatDate(dateString: string): string {
   const date = new Date(dateString)
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+function ChartLoadingSkeleton() {
+  return (
+    <div className="h-[300px] flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-[var(--color-muted-foreground)]" />
+    </div>
+  )
 }
 
 function ChartSkeleton() {
@@ -78,77 +86,7 @@ export function EnvironmentChart({ filters }: EnvironmentChartProps) {
         {!isPending && !isError && (!chartData || chartData.length === 0) && <EmptyState />}
 
         {!isPending && !isError && chartData && chartData.length > 0 && (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={chartData}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" className="stroke-[var(--color-border)]" />
-              <XAxis
-                dataKey="dateFormatted"
-                tick={{ fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-                className="text-[var(--color-muted-foreground)]"
-              />
-              <YAxis
-                yAxisId="temp"
-                tick={{ fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-                className="text-[var(--color-muted-foreground)]"
-                tickFormatter={(value) => `${value}F`}
-                domain={['dataMin - 5', 'dataMax + 5']}
-              />
-              <YAxis
-                yAxisId="humidity"
-                orientation="right"
-                tick={{ fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-                className="text-[var(--color-muted-foreground)]"
-                tickFormatter={(value) => `${value}%`}
-                domain={[0, 100]}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'var(--color-card)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '8px',
-                }}
-                labelStyle={{ color: 'var(--color-foreground)' }}
-                formatter={(value, name) => {
-                  if (typeof value !== 'number') return [String(value), name]
-                  if (name === 'Temperature') return [`${value}F`, name]
-                  if (name === 'Humidity') return [`${value}%`, name]
-                  return [String(value), name]
-                }}
-              />
-              <Legend />
-              <Line
-                yAxisId="temp"
-                type="monotone"
-                dataKey="temperature"
-                name="Temperature"
-                stroke="#ef4444"
-                strokeWidth={2}
-                dot={{ fill: '#ef4444', strokeWidth: 0, r: 3 }}
-                activeDot={{ r: 5, strokeWidth: 0 }}
-                connectNulls
-              />
-              <Line
-                yAxisId="humidity"
-                type="monotone"
-                dataKey="humidity"
-                name="Humidity"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                dot={{ fill: '#3b82f6', strokeWidth: 0, r: 3 }}
-                activeDot={{ r: 5, strokeWidth: 0 }}
-                connectNulls
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <EnvironmentChartContent data={chartData} />
         )}
       </CardContent>
     </Card>

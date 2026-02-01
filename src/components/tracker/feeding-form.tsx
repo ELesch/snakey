@@ -144,13 +144,16 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
           value={formData.date}
           onChange={handleChange}
           aria-invalid={!!errors.date}
+          aria-describedby={errors.date ? 'feeding-date-error' : undefined}
         />
         {errors.date && (
-          <p className="mt-1 text-sm text-red-500">{errors.date}</p>
+          <p id="feeding-date-error" className="mt-1 text-sm text-red-500" role="alert">
+            {errors.date}
+          </p>
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label
             htmlFor="preyType"
@@ -162,7 +165,11 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
             value={formData.preyType}
             onValueChange={(val) => handleSelectChange('preyType', val)}
           >
-            <SelectTrigger aria-invalid={!!errors.preyType}>
+            <SelectTrigger
+              id="preyType"
+              aria-invalid={!!errors.preyType}
+              aria-describedby={errors.preyType ? 'preyType-error' : undefined}
+            >
               <SelectValue placeholder="Select prey type" />
             </SelectTrigger>
             <SelectContent>
@@ -174,7 +181,9 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
             </SelectContent>
           </Select>
           {errors.preyType && (
-            <p className="mt-1 text-sm text-red-500">{errors.preyType}</p>
+            <p id="preyType-error" className="mt-1 text-sm text-red-500" role="alert">
+              {errors.preyType}
+            </p>
           )}
         </div>
 
@@ -189,7 +198,11 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
             value={formData.preySize}
             onValueChange={(val) => handleSelectChange('preySize', val)}
           >
-            <SelectTrigger aria-invalid={!!errors.preySize}>
+            <SelectTrigger
+              id="preySize"
+              aria-invalid={!!errors.preySize}
+              aria-describedby={errors.preySize ? 'preySize-error' : undefined}
+            >
               <SelectValue placeholder="Select size" />
             </SelectTrigger>
             <SelectContent>
@@ -201,7 +214,9 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
             </SelectContent>
           </Select>
           {errors.preySize && (
-            <p className="mt-1 text-sm text-red-500">{errors.preySize}</p>
+            <p id="preySize-error" className="mt-1 text-sm text-red-500" role="alert">
+              {errors.preySize}
+            </p>
           )}
         </div>
       </div>
@@ -222,7 +237,7 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
             )
           }
         >
-          <SelectTrigger>
+          <SelectTrigger id="preySource">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -284,7 +299,7 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
           placeholder="Additional notes..."
           value={formData.notes}
           onChange={handleChange}
-          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2"
         />
       </div>
 
@@ -295,12 +310,12 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
       >
         {createFeeding.isPending ? (
           <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
             Logging...
           </>
         ) : (
           <>
-            <Check className="h-4 w-4 mr-2" />
+            <Check className="h-4 w-4 mr-2" aria-hidden="true" />
             Log Feeding
           </>
         )}

@@ -16,7 +16,7 @@
 
   /* Muted */
   --color-muted: oklch(0.95 0.01 145);
-  --color-muted-foreground: oklch(0.45 0.03 145);
+  --color-muted-foreground: oklch(0.40 0.03 145);
 
   /* Card */
   --color-card: oklch(1 0 0);
@@ -146,4 +146,34 @@ body {
   .animate-bounce-slow {
     animation: none;
   }
+}
+
+/* Skip navigation link - accessibility */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 1rem;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.skip-link:focus {
+  left: 0;
+  top: 0;
+}
+
+/* Screen reader only utility class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

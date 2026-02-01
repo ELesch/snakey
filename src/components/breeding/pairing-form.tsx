@@ -78,11 +78,11 @@ export function PairingForm({ pairing, onSuccess, onCancel }: PairingFormProps) 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-warm-700 mb-1">
-          Male
+        <label htmlFor="male" className="block text-sm font-medium text-warm-700 mb-1">
+          Male <span className="text-red-500" aria-hidden="true">*</span>
         </label>
         <Select value={maleId} onValueChange={setMaleId} required>
-          <SelectTrigger>
+          <SelectTrigger id="male" aria-required="true">
             <SelectValue placeholder="Select male" />
           </SelectTrigger>
           <SelectContent>
@@ -102,11 +102,11 @@ export function PairingForm({ pairing, onSuccess, onCancel }: PairingFormProps) 
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-warm-700 mb-1">
-          Female
+        <label htmlFor="female" className="block text-sm font-medium text-warm-700 mb-1">
+          Female <span className="text-red-500" aria-hidden="true">*</span>
         </label>
         <Select value={femaleId} onValueChange={setFemaleId} required>
-          <SelectTrigger>
+          <SelectTrigger id="female" aria-required="true">
             <SelectValue placeholder="Select female" />
           </SelectTrigger>
           <SelectContent>
@@ -125,24 +125,27 @@ export function PairingForm({ pairing, onSuccess, onCancel }: PairingFormProps) 
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-warm-700 mb-1">
-            Start Date
+          <label htmlFor="startDate" className="block text-sm font-medium text-warm-700 mb-1">
+            Start Date <span className="text-red-500" aria-hidden="true">*</span>
           </label>
           <Input
+            id="startDate"
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             required
+            aria-required="true"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-warm-700 mb-1">
+          <label htmlFor="endDate" className="block text-sm font-medium text-warm-700 mb-1">
             End Date
           </label>
           <Input
+            id="endDate"
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
@@ -151,11 +154,11 @@ export function PairingForm({ pairing, onSuccess, onCancel }: PairingFormProps) 
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-warm-700 mb-1">
+        <label htmlFor="outcome" className="block text-sm font-medium text-warm-700 mb-1">
           Outcome
         </label>
         <Select value={successful} onValueChange={setSuccessful}>
-          <SelectTrigger>
+          <SelectTrigger id="outcome">
             <SelectValue placeholder="Not yet determined" />
           </SelectTrigger>
           <SelectContent>
@@ -167,13 +170,14 @@ export function PairingForm({ pairing, onSuccess, onCancel }: PairingFormProps) 
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-warm-700 mb-1">
+        <label htmlFor="pairing-notes" className="block text-sm font-medium text-warm-700 mb-1">
           Notes
         </label>
         <textarea
+          id="pairing-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full rounded-md border border-warm-300 bg-white px-3 py-2 text-sm placeholder:text-warm-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          className="w-full rounded-md border border-warm-300 bg-white px-3 py-2 text-sm placeholder:text-warm-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2"
           rows={3}
           placeholder="Optional notes about the pairing..."
         />

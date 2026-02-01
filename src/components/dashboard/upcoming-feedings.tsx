@@ -31,7 +31,8 @@ export function UpcomingFeedings() {
   if (isPending) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-[var(--color-muted-foreground)]" />
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--color-muted-foreground)]" aria-hidden="true" />
+        <span className="sr-only">Loading upcoming feedings...</span>
       </div>
     )
   }
@@ -39,7 +40,7 @@ export function UpcomingFeedings() {
   if (isError) {
     return (
       <div className="text-center py-8 text-[var(--color-muted-foreground)]">
-        <AlertCircle className="h-8 w-8 mx-auto mb-2 text-[var(--color-destructive)]" />
+        <AlertCircle className="h-8 w-8 mx-auto mb-2 text-[var(--color-destructive)]" aria-hidden="true" />
         <p>Could not load feedings</p>
         <p className="text-sm">Please try again later</p>
       </div>
@@ -49,7 +50,7 @@ export function UpcomingFeedings() {
   if (!feedings || feedings.length === 0) {
     return (
       <div className="text-center py-8 text-[var(--color-muted-foreground)]">
-        <UtensilsCrossed className="h-8 w-8 mx-auto mb-2 opacity-50" />
+        <UtensilsCrossed className="h-8 w-8 mx-auto mb-2 opacity-50" aria-hidden="true" />
         <p className="font-medium">All caught up!</p>
         <p className="text-sm">No feedings scheduled for the next 7 days</p>
       </div>

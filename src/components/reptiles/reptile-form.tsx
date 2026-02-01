@@ -110,8 +110,12 @@ export function ReptileForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2 text-sm text-red-800">
-          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+        <div
+          className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2 text-sm text-red-800"
+          role="alert"
+          aria-live="polite"
+        >
+          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
           <span>{error}</span>
         </div>
       )}
@@ -139,7 +143,7 @@ export function ReptileForm({
           onValueChange={(value) => setFormData({ ...formData, species: value })}
           disabled={isPending}
         >
-          <SelectTrigger>
+          <SelectTrigger id="species">
             <SelectValue placeholder="Select species" />
           </SelectTrigger>
           <SelectContent>
@@ -177,7 +181,7 @@ export function ReptileForm({
           }
           disabled={isPending}
         >
-          <SelectTrigger>
+          <SelectTrigger id="sex">
             <SelectValue placeholder="Select sex" />
           </SelectTrigger>
           <SelectContent>
@@ -188,7 +192,7 @@ export function ReptileForm({
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="birthDate" className="block text-sm font-medium mb-1">
             Birth/Hatch Date
@@ -250,7 +254,7 @@ export function ReptileForm({
           Cancel
         </Button>
         <Button type="submit" disabled={isPending}>
-          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
           {isEditing ? 'Update Reptile' : 'Add Reptile'}
         </Button>
       </div>

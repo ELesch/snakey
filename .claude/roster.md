@@ -36,6 +36,7 @@ Agents are classified by their role to enforce context discipline:
 
 | Agent | When to Use | Output |
 |-------|-------------|--------|
+| `dev-designer` | App Design Phase - features, pages, user flows, components | Design documents |
 | `dev-architect` | System architecture, module boundaries, ADRs | Design documents |
 | `dev-api` | REST endpoint design, validation schemas, API contracts | API specifications |
 | `dev-database` | Query optimization, EXPLAIN analysis, data modeling | Analysis reports |
@@ -84,12 +85,12 @@ dev-auditor-architecture -> dev-auditor-testing -> [create remediation plan]
 ## SDLC Phase Mapping
 
 ```
-DESIGN           ->  TDD DEVELOP      ->  INTEGRATE  ->  REVIEW          ->  AUDIT           ->  DEPLOY
-dev-architect       dev-test            dev-test      dev-reviewer       dev-auditor-*      dev-deploy
-dev-api             dev-backend                       dev-security                          dev-docs
-dev-migration       dev-frontend                      dev-refactor
-                    dev-integration
-                    dev-data
+APP DESIGN       ->  DESIGN           ->  TDD DEVELOP      ->  INTEGRATE  ->  REVIEW          ->  AUDIT           ->  DEPLOY
+dev-designer        dev-architect       dev-test            dev-test      dev-reviewer       dev-auditor-*      dev-deploy
+                    dev-api             dev-backend                       dev-security                          dev-docs
+                    dev-migration       dev-frontend                      dev-refactor
+                                        dev-integration
+                                        dev-data
 ```
 
 ## TDD Workflow
@@ -143,10 +144,13 @@ Skills are reusable workflows that can be invoked by users or agents.
 
 | Skill | Purpose | Who Can Invoke |
 |-------|---------|----------------|
+| `/app-design` | Guide through App Design Phase - features, pages, user flows | Users |
 | `/capture` | Save important knowledge (tech gotchas, preferences, patterns) | Users and agents |
 | `/tech-revalidate` | Check for AI knowledge drift and update validation | Users |
 | `/commit` | Safe commit with secret scanning | Before any git commit |
 | `/orchestrator-checkpoint` | Self-reminder for orchestrator role during long sessions | Orchestrator |
+| `/audit-decision` | Record significant decisions with alternatives and rationale | Users |
+| `/audit-summary` | Analyze session logs and generate summary report | Users |
 
 ---
 
@@ -202,6 +206,62 @@ Knowledge: {What was learned}
 Category: tech | preference | practice | spec
 Target: @{optional file path}
 ```
+
+### Using /app-design
+
+Run the App Design Phase before implementing a new project or major feature:
+
+```
+/app-design
+```
+
+This guides you through:
+1. **Feature discovery** - User goals and acceptance criteria
+2. **Page inventory** - Complete list of pages/screens
+3. **User flows** - How users navigate key workflows
+4. **Component hierarchy** - UI building blocks
+5. **Data requirements** - What each component needs
+6. **Implementation priority** - What to build first
+
+**Output:** `.claude/design/app-design.md` - Blueprint for implementation agents
+
+### Using /audit-decision
+
+Record significant decisions with alternatives and rationale:
+
+```
+/audit-decision
+```
+
+Creates a permanent record in `.claude/audit/decisions/` that documents:
+- What decision was made
+- Alternatives considered (with pros/cons)
+- Why this choice was made
+- Constraints that influenced the decision
+
+**When to use:**
+- Technology choices
+- Architecture decisions
+- Trade-off resolutions
+- Changing previous decisions
+
+### Using /audit-summary
+
+Analyze session logs and generate insights:
+
+```
+/audit-summary
+```
+
+Creates a report showing:
+- Agent delegation patterns
+- Failure frequency by type
+- Recommendations for improvement
+
+**Modes:**
+- Default: Full summary
+- "quick": Top 3 patterns only
+- "debug": Focus on failures
 
 ---
 

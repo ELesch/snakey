@@ -22,13 +22,13 @@ export function FeedingHistory({ reptileId }: FeedingHistoryProps) {
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold">Feeding History</h3>
           <Button onClick={() => setShowForm(true)} size="sm" disabled>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
             Log Feeding
           </Button>
         </div>
         <Card>
           <CardContent className="py-12 text-center">
-            <Loader2 className="h-8 w-8 mx-auto mb-4 text-warm-400 animate-spin" />
+            <Loader2 className="h-8 w-8 mx-auto mb-4 text-warm-400 animate-spin" aria-hidden="true" />
             <p className="text-warm-500">Loading feeding history...</p>
           </CardContent>
         </Card>
@@ -43,13 +43,13 @@ export function FeedingHistory({ reptileId }: FeedingHistoryProps) {
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold">Feeding History</h3>
           <Button onClick={() => setShowForm(true)} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
             Log Feeding
           </Button>
         </div>
         <Card>
           <CardContent className="py-12 text-center">
-            <X className="h-12 w-12 mx-auto mb-4 text-red-300" />
+            <X className="h-12 w-12 mx-auto mb-4 text-red-300" aria-hidden="true" />
             <p className="text-red-600">Failed to load feeding history</p>
             <p className="text-sm text-warm-500">Please try again later</p>
           </CardContent>
@@ -64,13 +64,14 @@ export function FeedingHistory({ reptileId }: FeedingHistoryProps) {
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">Feeding History</h3>
           {isOfflineData && (
-            <span title="Showing offline data">
-              <WifiOff className="h-4 w-4 text-warm-400" />
+            <span>
+              <WifiOff className="h-4 w-4 text-warm-400" aria-hidden="true" />
+              <span className="sr-only">Showing offline data</span>
             </span>
           )}
         </div>
         <Button onClick={() => setShowForm(true)} size="sm">
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
           Log Feeding
         </Button>
       </div>
@@ -80,7 +81,7 @@ export function FeedingHistory({ reptileId }: FeedingHistoryProps) {
       {feedings.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 text-warm-300" />
+            <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 text-warm-300" aria-hidden="true" />
             <p className="text-warm-600">No feeding records yet</p>
             <p className="text-sm text-warm-500">Click &quot;Log Feeding&quot; to add one</p>
           </CardContent>
@@ -100,11 +101,13 @@ export function FeedingHistory({ reptileId }: FeedingHistoryProps) {
                     <div className="flex items-center gap-3">
                       {feeding.accepted ? (
                         <div className="p-1.5 bg-green-100 rounded-full">
-                          <Check className="h-4 w-4 text-green-600" />
+                          <Check className="h-4 w-4 text-green-600" aria-hidden="true" />
+                          <span className="sr-only">Accepted</span>
                         </div>
                       ) : (
                         <div className="p-1.5 bg-red-100 rounded-full">
-                          <X className="h-4 w-4 text-red-600" />
+                          <X className="h-4 w-4 text-red-600" aria-hidden="true" />
+                          <span className="sr-only">Refused</span>
                         </div>
                       )}
                       <div>

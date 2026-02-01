@@ -112,9 +112,12 @@ export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
           value={formData.name}
           onChange={handleChange}
           aria-invalid={!!errors.name}
+          aria-describedby={errors.name ? 'med-name-error' : undefined}
         />
         {errors.name && (
-          <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+          <p id="med-name-error" className="mt-1 text-sm text-red-500" role="alert">
+            {errors.name}
+          </p>
         )}
       </div>
 
@@ -133,9 +136,12 @@ export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
             value={formData.dosage}
             onChange={handleChange}
             aria-invalid={!!errors.dosage}
+            aria-describedby={errors.dosage ? 'dosage-error' : undefined}
           />
           {errors.dosage && (
-            <p className="mt-1 text-sm text-red-500">{errors.dosage}</p>
+            <p id="dosage-error" className="mt-1 text-sm text-red-500" role="alert">
+              {errors.dosage}
+            </p>
           )}
         </div>
 
@@ -153,9 +159,12 @@ export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
             value={formData.frequency}
             onChange={handleChange}
             aria-invalid={!!errors.frequency}
+            aria-describedby={errors.frequency ? 'frequency-error' : undefined}
           />
           {errors.frequency && (
-            <p className="mt-1 text-sm text-red-500">{errors.frequency}</p>
+            <p id="frequency-error" className="mt-1 text-sm text-red-500" role="alert">
+              {errors.frequency}
+            </p>
           )}
         </div>
       </div>
@@ -175,9 +184,12 @@ export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
             value={formData.startDate}
             onChange={handleChange}
             aria-invalid={!!errors.startDate}
+            aria-describedby={errors.startDate ? 'med-startDate-error' : undefined}
           />
           {errors.startDate && (
-            <p className="mt-1 text-sm text-red-500">{errors.startDate}</p>
+            <p id="med-startDate-error" className="mt-1 text-sm text-red-500" role="alert">
+              {errors.startDate}
+            </p>
           )}
         </div>
 
@@ -195,9 +207,12 @@ export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
             value={formData.endDate}
             onChange={handleChange}
             aria-invalid={!!errors.endDate}
+            aria-describedby={errors.endDate ? 'med-endDate-error' : undefined}
           />
           {errors.endDate && (
-            <p className="mt-1 text-sm text-red-500">{errors.endDate}</p>
+            <p id="med-endDate-error" className="mt-1 text-sm text-red-500" role="alert">
+              {errors.endDate}
+            </p>
           )}
         </div>
       </div>
@@ -216,7 +231,7 @@ export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
           placeholder="Additional notes about this medication..."
           value={formData.notes}
           onChange={handleChange}
-          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2"
         />
       </div>
 
@@ -240,12 +255,12 @@ export function MedicationForm({ reptileId, onSuccess }: MedicationFormProps) {
       >
         {createMedication.isPending ? (
           <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
             Adding...
           </>
         ) : (
           <>
-            <Check className="h-4 w-4 mr-2" />
+            <Check className="h-4 w-4 mr-2" aria-hidden="true" />
             Add Medication
           </>
         )}

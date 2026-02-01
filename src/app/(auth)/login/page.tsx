@@ -47,7 +47,11 @@ function LoginForm() {
             </div>
           )}
           {error && (
-            <div className="p-3 text-sm text-[var(--color-destructive)] bg-[var(--color-destructive)]/10 border border-[var(--color-destructive)]/30 rounded-md">
+            <div
+              role="alert"
+              aria-live="polite"
+              className="p-3 text-sm text-[var(--color-destructive)] bg-[var(--color-destructive)]/10 border border-[var(--color-destructive)]/30 rounded-md"
+            >
               {error}
             </div>
           )}
@@ -59,6 +63,7 @@ function LoginForm() {
               id="email"
               name="email"
               type="email"
+              autoComplete="email"
               placeholder="you@example.com"
               required
               disabled={isPending}
@@ -72,6 +77,7 @@ function LoginForm() {
               id="password"
               name="password"
               type="password"
+              autoComplete="current-password"
               placeholder="********"
               required
               disabled={isPending}
@@ -84,7 +90,7 @@ function LoginForm() {
           </Button>
           <p className="text-sm text-center text-[var(--color-muted-foreground)]">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-[var(--color-primary)] hover:underline">
+            <Link href="/register" className="text-[var(--color-primary)] underline underline-offset-4 hover:text-[var(--color-primary)]/80">
               Sign up
             </Link>
           </p>

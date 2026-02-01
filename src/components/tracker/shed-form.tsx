@@ -121,9 +121,12 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
             value={formData.startDate}
             onChange={handleChange}
             aria-invalid={!!errors.startDate}
+            aria-describedby={errors.startDate ? 'startDate-error' : undefined}
           />
           {errors.startDate && (
-            <p className="mt-1 text-sm text-red-500">{errors.startDate}</p>
+            <p id="startDate-error" className="mt-1 text-sm text-red-500" role="alert">
+              {errors.startDate}
+            </p>
           )}
         </div>
 
@@ -141,9 +144,12 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
             value={formData.completedDate}
             onChange={handleChange}
             aria-invalid={!!errors.completedDate}
+            aria-describedby={errors.completedDate ? 'completedDate-error' : undefined}
           />
           {errors.completedDate && (
-            <p className="mt-1 text-sm text-red-500">{errors.completedDate}</p>
+            <p id="completedDate-error" className="mt-1 text-sm text-red-500" role="alert">
+              {errors.completedDate}
+            </p>
           )}
         </div>
       </div>
@@ -164,7 +170,7 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
             )
           }
         >
-          <SelectTrigger>
+          <SelectTrigger id="quality">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -203,7 +209,7 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
             placeholder="Describe stuck shed areas, retained eye caps, etc..."
             value={formData.issues}
             onChange={handleChange}
-            className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2"
           />
         </div>
       )}
@@ -222,19 +228,19 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
           placeholder="Additional observations..."
           value={formData.notes}
           onChange={handleChange}
-          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2"
         />
       </div>
 
       <Button type="submit" className="w-full" disabled={createShed.isPending}>
         {createShed.isPending ? (
           <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
             Logging...
           </>
         ) : (
           <>
-            <Check className="h-4 w-4 mr-2" />
+            <Check className="h-4 w-4 mr-2" aria-hidden="true" />
             Log Shed
           </>
         )}

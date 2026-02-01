@@ -27,6 +27,29 @@ vi.mock('@/lib/db/client', () => ({
   },
 }))
 
+// Re-type mocked prisma for additional methods needed by pagination tests
+interface MockedPrismaWithCount {
+  reptile: {
+    count: ReturnType<typeof vi.fn>
+    findMany: ReturnType<typeof vi.fn>
+  }
+  feeding: {
+    findMany: ReturnType<typeof vi.fn>
+    count: ReturnType<typeof vi.fn>
+  }
+  shed: {
+    findMany: ReturnType<typeof vi.fn>
+    count: ReturnType<typeof vi.fn>
+  }
+  weight: {
+    findMany: ReturnType<typeof vi.fn>
+    count: ReturnType<typeof vi.fn>
+  }
+  environmentLog: {
+    findMany: ReturnType<typeof vi.fn>
+  }
+}
+
 import { prisma } from '@/lib/db/client'
 
 const mockedPrisma = vi.mocked(prisma, true)
@@ -500,6 +523,146 @@ describe('ReportsService', () => {
 
       // 90% acceptance should give a high health score
       expect(result.healthScore).toBeGreaterThanOrEqual(80)
+    })
+  })
+
+  describe('pagination', () => {
+    describe('getGrowthData with pagination', () => {
+      it('should accept pagination options and return meta', async () => {
+        mockedPrisma.weight.findMany.mockResolvedValue([
+          {
+            id: 'weight-1',
+            date: new Date(),
+            weight: 500.5,
+            reptileId: 'reptile-1',
+            reptile: { id: 'reptile-1', name: 'Slither', userId },
+          },
+        ] as never)
+        mockedPrisma.weight.count.mockResolvedValue(50)
+
+        const result = await service.getGrowthData(userId, {}, { limit: 10, offset: 0 })
+
+        expect(result.data).toHaveLength(1)
+        expect(result.meta).toEqual({
+          total: 50,
+          limit: 10,
+          offset: 0,
+        })
+      })
+
+      it('should enforce maximum limit of 1000', async () => {
+        mockedPrisma.weight.findMany.mockResolvedValue([])
+        mockedPrisma.weight.count.mockResolvedValue(0)
+
+        await service.getGrowthData(userId, {}, { limit: 5000, offset: 0 })
+
+        expect(mockedPrisma.weight.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            take: 1000,
+          })
+        )
+      })
+
+      it('should use default limit of 100 when not provided', async () => {
+        mockedPrisma.weight.findMany.mockResolvedValue([])
+        mockedPrisma.weight.count.mockResolvedValue(0)
+
+        await service.getGrowthData(userId, {})
+
+        expect(mockedPrisma.weight.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            take: 100,
+          })
+        )
+      })
+
+      it('should apply offset correctly', async () => {
+        mockedPrisma.weight.findMany.mockResolvedValue([])
+        mockedPrisma.weight.count.mockResolvedValue(0)
+
+        await service.getGrowthData(userId, {}, { limit: 10, offset: 20 })
+
+        expect(mockedPrisma.weight.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            take: 10,
+            skip: 20,
+          })
+        )
+      })
+    })
+
+    describe('getFeedingStats with pagination', () => {
+      it('should accept pagination options and return meta', async () => {
+        mockedPrisma.feeding.findMany.mockResolvedValue([
+          {
+            id: 'feed-1',
+            date: new Date(),
+            accepted: true,
+            refused: false,
+            regurgitated: false,
+            reptile: { id: 'r1', name: 'Slither', userId },
+          },
+        ] as never)
+        mockedPrisma.feeding.count.mockResolvedValue(100)
+
+        const result = await service.getFeedingStats(userId, {}, { limit: 25, offset: 50 })
+
+        expect(result.meta).toEqual({
+          total: 100,
+          limit: 25,
+          offset: 50,
+        })
+      })
+
+      it('should enforce maximum limit of 1000', async () => {
+        mockedPrisma.feeding.findMany.mockResolvedValue([])
+        mockedPrisma.feeding.count.mockResolvedValue(0)
+
+        await service.getFeedingStats(userId, {}, { limit: 2000 })
+
+        expect(mockedPrisma.feeding.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            take: 1000,
+          })
+        )
+      })
+    })
+
+    describe('getShedStats with pagination', () => {
+      it('should accept pagination options and return meta', async () => {
+        mockedPrisma.shed.findMany.mockResolvedValue([
+          {
+            id: 'shed-1',
+            completedDate: new Date(),
+            startDate: null,
+            quality: 'COMPLETE',
+            reptileId: 'reptile-1',
+            reptile: { id: 'reptile-1', name: 'Slither', userId },
+          },
+        ] as never)
+        mockedPrisma.shed.count.mockResolvedValue(30)
+
+        const result = await service.getShedStats(userId, {}, { limit: 15, offset: 0 })
+
+        expect(result.meta).toEqual({
+          total: 30,
+          limit: 15,
+          offset: 0,
+        })
+      })
+
+      it('should enforce maximum limit of 1000', async () => {
+        mockedPrisma.shed.findMany.mockResolvedValue([])
+        mockedPrisma.shed.count.mockResolvedValue(0)
+
+        await service.getShedStats(userId, {}, { limit: 1500 })
+
+        expect(mockedPrisma.shed.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            take: 1000,
+          })
+        )
+      })
     })
   })
 })

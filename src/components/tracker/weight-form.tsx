@@ -88,9 +88,12 @@ export function WeightForm({ reptileId, onSuccess }: WeightFormProps) {
           value={formData.date}
           onChange={handleChange}
           aria-invalid={!!errors.date}
+          aria-describedby={errors.date ? 'weight-date-error' : undefined}
         />
         {errors.date && (
-          <p className="mt-1 text-sm text-red-500">{errors.date}</p>
+          <p id="weight-date-error" className="mt-1 text-sm text-red-500" role="alert">
+            {errors.date}
+          </p>
         )}
       </div>
 
@@ -111,9 +114,12 @@ export function WeightForm({ reptileId, onSuccess }: WeightFormProps) {
           value={formData.weight}
           onChange={handleChange}
           aria-invalid={!!errors.weight}
+          aria-describedby={errors.weight ? 'weight-error' : undefined}
         />
         {errors.weight && (
-          <p className="mt-1 text-sm text-red-500">{errors.weight}</p>
+          <p id="weight-error" className="mt-1 text-sm text-red-500" role="alert">
+            {errors.weight}
+          </p>
         )}
       </div>
 
@@ -142,12 +148,12 @@ export function WeightForm({ reptileId, onSuccess }: WeightFormProps) {
       >
         {createWeight.isPending ? (
           <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
             Logging...
           </>
         ) : (
           <>
-            <Check className="h-4 w-4 mr-2" />
+            <Check className="h-4 w-4 mr-2" aria-hidden="true" />
             Log Weight
           </>
         )}

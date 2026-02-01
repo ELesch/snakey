@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -144,33 +144,48 @@ export function PhotoUpload({ reptileId, open, onClose }: PhotoUploadProps) {
             />
           )}
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <p role="alert" aria-live="polite" className="text-sm text-red-600">
+              {error}
+            </p>
+          )}
 
           <div className="space-y-3">
-            <Input
-              placeholder="Add a caption (optional)"
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              maxLength={500}
-              disabled={uploadMutation.isPending}
-            />
+            <div>
+              <label htmlFor="photo-caption" className="sr-only">
+                Caption
+              </label>
+              <Input
+                id="photo-caption"
+                placeholder="Add a caption (optional)"
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                maxLength={500}
+                disabled={uploadMutation.isPending}
+              />
+            </div>
 
-            <Select
-              value={category}
-              onValueChange={(val) => setCategory(val as PhotoCategory)}
-              disabled={uploadMutation.isPending}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="GENERAL">General</SelectItem>
-                <SelectItem value="MORPH">Morph</SelectItem>
-                <SelectItem value="SHED">Shed</SelectItem>
-                <SelectItem value="VET">Vet</SelectItem>
-                <SelectItem value="ENCLOSURE">Enclosure</SelectItem>
-              </SelectContent>
-            </Select>
+            <div>
+              <label htmlFor="photo-category" className="sr-only">
+                Category
+              </label>
+              <Select
+                value={category}
+                onValueChange={(val) => setCategory(val as PhotoCategory)}
+                disabled={uploadMutation.isPending}
+              >
+                <SelectTrigger id="photo-category">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="GENERAL">General</SelectItem>
+                  <SelectItem value="MORPH">Morph</SelectItem>
+                  <SelectItem value="SHED">Shed</SelectItem>
+                  <SelectItem value="VET">Vet</SelectItem>
+                  <SelectItem value="ENCLOSURE">Enclosure</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {uploadMutation.isPending && <ProgressBar progress={progress} />}
@@ -187,12 +202,12 @@ export function PhotoUpload({ reptileId, open, onClose }: PhotoUploadProps) {
             <Button type="submit" disabled={!file || uploadMutation.isPending}>
               {uploadMutation.isPending ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                   Uploading...
                 </>
               ) : (
                 <>
-                  <Upload className="h-4 w-4 mr-2" />
+                  <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
                   Upload
                 </>
               )}
@@ -210,26 +225,39 @@ interface DropZoneProps {
 }
 
 function DropZone({ onDrop, onInputChange }: DropZoneProps) {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      inputRef.current?.click()
+    }
+  }
+
   return (
     <div
+      role="button"
+      tabIndex={0}
       onDrop={onDrop}
       onDragOver={(e) => e.preventDefault()}
-      className="border-2 border-dashed border-warm-300 rounded-lg p-8 text-center hover:border-primary transition-colors"
+      onKeyDown={handleKeyDown}
+      aria-label="Upload image. Press Enter or Space to select a file, or drag and drop an image."
+      className="border-2 border-dashed border-warm-300 rounded-lg p-8 text-center hover:border-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors cursor-pointer"
     >
-      <ImageIcon className="h-12 w-12 mx-auto mb-4 text-warm-400" />
+      <ImageIcon className="h-12 w-12 mx-auto mb-4 text-warm-400" aria-hidden="true" />
       <p className="text-warm-600 mb-2">Drag and drop an image here</p>
       <p className="text-sm text-warm-500 mb-4">or</p>
-      <label>
-        <span className="cursor-pointer inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
-          Choose File
-        </span>
-        <input
-          type="file"
-          accept={ACCEPTED_TYPES.join(',')}
-          onChange={onInputChange}
-          className="sr-only"
-        />
-      </label>
+      <span className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-md pointer-events-none">
+        Choose File
+      </span>
+      <input
+        ref={inputRef}
+        type="file"
+        accept={ACCEPTED_TYPES.join(',')}
+        onChange={onInputChange}
+        className="sr-only"
+        aria-hidden="true"
+      />
       <p className="text-xs text-warm-500 mt-4">
         JPEG, PNG, WebP, or HEIC up to 10MB
       </p>

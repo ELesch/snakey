@@ -1,18 +1,19 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGrowthData } from '@/hooks/use-reports'
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
 import { Loader2, Scale } from 'lucide-react'
 import type { ReportFilters } from '@/services/reports.service'
+
+// Dynamic import for chart content - only loaded when component mounts
+const GrowthChartContent = dynamic(
+  () => import('./growth-chart-content').then((mod) => mod.GrowthChartContent),
+  {
+    loading: () => <ChartLoadingSkeleton />,
+    ssr: false, // Charts don't need server rendering
+  }
+)
 
 interface GrowthChartProps {
   filters: ReportFilters
@@ -21,6 +22,14 @@ interface GrowthChartProps {
 function formatDate(dateString: string): string {
   const date = new Date(dateString)
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+function ChartLoadingSkeleton() {
+  return (
+    <div className="h-[300px] flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-[var(--color-muted-foreground)]" />
+    </div>
+  )
 }
 
 function ChartSkeleton() {
@@ -70,53 +79,28 @@ export function GrowthChart({ filters }: GrowthChartProps) {
         {!isPending && !isError && (!chartData || chartData.length === 0) && <EmptyState />}
 
         {!isPending && !isError && chartData && chartData.length > 0 && (
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart
-              data={chartData}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-[var(--color-border)]" />
-              <XAxis
-                dataKey="dateFormatted"
-                tick={{ fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-                className="text-[var(--color-muted-foreground)]"
-              />
-              <YAxis
-                tick={{ fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-                className="text-[var(--color-muted-foreground)]"
-                tickFormatter={(value) => `${value}g`}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'var(--color-card)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '8px',
-                }}
-                labelStyle={{ color: 'var(--color-foreground)' }}
-                formatter={(value, name, props) => [
-                  `${value}g`,
-                  (props.payload as { reptileName?: string })?.reptileName || 'Weight',
-                ]}
-              />
-              <Area
-                type="monotone"
-                dataKey="weight"
-                stroke="#8884d8"
-                fill="url(#weightGradient)"
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <>
+            {/* Screen reader accessible data table - always rendered immediately */}
+            <table className="sr-only">
+              <caption>Weight growth data over time</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Weight</th>
+                </tr>
+              </thead>
+              <tbody>
+                {chartData.map((point, index) => (
+                  <tr key={index}>
+                    <td>{point.dateFormatted}</td>
+                    <td>{point.weight}g</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {/* Visual chart - dynamically loaded */}
+            <GrowthChartContent data={chartData} />
+          </>
         )}
       </CardContent>
     </Card>

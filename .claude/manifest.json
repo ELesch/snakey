@@ -1,7 +1,7 @@
 {
   "orchestrator": {
-    "version": "2.6.0",
-    "templateVersion": "1.4.0"
+    "version": "2.9.1",
+    "templateVersion": "1.6.0"
   },
   "project": {
     "name": "Snakey",
@@ -69,6 +69,11 @@
       "enabled": true,
       "purpose": "Live documentation lookup"
     }
+  },
+  "audit": {
+    "enabled": true,
+    "sessionsDir": ".claude/audit/sessions",
+    "decisionsDir": ".claude/audit/decisions"
   },
   "migration": {
     "migratedFrom": null,

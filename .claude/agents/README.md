@@ -27,6 +27,7 @@ Custom agents for Snakey development. Agents are specialized sub-processes spawn
 
 | Agent | Purpose |
 |-------|---------|
+| `dev-designer` | App Design Phase - features, pages, flows |
 | `dev-architect` | System design, ADRs |
 | `dev-api` | API contract design |
 | `dev-database` | Query optimization, data modeling |

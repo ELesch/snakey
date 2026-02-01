@@ -11,6 +11,23 @@ export interface ReportFilters {
   endDate?: string
 }
 
+// Pagination options
+export interface PaginationOptions {
+  limit?: number
+  offset?: number
+}
+
+// Pagination meta for responses
+export interface PaginationMeta {
+  total: number
+  limit: number
+  offset: number
+}
+
+// Constants for pagination
+const DEFAULT_LIMIT = 100
+const MAX_LIMIT = 1000
+
 // Growth/Weight response types
 export interface GrowthDataPoint {
   date: string
@@ -21,6 +38,7 @@ export interface GrowthDataPoint {
 
 export interface GrowthDataResponse {
   data: GrowthDataPoint[]
+  meta: PaginationMeta
 }
 
 // Feeding stats response types
@@ -40,6 +58,7 @@ export interface FeedingStatsSummary {
 export interface FeedingStatsResponse {
   data: FeedingDataPoint[]
   summary: FeedingStatsSummary
+  meta: PaginationMeta
 }
 
 // Shed stats response types
@@ -59,6 +78,7 @@ export interface ShedStatsSummary {
 export interface ShedStatsResponse {
   data: ShedDataPoint[]
   summary: ShedStatsSummary
+  meta: PaginationMeta
 }
 
 // Environment stats response types
@@ -97,21 +117,29 @@ export class ReportsService {
    */
   async getGrowthData(
     userId: string,
-    filters: ReportFilters
+    filters: ReportFilters,
+    pagination?: PaginationOptions
   ): Promise<GrowthDataResponse> {
     log.info({ userId, filters }, 'Fetching growth data')
 
     const where = this.buildWeightWhere(userId, filters)
+    const limit = Math.min(pagination?.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
+    const offset = pagination?.offset ?? 0
 
-    const weights = await prisma.weight.findMany({
-      where,
-      include: {
-        reptile: {
-          select: { id: true, name: true, userId: true },
+    const [weights, total] = await Promise.all([
+      prisma.weight.findMany({
+        where,
+        include: {
+          reptile: {
+            select: { id: true, name: true, userId: true },
+          },
         },
-      },
-      orderBy: { date: 'asc' },
-    })
+        orderBy: { date: 'asc' },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.weight.count({ where }),
+    ])
 
     const data: GrowthDataPoint[] = weights.map((w) => ({
       date: w.date.toISOString(),
@@ -120,7 +148,10 @@ export class ReportsService {
       reptileName: w.reptile.name,
     }))
 
-    return { data }
+    return {
+      data,
+      meta: { total, limit, offset },
+    }
   }
 
   /**
@@ -128,21 +159,29 @@ export class ReportsService {
    */
   async getFeedingStats(
     userId: string,
-    filters: ReportFilters
+    filters: ReportFilters,
+    pagination?: PaginationOptions
   ): Promise<FeedingStatsResponse> {
     log.info({ userId, filters }, 'Fetching feeding stats')
 
     const where = this.buildFeedingWhere(userId, filters)
+    const limit = Math.min(pagination?.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
+    const offset = pagination?.offset ?? 0
 
-    const feedings = await prisma.feeding.findMany({
-      where,
-      include: {
-        reptile: {
-          select: { id: true, name: true, userId: true },
+    const [feedings, total] = await Promise.all([
+      prisma.feeding.findMany({
+        where,
+        include: {
+          reptile: {
+            select: { id: true, name: true, userId: true },
+          },
         },
-      },
-      orderBy: { date: 'asc' },
-    })
+        orderBy: { date: 'asc' },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.feeding.count({ where }),
+    ])
 
     // Group by date for chart data
     const groupedByDate = new Map<
@@ -196,6 +235,7 @@ export class ReportsService {
         acceptanceRate: Math.round(acceptanceRate * 100) / 100,
         averageInterval,
       },
+      meta: { total, limit, offset },
     }
   }
 
@@ -204,21 +244,29 @@ export class ReportsService {
    */
   async getShedStats(
     userId: string,
-    filters: ReportFilters
+    filters: ReportFilters,
+    pagination?: PaginationOptions
   ): Promise<ShedStatsResponse> {
     log.info({ userId, filters }, 'Fetching shed stats')
 
     const where = this.buildShedWhere(userId, filters)
+    const limit = Math.min(pagination?.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
+    const offset = pagination?.offset ?? 0
 
-    const sheds = await prisma.shed.findMany({
-      where,
-      include: {
-        reptile: {
-          select: { id: true, name: true, userId: true },
+    const [sheds, total] = await Promise.all([
+      prisma.shed.findMany({
+        where,
+        include: {
+          reptile: {
+            select: { id: true, name: true, userId: true },
+          },
         },
-      },
-      orderBy: { completedDate: 'asc' },
-    })
+        orderBy: { completedDate: 'asc' },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.shed.count({ where }),
+    ])
 
     const data: ShedDataPoint[] = sheds.map((s) => {
       let durationDays: number | null = null
@@ -264,6 +312,7 @@ export class ReportsService {
         averageInterval,
         averageQuality,
       },
+      meta: { total, limit, offset },
     }
   }
 

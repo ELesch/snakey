@@ -65,31 +65,35 @@ export function ReportsHeader({
               </Select>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-[var(--color-muted-foreground)]" />
-              <label htmlFor="start-date" className="sr-only">
-                Start Date
-              </label>
-              <Input
-                id="start-date"
-                type="date"
-                value={formatDateForInput(startDate)}
-                onChange={(e) => onStartDateChange(new Date(e.target.value))}
-                className="w-full sm:w-[140px]"
-                aria-label="Start date"
-              />
-              <span className="text-[var(--color-muted-foreground)]">to</span>
-              <label htmlFor="end-date" className="sr-only">
-                End Date
-              </label>
-              <Input
-                id="end-date"
-                type="date"
-                value={formatDateForInput(endDate)}
-                onChange={(e) => onEndDateChange(new Date(e.target.value))}
-                className="w-full sm:w-[140px]"
-                aria-label="End date"
-              />
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <Calendar className="hidden sm:block h-4 w-4 text-[var(--color-muted-foreground)]" />
+              <div className="flex items-center gap-2">
+                <label htmlFor="start-date" className="text-sm text-[var(--color-muted-foreground)] sm:sr-only">
+                  From
+                </label>
+                <Input
+                  id="start-date"
+                  type="date"
+                  value={formatDateForInput(startDate)}
+                  onChange={(e) => onStartDateChange(new Date(e.target.value))}
+                  className="flex-1 sm:w-[140px]"
+                  aria-label="Start date"
+                />
+              </div>
+              <span className="hidden sm:inline text-[var(--color-muted-foreground)]">to</span>
+              <div className="flex items-center gap-2">
+                <label htmlFor="end-date" className="text-sm text-[var(--color-muted-foreground)] sm:sr-only">
+                  To
+                </label>
+                <Input
+                  id="end-date"
+                  type="date"
+                  value={formatDateForInput(endDate)}
+                  onChange={(e) => onEndDateChange(new Date(e.target.value))}
+                  className="flex-1 sm:w-[140px]"
+                  aria-label="End date"
+                />
+              </div>
             </div>
           </div>
         </div>

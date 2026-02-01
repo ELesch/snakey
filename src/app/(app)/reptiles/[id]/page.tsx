@@ -29,7 +29,7 @@ export default function ReptileDetailPage({ params }: ReptileDetailPageProps) {
       <ReptileHeader reptileId={id} />
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="flex-wrap h-auto gap-1">
+        <TabsList className="flex overflow-x-auto h-auto gap-1 pb-1">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="feedings">Feedings</TabsTrigger>
           <TabsTrigger value="sheds">Sheds</TabsTrigger>

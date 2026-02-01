@@ -1,7 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('QueryProvider')
 
 interface QueryProviderProps {
   children: React.ReactNode
@@ -22,6 +25,28 @@ export function QueryProvider({ children }: QueryProviderProps) {
             retry: 1,
           },
         },
+        queryCache: new QueryCache({
+          onError: (error, query) => {
+            log.error(
+              {
+                error: error instanceof Error ? error.message : String(error),
+                queryKey: query.queryKey,
+              },
+              'Query error'
+            )
+          },
+        }),
+        mutationCache: new MutationCache({
+          onError: (error, _variables, _context, mutation) => {
+            log.error(
+              {
+                error: error instanceof Error ? error.message : String(error),
+                mutationKey: mutation.options.mutationKey,
+              },
+              'Mutation error'
+            )
+          },
+        }),
       })
   )
 

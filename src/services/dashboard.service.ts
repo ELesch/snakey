@@ -102,46 +102,45 @@ export class DashboardService {
   }
 
   /**
-   * Count reptiles that are due for feeding
+   * Count reptiles that are due for feeding using optimized database query.
+   * Uses a single SQL query with subquery for last feeding date instead of N+1 pattern.
    */
   private async countFeedingsDue(userId: string): Promise<number> {
-    const reptiles = await prisma.reptile.findMany({
-      where: { userId, deletedAt: null },
-      select: {
-        id: true,
-        species: true,
-        feedings: {
-          orderBy: { date: 'desc' },
-          take: 1,
-          select: { date: true },
-        },
-      },
-    })
-
-    const now = new Date()
-    let dueCount = 0
-
-    for (const reptile of reptiles) {
-      const interval =
-        DEFAULT_FEEDING_INTERVALS[reptile.species] ??
-        DEFAULT_FEEDING_INTERVALS.default
-      const lastFeeding = reptile.feedings[0]?.date
-
-      if (!lastFeeding) {
-        // Never fed, definitely due
-        dueCount++
-      } else {
-        const daysSince = Math.floor(
-          (now.getTime() - lastFeeding.getTime()) / (1000 * 60 * 60 * 24)
+    // Use a raw SQL query that:
+    // 1. Gets each reptile with their last feeding date via subquery
+    // 2. Calculates days since last feeding
+    // 3. Compares against species-specific intervals using CASE
+    // 4. Counts reptiles that are due (interval - 1 days or more since last feeding, or never fed)
+    const result = await prisma.$queryRaw<[{ count: bigint }]>`
+      SELECT COUNT(*) as count
+      FROM "Reptile" r
+      WHERE r."userId" = ${userId}
+        AND r."deletedAt" IS NULL
+        AND (
+          -- Never fed
+          NOT EXISTS (
+            SELECT 1 FROM "Feeding" f WHERE f."reptileId" = r.id
+          )
+          OR
+          -- Due for feeding based on species interval
+          (
+            SELECT EXTRACT(DAY FROM NOW() - MAX(f.date))
+            FROM "Feeding" f
+            WHERE f."reptileId" = r.id
+          ) >= (
+            CASE r.species
+              WHEN 'Ball Python' THEN 10
+              WHEN 'Corn Snake' THEN 7
+              WHEN 'Leopard Gecko' THEN 3
+              WHEN 'Bearded Dragon' THEN 1
+              WHEN 'Crested Gecko' THEN 2
+              ELSE 7
+            END
+          ) - 1
         )
-        if (daysSince >= interval - 1) {
-          // Due within next day
-          dueCount++
-        }
-      }
-    }
+    `
 
-    return dueCount
+    return Number(result[0]?.count ?? 0)
   }
 
   /**

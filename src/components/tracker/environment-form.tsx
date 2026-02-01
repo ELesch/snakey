@@ -132,9 +132,12 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
           value={formData.date}
           onChange={handleChange}
           aria-invalid={!!errors.date}
+          aria-describedby={errors.date ? 'env-date-error' : undefined}
         />
         {errors.date && (
-          <p className="mt-1 text-sm text-red-500">{errors.date}</p>
+          <p id="env-date-error" className="mt-1 text-sm text-red-500" role="alert">
+            {errors.date}
+          </p>
         )}
       </div>
 
@@ -155,9 +158,12 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
             value={formData.temperature}
             onChange={handleChange}
             aria-invalid={!!errors.temperature}
+            aria-describedby={errors.temperature ? 'temperature-error' : undefined}
           />
           {errors.temperature && (
-            <p className="mt-1 text-sm text-red-500">{errors.temperature}</p>
+            <p id="temperature-error" className="mt-1 text-sm text-red-500" role="alert">
+              {errors.temperature}
+            </p>
           )}
         </div>
 
@@ -179,9 +185,12 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
             value={formData.humidity}
             onChange={handleChange}
             aria-invalid={!!errors.humidity}
+            aria-describedby={errors.humidity ? 'humidity-error' : undefined}
           />
           {errors.humidity && (
-            <p className="mt-1 text-sm text-red-500">{errors.humidity}</p>
+            <p id="humidity-error" className="mt-1 text-sm text-red-500" role="alert">
+              {errors.humidity}
+            </p>
           )}
         </div>
       </div>
@@ -197,7 +206,7 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
           value={formData.location}
           onValueChange={(val) => handleSelectChange('location', val)}
         >
-          <SelectTrigger>
+          <SelectTrigger id="location">
             <SelectValue placeholder="Select location" />
           </SelectTrigger>
           <SelectContent>
@@ -231,12 +240,12 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
       <Button type="submit" className="w-full" disabled={createLog.isPending}>
         {createLog.isPending ? (
           <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
             Logging...
           </>
         ) : (
           <>
-            <Check className="h-4 w-4 mr-2" />
+            <Check className="h-4 w-4 mr-2" aria-hidden="true" />
             Log Environment
           </>
         )}

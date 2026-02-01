@@ -1,19 +1,19 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useFeedingStats } from '@/hooks/use-reports'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts'
 import { Loader2, UtensilsCrossed } from 'lucide-react'
 import type { ReportFilters } from '@/services/reports.service'
+
+// Dynamic import for chart content - only loaded when component mounts
+const FeedingChartContent = dynamic(
+  () => import('./feeding-chart-content').then((mod) => mod.FeedingChartContent),
+  {
+    loading: () => <ChartLoadingSkeleton />,
+    ssr: false, // Charts don't need server rendering
+  }
+)
 
 interface FeedingChartProps {
   filters: ReportFilters
@@ -22,6 +22,14 @@ interface FeedingChartProps {
 function formatDate(dateString: string): string {
   const date = new Date(dateString)
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+function ChartLoadingSkeleton() {
+  return (
+    <div className="h-[300px] flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-[var(--color-muted-foreground)]" />
+    </div>
+  )
 }
 
 function ChartSkeleton() {
@@ -78,55 +86,32 @@ export function FeedingChart({ filters }: FeedingChartProps) {
         {!isPending && !isError && (!chartData || chartData.length === 0) && <EmptyState />}
 
         {!isPending && !isError && chartData && chartData.length > 0 && (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={chartData}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" className="stroke-[var(--color-border)]" />
-              <XAxis
-                dataKey="dateFormatted"
-                tick={{ fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-                className="text-[var(--color-muted-foreground)]"
-              />
-              <YAxis
-                tick={{ fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-                className="text-[var(--color-muted-foreground)]"
-                allowDecimals={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'var(--color-card)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '8px',
-                }}
-                labelStyle={{ color: 'var(--color-foreground)' }}
-              />
-              <Legend />
-              <Bar
-                dataKey="accepted"
-                name="Accepted"
-                fill="#22c55e"
-                radius={[4, 4, 0, 0]}
-              />
-              <Bar
-                dataKey="refused"
-                name="Refused"
-                fill="#f59e0b"
-                radius={[4, 4, 0, 0]}
-              />
-              <Bar
-                dataKey="regurgitated"
-                name="Regurgitated"
-                fill="#ef4444"
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          <>
+            {/* Screen reader accessible data table - always rendered immediately */}
+            <table className="sr-only">
+              <caption>Feeding history data showing accepted, refused, and regurgitated counts</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Accepted</th>
+                  <th scope="col">Refused</th>
+                  <th scope="col">Regurgitated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {chartData.map((point, index) => (
+                  <tr key={index}>
+                    <td>{point.dateFormatted}</td>
+                    <td>{point.accepted}</td>
+                    <td>{point.refused}</td>
+                    <td>{point.regurgitated}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {/* Visual chart - dynamically loaded */}
+            <FeedingChartContent data={chartData} />
+          </>
         )}
       </CardContent>
     </Card>
