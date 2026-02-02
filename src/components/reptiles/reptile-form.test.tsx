@@ -1,13 +1,30 @@
 // Reptile Form Component Tests
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ReptileForm } from './reptile-form'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
+// Mock URL.createObjectURL and URL.revokeObjectURL for ImagePicker
+const mockCreateObjectURL = vi.fn(() => 'blob:mock-url')
+const mockRevokeObjectURL = vi.fn()
+
+beforeEach(() => {
+  vi.stubGlobal('URL', {
+    ...URL,
+    createObjectURL: mockCreateObjectURL,
+    revokeObjectURL: mockRevokeObjectURL,
+  })
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
 // Mock the hooks
 const mockCreateReptileMutateAsync = vi.fn()
 const mockUpdateReptileMutateAsync = vi.fn()
+const mockUploadPhotoMutateAsync = vi.fn()
 
 vi.mock('@/hooks', () => ({
   useCreateReptile: () => ({
@@ -16,6 +33,13 @@ vi.mock('@/hooks', () => ({
   }),
   useUpdateReptile: () => ({
     mutateAsync: mockUpdateReptileMutateAsync,
+    isPending: false,
+  }),
+}))
+
+vi.mock('@/hooks/use-photos', () => ({
+  useUploadPhoto: () => ({
+    mutateAsync: mockUploadPhotoMutateAsync,
     isPending: false,
   }),
 }))
@@ -55,6 +79,8 @@ describe('ReptileForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // Reset fetch mock for photo/weight API calls
+    global.fetch = vi.fn()
   })
 
   describe('rendering', () => {
@@ -169,13 +195,31 @@ describe('ReptileForm', () => {
       })
     })
 
-    it('should require acquisition date field', () => {
-      // The acquisition date field has HTML5 required attribute
-      // This test verifies the field is marked as required
+    it('should validate acquisition date is required when cleared', async () => {
+      // The acquisition date field defaults to today but is validated on submit
+      // This test verifies validation behavior when the field is empty
+      const user = userEvent.setup()
       renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
 
+      // Fill name and species
+      await user.type(screen.getByRole('textbox', { name: /name/i }), 'Monty')
+      const speciesTrigger = screen.getAllByRole('combobox')[0]
+      await user.click(speciesTrigger)
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: 'Ball Python' })).toBeInTheDocument()
+      })
+      await user.click(screen.getByRole('option', { name: 'Ball Python' }))
+
+      // Clear the acquisition date field
       const acquisitionDateInput = screen.getByLabelText(/acquisition date/i)
-      expect(acquisitionDateInput).toBeRequired()
+      await user.clear(acquisitionDateInput)
+
+      // Submit form
+      await user.click(screen.getByRole('button', { name: /add reptile/i }))
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toHaveTextContent(/acquisition date is required/i)
+      })
     })
   })
 
@@ -362,6 +406,261 @@ describe('ReptileForm', () => {
       await waitFor(() => {
         expect(screen.getByRole('alert')).toBeInTheDocument()
       })
+    })
+  })
+
+  describe('weight input field', () => {
+    it('should render weight input field', () => {
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      expect(screen.getByLabelText(/initial weight/i)).toBeInTheDocument()
+    })
+
+    it('should accept numeric weight values', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      const weightInput = screen.getByLabelText(/initial weight/i)
+      await user.type(weightInput, '150')
+
+      expect(weightInput).toHaveValue(150)
+    })
+
+    it('should show validation error for negative weight', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      // Fill required fields
+      await user.type(screen.getByRole('textbox', { name: /name/i }), 'Monty')
+      const speciesTrigger = screen.getAllByRole('combobox')[0]
+      await user.click(speciesTrigger)
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: 'Ball Python' })).toBeInTheDocument()
+      })
+      await user.click(screen.getByRole('option', { name: 'Ball Python' }))
+
+      // Enter negative weight
+      const weightInput = screen.getByLabelText(/initial weight/i)
+      await user.type(weightInput, '-50')
+
+      // Submit form
+      await user.click(screen.getByRole('button', { name: /add reptile/i }))
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toHaveTextContent(/weight must be a positive number/i)
+      })
+    })
+
+    it('should show validation error for zero weight', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      // Fill required fields
+      await user.type(screen.getByRole('textbox', { name: /name/i }), 'Monty')
+      const speciesTrigger = screen.getAllByRole('combobox')[0]
+      await user.click(speciesTrigger)
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: 'Ball Python' })).toBeInTheDocument()
+      })
+      await user.click(screen.getByRole('option', { name: 'Ball Python' }))
+
+      // Enter zero weight
+      const weightInput = screen.getByLabelText(/initial weight/i)
+      await user.type(weightInput, '0')
+
+      // Submit form
+      await user.click(screen.getByRole('button', { name: /add reptile/i }))
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toHaveTextContent(/weight must be a positive number/i)
+      })
+    })
+
+    it('should allow empty weight field (optional)', async () => {
+      const user = userEvent.setup()
+      const mockReptile = {
+        id: 'new-reptile-123',
+        name: 'Monty',
+        species: 'ball_python',
+      }
+      mockCreateReptileMutateAsync.mockResolvedValue(mockReptile)
+
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      // Fill required fields only (no weight)
+      await user.type(screen.getByRole('textbox', { name: /name/i }), 'Monty')
+      const speciesTrigger = screen.getAllByRole('combobox')[0]
+      await user.click(speciesTrigger)
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: 'Ball Python' })).toBeInTheDocument()
+      })
+      await user.click(screen.getByRole('option', { name: 'Ball Python' }))
+
+      // Submit form
+      await user.click(screen.getByRole('button', { name: /add reptile/i }))
+
+      await waitFor(() => {
+        expect(mockCreateReptileMutateAsync).toHaveBeenCalled()
+        expect(mockOnSuccess).toHaveBeenCalledWith(mockReptile)
+      })
+    })
+
+    it('should populate weight field with initial data in edit mode', () => {
+      const initialData = {
+        name: 'Monty',
+        species: 'ball_python',
+        currentWeight: 250,
+        acquisitionDate: new Date('2023-01-10'),
+      }
+
+      renderWithProviders(
+        <ReptileForm
+          onSuccess={mockOnSuccess}
+          reptileId="reptile-123"
+          initialData={initialData}
+        />
+      )
+
+      expect(screen.getByLabelText(/initial weight/i)).toHaveValue(250)
+    })
+  })
+
+  describe('add to weight history checkbox', () => {
+    it('should not show checkbox when weight is empty', () => {
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      expect(screen.queryByLabelText(/add to weight history/i)).not.toBeInTheDocument()
+    })
+
+    it('should show checkbox when weight is entered', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      const weightInput = screen.getByLabelText(/initial weight/i)
+      await user.type(weightInput, '150')
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/add to weight history/i)).toBeInTheDocument()
+      })
+    })
+
+    it('should be checked by default when weight is entered', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      const weightInput = screen.getByLabelText(/initial weight/i)
+      await user.type(weightInput, '150')
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/add to weight history/i)).toBeChecked()
+      })
+    })
+
+    it('should hide checkbox when weight is cleared', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      const weightInput = screen.getByLabelText(/initial weight/i)
+      await user.type(weightInput, '150')
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/add to weight history/i)).toBeInTheDocument()
+      })
+
+      await user.clear(weightInput)
+
+      await waitFor(() => {
+        expect(screen.queryByLabelText(/add to weight history/i)).not.toBeInTheDocument()
+      })
+    })
+
+    it('should allow unchecking the checkbox', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      const weightInput = screen.getByLabelText(/initial weight/i)
+      await user.type(weightInput, '150')
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/add to weight history/i)).toBeInTheDocument()
+      })
+
+      const checkbox = screen.getByLabelText(/add to weight history/i)
+      await user.click(checkbox)
+
+      expect(checkbox).not.toBeChecked()
+    })
+  })
+
+  describe('profile photo (ImagePicker)', () => {
+    it('should render ImagePicker component', () => {
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      expect(screen.getByText('Profile Photo')).toBeInTheDocument()
+      expect(screen.getByText('Drag and drop an image here')).toBeInTheDocument()
+    })
+
+    it('should render ImagePicker with existing photo URL in edit mode', () => {
+      const initialData = {
+        name: 'Monty',
+        species: 'ball_python',
+        acquisitionDate: new Date('2023-01-10'),
+      }
+
+      renderWithProviders(
+        <ReptileForm
+          onSuccess={mockOnSuccess}
+          reptileId="reptile-123"
+          initialData={initialData}
+          existingProfilePhotoUrl="https://example.com/photo.jpg"
+        />
+      )
+
+      const img = screen.getByRole('img', { name: 'Preview' })
+      expect(img).toHaveAttribute('src', 'https://example.com/photo.jpg')
+    })
+
+    it('should allow selecting a profile image', async () => {
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+      const file = new File(['test'], 'photo.jpg', { type: 'image/jpeg' })
+
+      fireEvent.change(fileInput, { target: { files: [file] } })
+
+      await waitFor(() => {
+        const img = screen.getByRole('img', { name: 'Preview' })
+        expect(img).toHaveAttribute('src', 'blob:mock-url')
+      })
+    })
+
+    it('should allow removing selected profile image', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      // Select an image first
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+      const file = new File(['test'], 'photo.jpg', { type: 'image/jpeg' })
+      fireEvent.change(fileInput, { target: { files: [file] } })
+
+      await waitFor(() => {
+        expect(screen.getByRole('img', { name: 'Preview' })).toBeInTheDocument()
+      })
+
+      // Remove the image
+      await user.click(screen.getByRole('button', { name: 'Remove image' }))
+
+      await waitFor(() => {
+        expect(screen.queryByRole('img', { name: 'Preview' })).not.toBeInTheDocument()
+        expect(screen.getByText('Drag and drop an image here')).toBeInTheDocument()
+      })
+    })
+
+    it('should show ImagePicker with accepted file types', () => {
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+      expect(fileInput).toHaveAttribute('accept', 'image/jpeg,image/png,image/webp,image/heic')
     })
   })
 })

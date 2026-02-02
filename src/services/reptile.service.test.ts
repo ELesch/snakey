@@ -120,7 +120,11 @@ describe('ReptileService', () => {
         skip: 0,
         take: 20,
         orderBy: { createdAt: 'desc' },
+        species: undefined,
+        sex: undefined,
+        search: undefined,
         includeDeleted: false,
+        includeProfilePhoto: true,
       })
     })
 
@@ -313,9 +317,21 @@ describe('ReptileService', () => {
         acquisitionDate: new Date('2023-01-01'), // before birth
       }
 
-      await expect(service.create('user-123', invalidData)).rejects.toThrow(
-        'Acquisition date cannot be before birth date'
-      )
+      try {
+        await service.create('user-123', invalidData)
+        // Should not reach here
+        expect.fail('Expected ValidationError to be thrown')
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error)
+        expect((error as Error).message).toBe('Validation failed')
+        // The specific error message should be in fieldErrors
+        const validationError = error as { fieldErrors?: Record<string, string[]> }
+        expect(validationError.fieldErrors).toBeDefined()
+        // Check that field errors contain the acquisition date error
+        // The error may be on _root (cross-field validation) or acquisitionDate field
+        const allErrors = Object.values(validationError.fieldErrors!).flat()
+        expect(allErrors.some(e => e.includes('Acquisition date cannot be before birth date'))).toBe(true)
+      }
     })
 
     it('should include all optional fields when provided', async () => {

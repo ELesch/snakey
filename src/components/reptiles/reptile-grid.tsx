@@ -1,25 +1,51 @@
 'use client'
 
+import { memo, useCallback, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { ReptileIcon } from '@/components/icons/reptile-icon'
 import { ReptileForm } from './reptile-form'
 import type { Reptile } from '@/generated/prisma/client'
+import type { ReptileWithProfilePhoto } from '@/types/reptile'
 
 interface ReptileCardProps {
-  reptile: Reptile
+  reptile: ReptileWithProfilePhoto
 }
 
-function ReptileCard({ reptile }: ReptileCardProps) {
+/**
+ * Generate the Supabase storage URL for a photo
+ */
+function getPhotoUrl(storagePath: string, thumbnailPath: string | null): string {
+  const path = thumbnailPath || storagePath
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${path}`
+}
+
+const ReptileCard = memo(function ReptileCard({ reptile }: ReptileCardProps) {
+  const [imageError, setImageError] = useState(false)
+  const hasPhoto = reptile.photos && reptile.photos.length > 0 && !imageError
+  const photo = hasPhoto ? reptile.photos![0] : null
+
   return (
     <Link href={`/reptiles/${reptile.id}`}>
       <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
         <CardContent className="p-0">
           <div className="aspect-square bg-warm-100 rounded-t-lg overflow-hidden relative">
-            <div className="w-full h-full flex items-center justify-center">
-              <ReptileIcon variant="snake" className="h-16 w-16 text-warm-300" aria-hidden="true" />
-            </div>
+            {hasPhoto && photo ? (
+              <Image
+                src={getPhotoUrl(photo.storagePath, photo.thumbnailPath)}
+                alt={reptile.name}
+                fill
+                className="object-cover"
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <ReptileIcon variant="snake" className="h-16 w-16 text-warm-300" aria-hidden="true" />
+              </div>
+            )}
           </div>
           <div className="p-4">
             <h3 className="font-semibold text-warm-900">{reptile.name}</h3>
@@ -32,14 +58,21 @@ function ReptileCard({ reptile }: ReptileCardProps) {
       </Card>
     </Link>
   )
-}
+})
 
 interface ReptileGridProps {
-  reptiles: Reptile[]
+  reptiles: ReptileWithProfilePhoto[]
 }
 
 export function ReptileGrid({ reptiles }: ReptileGridProps) {
   const router = useRouter()
+
+  const handleSuccess = useCallback(
+    (reptile: Reptile) => {
+      router.push(`/reptiles/${reptile.id}`)
+    },
+    [router]
+  )
 
   if (reptiles.length === 0) {
     return (
@@ -53,11 +86,7 @@ export function ReptileGrid({ reptiles }: ReptileGridProps) {
         </div>
         <Card>
           <CardContent className="pt-6">
-            <ReptileForm
-              onSuccess={(reptile) => {
-                router.push(`/reptiles/${reptile.id}`)
-              }}
-            />
+            <ReptileForm onSuccess={handleSuccess} />
           </CardContent>
         </Card>
       </div>

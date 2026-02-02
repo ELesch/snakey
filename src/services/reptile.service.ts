@@ -3,6 +3,7 @@ import { createLogger } from '@/lib/logger'
 import { NotFoundError, ForbiddenError, ValidationError } from '@/lib/errors'
 import { createPaginationMeta, validateSchema } from '@/lib/utils'
 import type { PaginatedResult } from '@/types/pagination'
+import type { ReptileWithProfilePhoto } from '@/types/reptile'
 import {
   ReptileRepository,
   type FindByIdOptions,
@@ -35,7 +36,7 @@ export class ReptileService {
   async list(
     userId: string,
     query: Partial<ReptileQuery> = {}
-  ): Promise<PaginatedResult<Reptile>> {
+  ): Promise<PaginatedResult<ReptileWithProfilePhoto>> {
     const {
       page = 1,
       limit = 20,
@@ -62,6 +63,7 @@ export class ReptileService {
         sex: sex as Sex | undefined,
         search,
         includeDeleted,
+        includeProfilePhoto: true,
       }),
       this.repository.count({
         userId,
@@ -73,7 +75,7 @@ export class ReptileService {
     ])
 
     return {
-      data: reptiles,
+      data: reptiles as ReptileWithProfilePhoto[],
       meta: createPaginationMeta({ total, page, limit }),
     }
   }

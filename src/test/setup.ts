@@ -111,3 +111,13 @@ const indexedDB = {
   deleteDatabase: vi.fn(),
 }
 vi.stubGlobal('indexedDB', indexedDB)
+
+// Mock URL.createObjectURL and URL.revokeObjectURL for image picker tests
+// These need to be in the global setup because React cleanup effects run
+// asynchronously after individual test afterEach hooks
+if (!URL.createObjectURL || URL.createObjectURL.toString().includes('native code')) {
+  URL.createObjectURL = vi.fn(() => 'blob:mock-url')
+}
+if (!URL.revokeObjectURL || URL.revokeObjectURL.toString().includes('native code')) {
+  URL.revokeObjectURL = vi.fn()
+}

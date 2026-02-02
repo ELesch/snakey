@@ -11,6 +11,7 @@ export interface FindManyOptions {
   sex?: Sex
   search?: string
   includeDeleted?: boolean
+  includeProfilePhoto?: boolean
 }
 
 export interface FindByIdOptions {
@@ -35,6 +36,7 @@ export class ReptileRepository {
       sex,
       search,
       includeDeleted = false,
+      includeProfilePhoto = false,
     } = options
 
     const where: Prisma.ReptileWhereInput = {
@@ -55,6 +57,15 @@ export class ReptileRepository {
       skip,
       take,
       orderBy,
+      include: includeProfilePhoto
+        ? {
+            photos: {
+              where: { isPrimary: true, deletedAt: null },
+              take: 1,
+              select: { id: true, storagePath: true, thumbnailPath: true },
+            },
+          }
+        : undefined,
     })
   }
 

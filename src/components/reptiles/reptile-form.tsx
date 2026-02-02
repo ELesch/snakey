@@ -1,25 +1,100 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useFormState } from '@/hooks/use-form-state'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { FormField, FormTextarea, FormCheckbox, FormSelect, FormError } from '@/components/ui/form-field'
+import { ImagePicker } from '@/components/ui/image-picker'
 import { getSpeciesOptions } from '@/lib/species/defaults'
 import { useCreateReptile, useUpdateReptile } from '@/hooks'
-import { AlertCircle, Loader2 } from 'lucide-react'
+import { useUploadPhoto } from '@/hooks/use-photos'
+import { Loader2 } from 'lucide-react'
+import { logger } from '@/lib/logger'
 import type { Reptile } from '@/generated/prisma/client'
 
+/**
+ * ReptileForm component for creating and editing reptile profiles.
+ *
+ * When editing an existing reptile, the parent component should:
+ * 1. Fetch the reptile's primary photo URL (e.g., from the photos array where isPrimary === true)
+ * 2. Pass it to `existingProfilePhotoUrl` to display the current profile image
+ * 3. If the user selects a new image, it will be uploaded as the new primary photo
+ *
+ * Example parent usage:
+ * ```tsx
+ * const reptile = await getReptile(id)
+ * const primaryPhoto = reptile.photos?.find(p => p.isPrimary)
+ * const photoUrl = primaryPhoto ? getPhotoUrl(primaryPhoto.storagePath) : undefined
+ *
+ * <ReptileForm
+ *   reptileId={reptile.id}
+ *   initialData={reptile}
+ *   existingProfilePhotoUrl={photoUrl}
+ *   onSuccess={handleSuccess}
+ * />
+ * ```
+ */
 interface ReptileFormProps {
   onSuccess?: (reptile: Reptile) => void
   onCancel?: () => void
   initialData?: Partial<Reptile>
   reptileId?: string
+  /** URL of the existing profile photo to display when editing */
+  existingProfilePhotoUrl?: string
+}
+
+interface ReptileFormValues extends Record<string, unknown> {
+  name: string
+  species: string
+  morph: string
+  sex: string
+  birthDate: string
+  acquisitionDate: string
+  currentWeight: string
+  addToWeightHistory: boolean
+  notes: string
+  isPublic: boolean
+}
+
+const SEX_OPTIONS = [
+  { value: 'MALE', label: 'Male' },
+  { value: 'FEMALE', label: 'Female' },
+  { value: 'UNKNOWN', label: 'Unknown' },
+]
+
+function getInitialValues(initialData?: Partial<Reptile>): ReptileFormValues {
+  const today = new Date().toISOString().split('T')[0]
+  const currentWeight = initialData?.currentWeight
+  return {
+    name: initialData?.name || '',
+    species: initialData?.species || '',
+    morph: initialData?.morph || '',
+    sex: initialData?.sex || 'UNKNOWN',
+    birthDate: initialData?.birthDate
+      ? new Date(initialData.birthDate).toISOString().split('T')[0] : '',
+    acquisitionDate: initialData?.acquisitionDate
+      ? new Date(initialData.acquisitionDate).toISOString().split('T')[0] : today,
+    currentWeight: currentWeight != null ? String(currentWeight) : '',
+    addToWeightHistory: true,
+    notes: initialData?.notes || '',
+    isPublic: initialData?.isPublic || false,
+  }
+}
+
+function validateReptileForm(
+  values: ReptileFormValues
+): Partial<Record<keyof ReptileFormValues, string>> {
+  const errors: Partial<Record<keyof ReptileFormValues, string>> = {}
+  if (!values.name.trim()) errors.name = 'Name is required'
+  if (!values.species) errors.species = 'Species is required'
+  if (!values.acquisitionDate) errors.acquisitionDate = 'Acquisition date is required'
+  if (values.currentWeight) {
+    const weight = parseFloat(values.currentWeight)
+    if (isNaN(weight) || weight <= 0) {
+      errors.currentWeight = 'Weight must be a positive number'
+    }
+  }
+  return errors
 }
 
 export function ReptileForm({
@@ -27,227 +102,229 @@ export function ReptileForm({
   onCancel,
   initialData,
   reptileId,
+  existingProfilePhotoUrl,
 }: ReptileFormProps) {
   const isEditing = Boolean(reptileId)
   const createMutation = useCreateReptile()
   const updateMutation = useUpdateReptile()
+  const speciesOptions = [...getSpeciesOptions(), { value: 'other', label: 'Other' }]
 
-  const [formData, setFormData] = useState({
-    name: initialData?.name || '',
-    species: initialData?.species || '',
-    morph: initialData?.morph || '',
-    sex: initialData?.sex || 'UNKNOWN',
-    birthDate: initialData?.birthDate
-      ? new Date(initialData.birthDate).toISOString().split('T')[0]
-      : '',
-    acquisitionDate: initialData?.acquisitionDate
-      ? new Date(initialData.acquisitionDate).toISOString().split('T')[0]
-      : new Date().toISOString().split('T')[0],
-    notes: initialData?.notes || '',
-    isPublic: initialData?.isPublic || false,
+  // Profile image state
+  const [profileImage, setProfileImage] = useState<File | null>(null)
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null)
+
+  // Saving state for multi-step process
+  const [savingStatus, setSavingStatus] = useState<string | null>(null)
+
+  // Track if we have a temporary reptileId for photo upload (null until reptile is created)
+  const [createdReptileId, setCreatedReptileId] = useState<string | null>(reptileId || null)
+
+  // Upload hook - only create when we have a reptileId
+  const uploadMutation = useUploadPhoto(createdReptileId || '')
+
+  const isPending = createMutation.isPending || updateMutation.isPending ||
+    uploadMutation.isPending || savingStatus !== null
+
+  // Clean up preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (profileImagePreview && !profileImagePreview.startsWith('http')) {
+        URL.revokeObjectURL(profileImagePreview)
+      }
+    }
+  }, [profileImagePreview])
+
+  const handleImageChange = useCallback((file: File | null, preview: string | null) => {
+    setProfileImage(file)
+    setProfileImagePreview(preview)
+  }, [])
+
+  const { values, errors, handleChange, setFieldValue, setFieldError, handleSubmit } = useFormState({
+    initialValues: getInitialValues(initialData),
+    validate: validateReptileForm,
+    onSubmit: async (formValues) => {
+      const payload = {
+        name: formValues.name.trim(),
+        species: formValues.species,
+        morph: formValues.morph.trim() || null,
+        sex: formValues.sex as 'MALE' | 'FEMALE' | 'UNKNOWN',
+        birthDate: formValues.birthDate ? new Date(formValues.birthDate) : null,
+        acquisitionDate: new Date(formValues.acquisitionDate),
+        notes: formValues.notes.trim() || null,
+        isPublic: formValues.isPublic,
+      }
+      try {
+        // Step 1: Create or update the reptile
+        setSavingStatus(isEditing ? 'Updating reptile...' : 'Creating reptile...')
+        let savedReptile: Reptile
+
+        if (isEditing && reptileId) {
+          savedReptile = await updateMutation.mutateAsync({ id: reptileId, data: payload })
+        } else {
+          savedReptile = await createMutation.mutateAsync(payload)
+          // Set the created reptile ID for photo upload
+          setCreatedReptileId(savedReptile.id)
+        }
+
+        // Step 2: Upload profile photo if selected
+        if (profileImage) {
+          setSavingStatus('Uploading photo...')
+          try {
+            await uploadPhotoToReptile(savedReptile.id, profileImage)
+          } catch (photoErr) {
+            // Photo upload failed but reptile was created successfully
+            // Log error but don't fail the entire operation
+            logger.error(
+              { err: photoErr, reptileId: savedReptile.id },
+              'Failed to upload profile photo'
+            )
+          }
+        }
+
+        // Step 3: Create weight record if requested
+        const weightValue = parseFloat(formValues.currentWeight)
+        if (formValues.addToWeightHistory && weightValue > 0) {
+          setSavingStatus('Recording weight...')
+          try {
+            await createWeightRecord(savedReptile.id, weightValue)
+          } catch (weightErr) {
+            // Weight record failed but reptile was created successfully
+            // Log error but don't fail the entire operation
+            logger.error(
+              { err: weightErr, reptileId: savedReptile.id },
+              'Failed to create weight record'
+            )
+          }
+        }
+
+        setSavingStatus(null)
+        onSuccess?.(savedReptile)
+      } catch (err) {
+        setSavingStatus(null)
+        setFieldError('name', err instanceof Error ? err.message : 'Failed to save reptile')
+      }
+    },
   })
 
-  const [error, setError] = useState<string | null>(null)
+  // Upload photo to reptile using fetch (to use reptile ID directly)
+  async function uploadPhotoToReptile(targetReptileId: string, file: File): Promise<void> {
+    // Get signed upload URL
+    const uploadUrlRes = await fetch(`/api/reptiles/${targetReptileId}/photos/upload-url`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filename: file.name,
+        contentType: file.type,
+      }),
+    })
 
-  const speciesOptions = getSpeciesOptions()
-
-  const isPending = createMutation.isPending || updateMutation.isPending
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-
-    // Basic validation
-    if (!formData.name.trim()) {
-      setError('Name is required')
-      return
-    }
-    if (!formData.species) {
-      setError('Species is required')
-      return
-    }
-    if (!formData.acquisitionDate) {
-      setError('Acquisition date is required')
-      return
+    if (!uploadUrlRes.ok) {
+      throw new Error('Failed to get upload URL')
     }
 
-    const payload = {
-      name: formData.name.trim(),
-      species: formData.species,
-      morph: formData.morph.trim() || null,
-      sex: formData.sex as 'MALE' | 'FEMALE' | 'UNKNOWN',
-      birthDate: formData.birthDate ? new Date(formData.birthDate) : null,
-      acquisitionDate: new Date(formData.acquisitionDate),
-      notes: formData.notes.trim() || null,
-      isPublic: formData.isPublic,
+    const { uploadUrl, storagePath, thumbnailPath } = await uploadUrlRes.json()
+
+    // Upload to storage
+    const uploadRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type },
+      body: file,
+    })
+
+    if (!uploadRes.ok) {
+      throw new Error('Failed to upload file to storage')
     }
 
-    try {
-      if (isEditing && reptileId) {
-        const updated = await updateMutation.mutateAsync({
-          id: reptileId,
-          data: payload,
-        })
-        onSuccess?.(updated)
-      } else {
-        const created = await createMutation.mutateAsync(payload)
-        onSuccess?.(created)
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save reptile'
-      setError(message)
+    // Create photo record with isPrimary: true
+    const createRes = await fetch(`/api/reptiles/${targetReptileId}/photos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        storagePath,
+        thumbnailPath,
+        category: 'GENERAL',
+        takenAt: new Date().toISOString(),
+        isPrimary: true,
+      }),
+    })
+
+    if (!createRes.ok) {
+      throw new Error('Failed to create photo record')
     }
   }
 
-  const handleCancel = () => {
-    if (onCancel) {
-      onCancel()
-    } else {
-      window.history.back()
+  // Create weight record
+  async function createWeightRecord(targetReptileId: string, weight: number): Promise<void> {
+    const res = await fetch(`/api/reptiles/${targetReptileId}/weights`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        weight,
+        date: new Date().toISOString(),
+      }),
+    })
+
+    if (!res.ok) {
+      throw new Error('Failed to create weight record')
     }
   }
+
+  const formError = errors.name?.includes('Failed') ? errors.name : null
+  const handleCancel = () => (onCancel ? onCancel() : window.history.back())
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <div
-          className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2 text-sm text-red-800"
-          role="alert"
-          aria-live="polite"
-        >
-          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
-          <span>{error}</span>
-        </div>
-      )}
+      <FormError message={formError} />
 
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium mb-1">
-          Name <span className="text-red-500">*</span>
-        </label>
-        <Input
-          id="name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="Enter reptile name"
-          disabled={isPending}
-          required
-        />
-      </div>
+      <ImagePicker
+        value={profileImage}
+        preview={profileImagePreview}
+        onChange={handleImageChange}
+        existingImageUrl={existingProfilePhotoUrl}
+        disabled={isPending}
+        label="Profile Photo"
+      />
 
-      <div>
-        <label htmlFor="species" className="block text-sm font-medium mb-1">
-          Species <span className="text-red-500">*</span>
-        </label>
-        <Select
-          value={formData.species}
-          onValueChange={(value) => setFormData({ ...formData, species: value })}
-          disabled={isPending}
-        >
-          <SelectTrigger id="species">
-            <SelectValue placeholder="Select species" />
-          </SelectTrigger>
-          <SelectContent>
-            {speciesOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-            <SelectItem value="other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <FormField id="name" name="name" label="Name" required placeholder="Enter reptile name"
+        value={values.name} onChange={handleChange} disabled={isPending}
+        error={formError ? undefined : errors.name} />
 
-      <div>
-        <label htmlFor="morph" className="block text-sm font-medium mb-1">
-          Morph / Locale
-        </label>
-        <Input
-          id="morph"
-          value={formData.morph}
-          onChange={(e) => setFormData({ ...formData, morph: e.target.value })}
-          placeholder="e.g., Banana, Pastel, Albino"
-          disabled={isPending}
-        />
-      </div>
+      <FormSelect id="species" label="Species" required placeholder="Select species"
+        value={values.species} onValueChange={(v) => setFieldValue('species', v)}
+        disabled={isPending} options={speciesOptions} error={errors.species} />
 
-      <div>
-        <label htmlFor="sex" className="block text-sm font-medium mb-1">
-          Sex
-        </label>
-        <Select
-          value={formData.sex}
-          onValueChange={(value) =>
-            setFormData({ ...formData, sex: value as 'MALE' | 'FEMALE' | 'UNKNOWN' })
-          }
-          disabled={isPending}
-        >
-          <SelectTrigger id="sex">
-            <SelectValue placeholder="Select sex" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="MALE">Male</SelectItem>
-            <SelectItem value="FEMALE">Female</SelectItem>
-            <SelectItem value="UNKNOWN">Unknown</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <FormField id="morph" name="morph" label="Morph / Locale"
+        placeholder="e.g., Banana, Pastel, Albino"
+        value={values.morph} onChange={handleChange} disabled={isPending} />
+
+      <FormSelect id="sex" label="Sex" placeholder="Select sex" value={values.sex}
+        onValueChange={(v) => setFieldValue('sex', v)} disabled={isPending} options={SEX_OPTIONS} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="birthDate" className="block text-sm font-medium mb-1">
-            Birth/Hatch Date
-          </label>
-          <Input
-            id="birthDate"
-            type="date"
-            value={formData.birthDate}
-            onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-            disabled={isPending}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="acquisitionDate" className="block text-sm font-medium mb-1">
-            Acquisition Date <span className="text-red-500">*</span>
-          </label>
-          <Input
-            id="acquisitionDate"
-            type="date"
-            value={formData.acquisitionDate}
-            onChange={(e) => setFormData({ ...formData, acquisitionDate: e.target.value })}
-            disabled={isPending}
-            required
-          />
-        </div>
+        <FormField id="birthDate" name="birthDate" label="Birth/Hatch Date" type="date"
+          value={values.birthDate} onChange={handleChange} disabled={isPending} />
+        <FormField id="acquisitionDate" name="acquisitionDate" label="Acquisition Date"
+          type="date" required value={values.acquisitionDate} onChange={handleChange}
+          disabled={isPending} error={errors.acquisitionDate} />
       </div>
 
-      <div>
-        <label htmlFor="notes" className="block text-sm font-medium mb-1">
-          Notes
-        </label>
-        <textarea
-          id="notes"
-          className="flex min-h-[80px] w-full rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm text-[var(--color-foreground)] ring-offset-[var(--color-background)] placeholder:text-[var(--color-muted-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          placeholder="Any additional notes..."
-          disabled={isPending}
-        />
-      </div>
+      <FormField id="currentWeight" name="currentWeight" label="Initial Weight (g)" type="number"
+        placeholder="Enter weight in grams" value={values.currentWeight} onChange={handleChange}
+        disabled={isPending} error={errors.currentWeight} />
 
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="isPublic"
-          checked={formData.isPublic}
-          onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })}
-          disabled={isPending}
-          className="h-4 w-4 rounded border-warm-300"
-        />
-        <label htmlFor="isPublic" className="text-sm">
-          Make this reptile profile public (shareable)
-        </label>
-      </div>
+      {parseFloat(values.currentWeight) > 0 && (
+        <FormCheckbox id="addToWeightHistory" name="addToWeightHistory"
+          label="Add to weight history"
+          checked={values.addToWeightHistory as boolean} onChange={handleChange} disabled={isPending} />
+      )}
+
+      <FormTextarea id="notes" name="notes" label="Notes" rows={3}
+        placeholder="Any additional notes..."
+        value={values.notes} onChange={handleChange} disabled={isPending} />
+
+      <FormCheckbox id="isPublic" name="isPublic"
+        label="Make this reptile profile public (shareable)"
+        checked={values.isPublic as boolean} onChange={handleChange} disabled={isPending} />
 
       <div className="flex justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={handleCancel} disabled={isPending}>
@@ -255,7 +332,7 @@ export function ReptileForm({
         </Button>
         <Button type="submit" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
-          {isEditing ? 'Update Reptile' : 'Add Reptile'}
+          {savingStatus || (isEditing ? 'Update Reptile' : 'Add Reptile')}
         </Button>
       </div>
     </form>
