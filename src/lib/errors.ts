@@ -22,12 +22,24 @@ export class ForbiddenError extends Error {
 }
 
 /**
+ * Field-level validation errors mapping field names to error messages
+ */
+export type FieldErrors = Record<string, string[]>
+
+/**
  * Error thrown when input validation fails
+ * Supports both single message and multiple field-level errors
  */
 export class ValidationError extends Error {
-  constructor(message: string) {
+  /**
+   * Field-level error messages (field name -> array of error messages)
+   */
+  public readonly fieldErrors?: FieldErrors
+
+  constructor(message: string, fieldErrors?: FieldErrors) {
     super(message)
     this.name = 'ValidationError'
+    this.fieldErrors = fieldErrors
   }
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -41,6 +41,16 @@ export function PhotoUpload({ reptileId, open, onClose }: PhotoUploadProps) {
 
   const uploadMutation = useUploadPhoto(reptileId)
 
+  // Clean up object URLs to prevent memory leaks
+  // This runs when preview changes or component unmounts
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview)
+      }
+    }
+  }, [preview])
+
   const handleFileSelect = useCallback((selectedFile: File) => {
     setError(null)
 
@@ -80,13 +90,17 @@ export function PhotoUpload({ reptileId, open, onClose }: PhotoUploadProps) {
   )
 
   const resetForm = useCallback(() => {
+    // Revoke object URL before clearing to prevent memory leak
+    if (preview) {
+      URL.revokeObjectURL(preview)
+    }
     setFile(null)
     setPreview(null)
     setCaption('')
     setCategory('GENERAL')
     setProgress(0)
     setError(null)
-  }, [])
+  }, [preview])
 
   const handleClose = useCallback(() => {
     if (!uploadMutation.isPending) {
@@ -138,6 +152,10 @@ export function PhotoUpload({ reptileId, open, onClose }: PhotoUploadProps) {
             <PreviewArea
               preview={preview!}
               onRemove={() => {
+                // Revoke object URL before clearing to prevent memory leak
+                if (preview) {
+                  URL.revokeObjectURL(preview)
+                }
                 setFile(null)
                 setPreview(null)
               }}

@@ -25,6 +25,7 @@ vi.mock('@/lib/db/client', () => ({
       count: vi.fn(),
     },
     $queryRaw: vi.fn(),
+    $queryRawUnsafe: vi.fn(),
   },
 }))
 
@@ -46,8 +47,8 @@ describe('DashboardService', () => {
       // Mock for reptile count
       mockedPrisma.reptile.count.mockResolvedValue(5)
 
-      // Mock for countFeedingsDue - uses optimized $queryRaw
-      mockedPrisma.$queryRaw = vi.fn().mockResolvedValue([{ count: BigInt(1) }])
+      // Mock for countFeedingsDue - uses optimized $queryRawUnsafe
+      mockedPrisma.$queryRawUnsafe.mockResolvedValue([{ count: BigInt(1) }])
 
       // Mock for weight count
       mockedPrisma.weight.count.mockResolvedValue(2)
@@ -73,7 +74,7 @@ describe('DashboardService', () => {
 
       // Mock the optimized feeding due count query using raw SQL
       // The service should use a single aggregation query instead of N+1
-      mockedPrisma.$queryRaw = vi.fn().mockResolvedValue([{ count: BigInt(2) }])
+      mockedPrisma.$queryRawUnsafe.mockResolvedValue([{ count: BigInt(2) }])
 
       mockedPrisma.weight.count.mockResolvedValue(0)
       mockedPrisma.environmentLog.count.mockResolvedValue(0)
@@ -82,14 +83,14 @@ describe('DashboardService', () => {
 
       expect(stats.feedingsDue).toBe(2)
       // Verify the optimized query was used instead of findMany + loop
-      expect(mockedPrisma.$queryRaw).toHaveBeenCalled()
+      expect(mockedPrisma.$queryRawUnsafe).toHaveBeenCalled()
     })
 
     it('should count feedings due without N+1 query pattern', async () => {
       mockedPrisma.reptile.count.mockResolvedValue(100)
 
       // Mock the optimized query result
-      mockedPrisma.$queryRaw = vi.fn().mockResolvedValue([{ count: BigInt(42) }])
+      mockedPrisma.$queryRawUnsafe.mockResolvedValue([{ count: BigInt(42) }])
 
       mockedPrisma.weight.count.mockResolvedValue(0)
       mockedPrisma.environmentLog.count.mockResolvedValue(0)
@@ -97,7 +98,7 @@ describe('DashboardService', () => {
       const stats = await service.getStats(userId)
 
       expect(stats.feedingsDue).toBe(42)
-      // Should use $queryRaw, not findMany for counting feedings due
+      // Should use $queryRawUnsafe, not findMany for counting feedings due
       expect(mockedPrisma.reptile.findMany).not.toHaveBeenCalled()
     })
   })
@@ -111,13 +112,13 @@ describe('DashboardService', () => {
         {
           id: 'reptile-1',
           name: 'Slither',
-          species: 'Ball Python',
+          species: 'ball_python', // Use snake_case species ID
           feedings: [{ date: recentDate }],
         },
         {
           id: 'reptile-2',
           name: 'Scales',
-          species: 'Corn Snake',
+          species: 'corn_snake', // Use snake_case species ID
           feedings: [{ date: new Date() }], // Just fed today
         },
       ]

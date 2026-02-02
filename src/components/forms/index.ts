@@ -1,2 +1,6 @@
 export { VetForm } from './vet-form'
 export { MedicationForm } from './medication-form'
+export { WeightForm } from './weight-form'
+export { ShedForm } from './shed-form'
+export { FeedingForm } from './feeding-form'
+export { EnvironmentForm } from './environment-form'

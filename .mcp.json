@@ -2,7 +2,8 @@
   "mcpServers": {
     "context7": {
       "command": "npx",
-      "args": ["-y", "@context7/mcp-server"]
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "description": "Live documentation for LLMs - eliminates hallucinated APIs"
     }
   }
 }

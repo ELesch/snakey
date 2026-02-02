@@ -1,7 +1,7 @@
 {
   "orchestrator": {
-    "version": "2.9.1",
-    "templateVersion": "1.6.0"
+    "version": "2.16.0",
+    "templateVersion": "1.11.0"
   },
   "project": {
     "name": "Snakey",
@@ -46,6 +46,73 @@
       "recharts": "High",
       "tremor": "Medium",
       "zod": "High"
+    }
+  },
+  "domainAgents": {
+    "knowledgeFiles": {
+      "nextjs-15": "nextjs-15.md",
+      "prisma-7": "prisma-7.md",
+      "tailwind-v4": "tailwind-4.md",
+      "logging-pino": "logging-pino.md"
+    },
+    "generated": [
+      "dev-nextjs-15",
+      "explore-nextjs-15",
+      "debug-nextjs-15",
+      "audit-nextjs-15",
+      "dev-prisma-7",
+      "explore-prisma-7",
+      "debug-prisma-7",
+      "audit-prisma-7",
+      "dev-tailwind-v4",
+      "explore-tailwind-v4",
+      "debug-tailwind-v4",
+      "audit-tailwind-v4"
+    ],
+    "registry": {
+      "byTechnology": {
+        "nextjs": "dev-nextjs-15",
+        "next": "dev-nextjs-15",
+        "prisma": "dev-prisma-7",
+        "tailwindcss": "dev-tailwind-v4",
+        "tailwind": "dev-tailwind-v4"
+      },
+      "byRole": {
+        "implementation": [
+          "dev-nextjs-15",
+          "dev-prisma-7",
+          "dev-tailwind-v4"
+        ],
+        "research": [
+          "explore-nextjs-15",
+          "explore-prisma-7",
+          "explore-tailwind-v4"
+        ],
+        "debugging": [
+          "debug-nextjs-15",
+          "debug-prisma-7",
+          "debug-tailwind-v4"
+        ],
+        "review": [
+          "audit-nextjs-15",
+          "audit-prisma-7",
+          "audit-tailwind-v4"
+        ]
+      }
+    },
+    "supersessionMap": {
+      "dev-nextjs-15": ["dev-frontend"],
+      "dev-prisma-7": ["dev-migration", "dev-database"],
+      "dev-tailwind-v4": ["dev-frontend"]
+    },
+    "sharedKnowledge": [
+      "logging-pino"
+    ],
+    "templateSources": {
+      "dev-nextjs-15": "frameworks/nextjs-15.md",
+      "dev-prisma-7": "databases/prisma-7.md",
+      "dev-tailwind-v4": "styling/tailwind-4.md",
+      "logging-pino": "cross-cutting/logging-pino.md"
     }
   },
   "versionControl": {

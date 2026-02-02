@@ -1,19 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { formatDate } from '@/lib/utils'
 import { usePairings, useDeletePairing } from '@/hooks/use-breeding'
 import { PairingForm } from './pairing-form'
-import { ClutchList } from './clutch-list'
-import { Plus, Heart, Check, X, ChevronDown, ChevronUp, Trash2, Edit } from 'lucide-react'
+import { PairingCard } from './pairing-card'
+import { Plus, Heart } from 'lucide-react'
 import type { Pairing, Reptile } from '@/generated/prisma/client'
 
 type PairingWithRelations = Pairing & {
@@ -33,15 +33,31 @@ export function PairingList({ onPairingSelect }: PairingListProps) {
   const { pairings, isPending, isError, refetch } = usePairings()
   const deleteMutation = useDeletePairing()
 
-  const handleDelete = async (pairingId: string) => {
-    if (confirm('Are you sure you want to delete this pairing?')) {
-      await deleteMutation.mutateAsync(pairingId)
-    }
-  }
+  const handleDelete = useCallback(
+    async (pairingId: string) => {
+      if (confirm('Are you sure you want to delete this pairing?')) {
+        await deleteMutation.mutateAsync(pairingId)
+      }
+    },
+    [deleteMutation]
+  )
 
-  const toggleExpanded = (pairingId: string) => {
+  const toggleExpanded = useCallback((pairingId: string) => {
     setExpandedPairingId((prev) => (prev === pairingId ? null : pairingId))
-  }
+  }, [])
+
+  const handleEdit = useCallback((pairing: Pairing) => {
+    setEditingPairing(pairing)
+  }, [])
+
+  const handleShowForm = useCallback(() => {
+    setShowForm(true)
+  }, [])
+
+  const handleCloseDialog = useCallback(() => {
+    setShowForm(false)
+    setEditingPairing(null)
+  }, [])
 
   if (isPending) {
     return (
@@ -75,7 +91,7 @@ export function PairingList({ onPairingSelect }: PairingListProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Pairings</h3>
-        <Button onClick={() => setShowForm(true)} size="sm">
+        <Button onClick={handleShowForm} size="sm">
           <Plus className="h-4 w-4 mr-2" />
           New Pairing
         </Button>
@@ -85,8 +101,7 @@ export function PairingList({ onPairingSelect }: PairingListProps) {
         open={showForm || !!editingPairing}
         onOpenChange={(open) => {
           if (!open) {
-            setShowForm(false)
-            setEditingPairing(null)
+            handleCloseDialog()
           }
         }}
       >
@@ -95,17 +110,16 @@ export function PairingList({ onPairingSelect }: PairingListProps) {
             <DialogTitle>
               {editingPairing ? 'Edit Pairing' : 'New Pairing'}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              {editingPairing
+                ? 'Edit the details of this breeding pairing'
+                : 'Create a new breeding pairing between two reptiles'}
+            </DialogDescription>
           </DialogHeader>
           <PairingForm
             pairing={editingPairing ?? undefined}
-            onSuccess={() => {
-              setShowForm(false)
-              setEditingPairing(null)
-            }}
-            onCancel={() => {
-              setShowForm(false)
-              setEditingPairing(null)
-            }}
+            onSuccess={handleCloseDialog}
+            onCancel={handleCloseDialog}
           />
         </DialogContent>
       </Dialog>
@@ -123,87 +137,15 @@ export function PairingList({ onPairingSelect }: PairingListProps) {
       ) : (
         <div className="space-y-3">
           {(pairings as PairingWithRelations[]).map((pairing) => (
-            <Card key={pairing.id}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="text-base flex items-center gap-2 min-w-0">
-                    <Heart className="h-4 w-4 text-primary-500 shrink-0" />
-                    <span className="truncate">
-                      {pairing.male?.name ?? 'Male'} x {pairing.female?.name ?? 'Female'}
-                    </span>
-                  </CardTitle>
-                  <div className="flex items-center gap-2">
-                    {pairing.successful !== null && (
-                      <span
-                        className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
-                          pairing.successful
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-red-100 text-red-700'
-                        }`}
-                      >
-                        {pairing.successful ? (
-                          <Check className="h-3 w-3" />
-                        ) : (
-                          <X className="h-3 w-3" />
-                        )}
-                        {pairing.successful ? 'Successful' : 'Unsuccessful'}
-                      </span>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingPairing(pairing)}
-                      aria-label={`Edit pairing ${pairing.male?.name ?? 'Male'} x ${pairing.female?.name ?? 'Female'}`}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(pairing.id)}
-                      disabled={deleteMutation.isPending}
-                      aria-label={`Delete pairing ${pairing.male?.name ?? 'Male'} x ${pairing.female?.name ?? 'Female'}`}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="text-sm text-warm-600 mb-3">
-                  <span>Started: {formatDate(pairing.startDate)}</span>
-                  {pairing.endDate && (
-                    <span className="ml-4">Ended: {formatDate(pairing.endDate)}</span>
-                  )}
-                </div>
-                {pairing.notes && (
-                  <p className="text-sm text-warm-500 mb-3">{pairing.notes}</p>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => toggleExpanded(pairing.id)}
-                  className="w-full justify-center"
-                >
-                  {expandedPairingId === pairing.id ? (
-                    <>
-                      <ChevronUp className="h-4 w-4 mr-2" />
-                      Hide Clutches
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-4 w-4 mr-2" />
-                      Show Clutches
-                    </>
-                  )}
-                </Button>
-                {expandedPairingId === pairing.id && (
-                  <div className="mt-4 pt-4 border-t border-warm-200">
-                    <ClutchList pairingId={pairing.id} />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <PairingCard
+              key={pairing.id}
+              pairing={pairing}
+              isExpanded={expandedPairingId === pairing.id}
+              onToggleExpand={() => toggleExpanded(pairing.id)}
+              onEdit={() => handleEdit(pairing)}
+              onDelete={() => handleDelete(pairing.id)}
+              isDeletePending={deleteMutation.isPending}
+            />
           ))}
         </div>
       )}

@@ -84,7 +84,12 @@ export function withErrorHandler<T>(
       }
 
       if (error instanceof ValidationError) {
-        return errorResponse('VALIDATION_ERROR', error.message, 400)
+        return errorResponse(
+          'VALIDATION_ERROR',
+          error.message,
+          400,
+          error.fieldErrors ? { fieldErrors: error.fieldErrors } : undefined
+        )
       }
 
       if (error instanceof StorageError) {

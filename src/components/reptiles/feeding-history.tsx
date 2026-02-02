@@ -3,9 +3,19 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { formatDate } from '@/lib/utils'
-import { Plus, UtensilsCrossed, Check, X, Loader2, WifiOff } from 'lucide-react'
-import { useFeedings } from '@/hooks/use-feedings'
+import { useFeedings, useDeleteFeeding } from '@/hooks/use-feedings'
+import { FeedingForm } from '@/components/forms'
+import { FeedingCard } from './feeding-card'
+import { Plus, UtensilsCrossed, Loader2, WifiOff, AlertCircle } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import type { Feeding } from '@/generated/prisma/client'
+import type { OfflineFeeding } from '@/lib/offline/db'
 
 interface FeedingHistoryProps {
   reptileId: string
@@ -13,17 +23,33 @@ interface FeedingHistoryProps {
 
 export function FeedingHistory({ reptileId }: FeedingHistoryProps) {
   const [showForm, setShowForm] = useState(false)
-  const { feedings, isPending, isError, isOfflineData } = useFeedings(reptileId)
+  const [editingFeeding, setEditingFeeding] = useState<Feeding | OfflineFeeding | null>(null)
+  const { feedings, isPending, isError, error, isOfflineData } = useFeedings(reptileId)
+  const deleteFeeding = useDeleteFeeding(reptileId)
 
-  // Show loading state
+  const handleEdit = (feeding: Feeding | OfflineFeeding) => {
+    setEditingFeeding(feeding)
+    setShowForm(true)
+  }
+
+  const handleDelete = (feedingId: string) => {
+    if (confirm('Are you sure you want to delete this feeding record?')) {
+      deleteFeeding.mutate(feedingId)
+    }
+  }
+
+  const handleFormClose = () => {
+    setShowForm(false)
+    setEditingFeeding(null)
+  }
+
   if (isPending) {
     return (
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold">Feeding History</h3>
-          <Button onClick={() => setShowForm(true)} size="sm" disabled>
-            <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
-            Log Feeding
+          <Button size="sm" disabled>
+            <Plus className="h-4 w-4 mr-2" aria-hidden="true" />Log Feeding
           </Button>
         </div>
         <Card>
@@ -36,22 +62,20 @@ export function FeedingHistory({ reptileId }: FeedingHistoryProps) {
     )
   }
 
-  // Show error state
   if (isError) {
     return (
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold">Feeding History</h3>
           <Button onClick={() => setShowForm(true)} size="sm">
-            <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
-            Log Feeding
+            <Plus className="h-4 w-4 mr-2" aria-hidden="true" />Log Feeding
           </Button>
         </div>
         <Card>
           <CardContent className="py-12 text-center">
-            <X className="h-12 w-12 mx-auto mb-4 text-red-300" aria-hidden="true" />
+            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-400" aria-hidden="true" />
             <p className="text-red-600">Failed to load feeding history</p>
-            <p className="text-sm text-warm-500">Please try again later</p>
+            <p className="text-sm text-warm-500">{error?.message || 'Please try again later'}</p>
           </CardContent>
         </Card>
       </div>
@@ -64,19 +88,30 @@ export function FeedingHistory({ reptileId }: FeedingHistoryProps) {
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">Feeding History</h3>
           {isOfflineData && (
-            <span>
-              <WifiOff className="h-4 w-4 text-warm-400" aria-hidden="true" />
-              <span className="sr-only">Showing offline data</span>
-            </span>
+            <WifiOff className="h-4 w-4 text-warm-400" aria-label="Showing offline data" />
           )}
         </div>
         <Button onClick={() => setShowForm(true)} size="sm">
-          <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
-          Log Feeding
+          <Plus className="h-4 w-4 mr-2" aria-hidden="true" />Log Feeding
         </Button>
       </div>
 
-      {/* TODO: Feeding form modal */}
+      <Dialog open={showForm} onOpenChange={handleFormClose}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingFeeding ? 'Edit Feeding' : 'Log Feeding'}</DialogTitle>
+            <DialogDescription>
+              {editingFeeding ? 'Update the feeding record.' : 'Record a new feeding event.'}
+            </DialogDescription>
+          </DialogHeader>
+          <FeedingForm
+            reptileId={reptileId}
+            feeding={editingFeeding}
+            onSuccess={handleFormClose}
+            onCancel={handleFormClose}
+          />
+        </DialogContent>
+      </Dialog>
 
       {feedings.length === 0 ? (
         <Card>
@@ -88,45 +123,15 @@ export function FeedingHistory({ reptileId }: FeedingHistoryProps) {
         </Card>
       ) : (
         <div className="space-y-2">
-          {feedings.map((feeding) => {
-            // Handle both API format (Date object) and offline format (timestamp number)
-            const feedingDate = typeof feeding.date === 'number'
-              ? new Date(feeding.date)
-              : new Date(feeding.date)
-
-            return (
-              <Card key={feeding.id}>
-                <CardContent className="py-3 px-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {feeding.accepted ? (
-                        <div className="p-1.5 bg-green-100 rounded-full">
-                          <Check className="h-4 w-4 text-green-600" aria-hidden="true" />
-                          <span className="sr-only">Accepted</span>
-                        </div>
-                      ) : (
-                        <div className="p-1.5 bg-red-100 rounded-full">
-                          <X className="h-4 w-4 text-red-600" aria-hidden="true" />
-                          <span className="sr-only">Refused</span>
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-medium">
-                          {feeding.preySize} {feeding.preyType}
-                        </p>
-                        <p className="text-sm text-warm-500">{formatDate(feedingDate)}</p>
-                      </div>
-                    </div>
-                    {feeding.notes && (
-                      <p className="text-sm text-warm-600 max-w-xs truncate">
-                        {feeding.notes}
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
+          {feedings.map((feeding) => (
+            <FeedingCard
+              key={feeding.id}
+              feeding={feeding}
+              onEdit={() => handleEdit(feeding)}
+              onDelete={() => handleDelete(feeding.id)}
+              isDeleting={deleteFeeding.isPending}
+            />
+          ))}
         </div>
       )}
     </div>

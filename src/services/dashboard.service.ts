@@ -1,6 +1,11 @@
 // Dashboard Service - Aggregates data for dashboard display
 import { prisma } from '@/lib/db/client'
 import { createLogger } from '@/lib/logger'
+import {
+  getFeedingInterval,
+  buildFeedingIntervalSqlCase,
+  DEFAULT_FEEDING_INTERVAL,
+} from '@/lib/species/feeding'
 
 const log = createLogger('DashboardService')
 
@@ -42,16 +47,6 @@ export interface Activity {
   reptileName: string
   description: string
   timestamp: Date
-}
-
-// Default feeding intervals by species (days)
-const DEFAULT_FEEDING_INTERVALS: Record<string, number> = {
-  'Ball Python': 10,
-  'Corn Snake': 7,
-  'Leopard Gecko': 3,
-  'Bearded Dragon': 1,
-  'Crested Gecko': 2,
-  default: 7,
 }
 
 export class DashboardService {
@@ -109,13 +104,16 @@ export class DashboardService {
     // Use a raw SQL query that:
     // 1. Gets each reptile with their last feeding date via subquery
     // 2. Calculates days since last feeding
-    // 3. Compares against species-specific intervals using CASE
+    // 3. Compares against species-specific intervals using centralized CASE
     // 4. Counts reptiles that are due (interval - 1 days or more since last feeding, or never fed)
     // Note: Using explicit schema prefix 'snakey' for raw queries
-    const result = await prisma.$queryRaw<[{ count: bigint }]>`
+    // Note: Using $queryRawUnsafe to allow dynamic SQL CASE from centralized feeding intervals
+    const feedingIntervalCase = buildFeedingIntervalSqlCase('r.species')
+    const result = await prisma.$queryRawUnsafe<[{ count: bigint }]>(
+      `
       SELECT COUNT(*) as count
       FROM "snakey"."Reptile" r
-      WHERE r."userId" = ${userId}
+      WHERE r."userId" = $1
         AND r."deletedAt" IS NULL
         AND (
           -- Never fed
@@ -128,18 +126,11 @@ export class DashboardService {
             SELECT EXTRACT(DAY FROM NOW() - MAX(f.date))
             FROM "snakey"."Feeding" f
             WHERE f."reptileId" = r.id
-          ) >= (
-            CASE r.species
-              WHEN 'Ball Python' THEN 10
-              WHEN 'Corn Snake' THEN 7
-              WHEN 'Leopard Gecko' THEN 3
-              WHEN 'Bearded Dragon' THEN 1
-              WHEN 'Crested Gecko' THEN 2
-              ELSE 7
-            END
-          ) - 1
+          ) >= (${feedingIntervalCase}) - 1
         )
-    `
+      `,
+      userId
+    )
 
     return Number(result[0]?.count ?? 0)
   }
@@ -171,9 +162,7 @@ export class DashboardService {
     const upcomingFeedings: UpcomingFeeding[] = []
 
     for (const reptile of reptiles) {
-      const interval =
-        DEFAULT_FEEDING_INTERVALS[reptile.species] ??
-        DEFAULT_FEEDING_INTERVALS.default
+      const interval = getFeedingInterval(reptile.species)
       const lastFeeding = reptile.feedings[0]?.date
       const daysSince = lastFeeding
         ? Math.floor(

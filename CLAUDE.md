@@ -17,6 +17,8 @@
 
 This file provides guidance to Claude Code when working with code in this repository.
 
+**Orchestrator Framework Version:** 2.16.0 (Template: 1.11.0)
+
 **IMPORTANT:** This project follows strict Test-Driven Development (TDD). YOU MUST write tests BEFORE implementation.
 
 ## Project Overview
@@ -221,6 +223,84 @@ For multi-phase features, the main orchestrator must:
 - Run file-writing agents in parallel (sequential only)
 - Run more than 2-3 agents concurrently (even if safe)
 
+### Domain Agents (Technology-Specific)
+
+Domain agents have **embedded knowledge** for specific technologies with AI training gaps. They supersede general agents for their technology area.
+
+| Domain Agent | Technology | AI Confidence | Supersedes |
+|--------------|------------|---------------|------------|
+| `dev-nextjs-15` | Next.js 15 | Medium | `dev-frontend` (for routing, Server Components, Server Actions) |
+| `dev-prisma-7` | Prisma 7 | Medium | `dev-migration`, `dev-database` |
+| `dev-tailwind-v4` | Tailwind v4 | Low | `dev-frontend` (for styling) |
+
+**Delegation Priority:**
+1. **Check technology** - Is the task primarily Next.js, Prisma, or Tailwind?
+2. **Use domain agent** - If yes, use the domain-specific agent
+3. **Fall back to general** - For tasks spanning multiple technologies or general work
+
+**Routing Examples:**
+
+| Task | Agent |
+|------|-------|
+| Create a new page with dynamic params | `dev-nextjs-15` |
+| Add Server Action for form submission | `dev-nextjs-15` |
+| Create database migration | `dev-prisma-7` |
+| Set up Prisma client | `dev-prisma-7` |
+| Configure theme colors in CSS | `dev-tailwind-v4` |
+| Build a complete feature (routing + DB + styling) | `dev-backend` + `dev-frontend` (general) |
+
+**Shared Knowledge:**
+Domain agents reference shared knowledge files in `.claude/agents/knowledge/`:
+- `logging-pino.md` - Logging patterns (referenced by all domain agents)
+
+**Context7 Integration:**
+Domain agents for Low/Medium confidence technologies will prompt you to use Context7 when working with patterns that may have changed since AI training.
+
+### The Four Agent Roles
+
+Each technology has agents for different task types:
+
+| Task Type | Agent Prefix | Purpose | Write Scope |
+|-----------|--------------|---------|-------------|
+| Building | `dev-` | Implement features, write code | Code (15 max) |
+| Understanding | `explore-` | Research, find patterns | Reports only |
+| Diagnosing | `debug-` | Trace errors, find root causes | Reports only |
+| Reviewing | `audit-` | Pre-deploy checks, compliance | Reports only |
+
+### Agent Selection Flow
+
+1. **What task type?** → Determines role prefix
+2. **What technology?** → Determines agent suffix
+
+**Selection Examples:**
+
+| Task | Agent | Why |
+|------|-------|-----|
+| "Add profile page" | `dev-nextjs-15` | Building - Next.js routing |
+| "How does auth work?" | `explore-nextjs-15` | Understanding - research task |
+| "Why won't form submit?" | `debug-prisma-7` | Diagnosing - database error |
+| "Check patterns before deploy" | `audit-nextjs-15` | Reviewing - pattern compliance |
+
+### Domain Agents by Technology
+
+| Technology | dev | explore | debug | audit | Confidence |
+|------------|-----|---------|-------|-------|------------|
+| Next.js 15 | ✓ | ✓ | ✓ | ✓ | Medium |
+| Prisma 7 | ✓ | ✓ | ✓ | ✓ | Medium |
+| Tailwind v4 | ✓ | ✓ | ✓ | ✓ | Low |
+
+**Example Workflow:**
+
+```
+Task: "The contact form isn't saving to database"
+
+1. debug-prisma-7 → Diagnoses: "Constraint violation on email"
+2. dev-prisma-7 → Implements fix
+3. audit-prisma-7 → Verifies fix follows patterns
+```
+
+---
+
 ### Mandatory Agent Creation
 
 **CRITICAL**: If no agent exists for a required task, you MUST create one.
@@ -254,7 +334,7 @@ Create a new agent in `.claude/agents/` when:
 
 The main orchestrator should ONLY:
 1. **Greet and clarify** - Understand user request
-2. **Enter plan mode** - For ALL tasks (except extremely simple)
+2. **Enter plan mode** - For EVERY prompt (MANDATORY)
 3. **Declare management approach** - State HOW agents will be used
 4. **Delegate to agents** - With clear scope and context
 5. **Self-check periodically** - Confirm still in coordination role
@@ -292,25 +372,31 @@ When a Coding or Testing agent encounters a knowledge gap:
 
 This prevents Coding agents from accumulating exploration context.
 
-### Plan Mode: Always Enter (Except Extremely Simple)
+### Plan Mode: MANDATORY for Every Prompt
 
-**Default behavior: ALWAYS enter plan mode.** Only skip for extremely simple tasks.
+**ALWAYS enter plan mode for every user prompt. No exceptions.**
 
-**Extremely simple tasks (skip plan mode only when ALL apply):**
-- Single file, single change (e.g., fix typo)
-- User provided exact instruction (e.g., "Change line 42 to X")
-- Zero ambiguity about what to do
-- No agent delegation needed
-- Examples: "Fix typo on line 15", "Change port from 3000 to 8080"
+**Why this is mandatory:**
 
-**Everything else requires plan mode:**
-- Any task involving agent delegation
-- Any task affecting 2+ files
-- Any task requiring exploration or research
-- Any task with design decisions (however small)
-- Any unclear or ambiguous request
+AI training data has a cutoff date (May 2025). Package versions evolve faster than training data. This creates a **knowledge gap** between what the orchestrator knows and what current packages actually do.
 
-**When in doubt, enter plan mode.**
+**Domain agents solve this** by embedding version-specific patterns. Each domain agent contains patterns specific to that technology version that the orchestrator may not have in its training data.
+
+**The orchestrator's job is to identify and delegate to the right agents** - not to implement directly with potentially stale knowledge.
+
+**Plan mode ensures:**
+1. Correct agent identification based on task and technology
+2. Version-specific expertise applied to every code change
+3. Knowledge gaps addressed by agents with embedded patterns
+4. Proper handoffs between research, implementation, and review
+
+**For every prompt:**
+1. Enter plan mode
+2. Identify the task type (implement, research, debug, review)
+3. Identify the technologies involved
+4. Select the appropriate domain agent(s)
+5. Declare the orchestrator approach
+6. Execute via agent delegation
 
 ### Orchestrator Management Declaration
 
@@ -320,7 +406,9 @@ This prevents Coding agents from accumulating exploration context.
 ```
 ORCHESTRATOR APPROACH:
 - Task: [one-line summary]
-- Agents needed: [list or "none - extremely simple task"]
+- Task type: [implement / research / debug / review]
+- Technologies: [list technologies involved]
+- Agents needed: [select from .claude/agents/ - check roster.md for guidance]
 - Sequence: [sequential / parallel / single agent]
 - My role: [coordinate, delegate, review - NOT implement]
 ```
@@ -329,8 +417,10 @@ ORCHESTRATOR APPROACH:
 ```
 ORCHESTRATOR APPROACH:
 - Task: Add feeding log feature
-- Agents needed: @dev-api → @dev-backend → @dev-frontend → @dev-test
-- Sequence: Sequential - design, implement backend, implement frontend, test
+- Task type: implement
+- Technologies: Next.js, Prisma, React
+- Agents needed: dev-nextjs-15 → dev-prisma-7 → dev-test
+- Sequence: Sequential - API route, database, frontend, test
 - My role: Coordinate handoffs, review outputs, report to user
 ```
 

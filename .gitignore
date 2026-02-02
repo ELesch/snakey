@@ -64,6 +64,9 @@ secrets/
 .claude/*.local.*
 .claude/projects/*.local.*
 
+# Claude audit logs (session-specific)
+.claude/audit/
+
 # Vercel
 .vercel
 

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface FeatureCardProps {
@@ -6,7 +7,7 @@ interface FeatureCardProps {
   description: string
 }
 
-export function FeatureCard({ icon, title, description }: FeatureCardProps) {
+export const FeatureCard = memo(function FeatureCard({ icon, title, description }: FeatureCardProps) {
   return (
     <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border-primary/10 hover:border-primary/30">
       {/* Decorative scale pattern overlay */}
@@ -25,4 +26,5 @@ export function FeatureCard({ icon, title, description }: FeatureCardProps) {
       </CardContent>
     </Card>
   )
-}
+})
+

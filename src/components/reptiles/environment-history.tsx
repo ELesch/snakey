@@ -3,118 +3,119 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { formatDateTime } from '@/lib/utils'
-import { Plus, Thermometer, Droplets } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { getSpeciesConfig, isTemperatureSafe, isHumiditySafe } from '@/lib/species/defaults'
-
-interface EnvironmentLog {
-  id: string
-  timestamp: Date
-  tempHot: number
-  tempCool: number
-  humidity: number
-  notes?: string
-}
+import { useEnvironmentLogs, useDeleteEnvironmentLog } from '@/hooks/use-environment-logs'
+import { EnvironmentForm } from '@/components/forms'
+import { EnvironmentChart } from './environment-chart'
+import { EnvironmentCard } from './environment-card'
+import { CurrentConditions } from './current-conditions'
+import { Plus, Thermometer, Loader2, AlertCircle, WifiOff } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import type { EnvironmentLog } from '@/generated/prisma/client'
+import type { OfflineEnvironmentLog } from '@/lib/offline/db'
 
 interface EnvironmentHistoryProps {
   reptileId: string
+  species?: string
 }
 
-export function EnvironmentHistory({ reptileId }: EnvironmentHistoryProps) {
+export function EnvironmentHistory({ reptileId, species = 'ball_python' }: EnvironmentHistoryProps) {
   const [showForm, setShowForm] = useState(false)
+  const [editingLog, setEditingLog] = useState<EnvironmentLog | OfflineEnvironmentLog | null>(null)
+  const { logs, isPending, isError, error, isOfflineData } = useEnvironmentLogs(reptileId)
+  const deleteLog = useDeleteEnvironmentLog(reptileId)
 
-  // TODO: Fetch from API or offline DB
-  const logs: EnvironmentLog[] = []
-  const species = 'ball_python' // TODO: Get from reptile data
-  const speciesConfig = getSpeciesConfig(species)
+  const handleEdit = (log: EnvironmentLog | OfflineEnvironmentLog) => {
+    setEditingLog(log)
+    setShowForm(true)
+  }
+
+  const handleDelete = (logId: string) => {
+    if (confirm('Are you sure you want to delete this environment reading?')) {
+      deleteLog.mutate(logId)
+    }
+  }
+
+  const handleFormClose = () => {
+    setShowForm(false)
+    setEditingLog(null)
+  }
+
+  if (isPending) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-warm-400" aria-hidden="true" />
+        <span className="sr-only">Loading environment history</span>
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-400" aria-hidden="true" />
+          <p className="text-warm-600">Failed to load environment history</p>
+          <p className="text-sm text-warm-500">{error?.message}</p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Environment History</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">Environment History</h3>
+          {isOfflineData && (
+            <WifiOff className="h-4 w-4 text-warm-400" aria-label="Showing offline data" />
+          )}
+        </div>
         <Button onClick={() => setShowForm(true)} size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Log Reading
+          <Plus className="h-4 w-4 mr-2" aria-hidden="true" />Log Reading
         </Button>
       </div>
 
-      {/* Current conditions card */}
+      <Dialog open={showForm} onOpenChange={handleFormClose}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingLog ? 'Edit Reading' : 'Log Reading'}</DialogTitle>
+            <DialogDescription>
+              {editingLog ? 'Update the environment reading.' : 'Record temperature and humidity.'}
+            </DialogDescription>
+          </DialogHeader>
+          <EnvironmentForm
+            reptileId={reptileId}
+            log={editingLog}
+            onSuccess={handleFormClose}
+            onCancel={handleFormClose}
+          />
+        </DialogContent>
+      </Dialog>
+
       {logs.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Current Conditions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <Thermometer className="h-6 w-6 mx-auto mb-1 text-red-500" />
-                <p className="text-sm text-warm-500">Hot Side</p>
-                <p
-                  className={cn(
-                    'text-xl font-bold',
-                    isTemperatureSafe(species, logs[0].tempHot, 'hot')
-                      ? 'text-green-600'
-                      : 'text-red-600'
-                  )}
-                >
-                  {logs[0].tempHot}°F
-                </p>
-              </div>
-              <div className="text-center">
-                <Thermometer className="h-6 w-6 mx-auto mb-1 text-blue-500" />
-                <p className="text-sm text-warm-500">Cool Side</p>
-                <p
-                  className={cn(
-                    'text-xl font-bold',
-                    isTemperatureSafe(species, logs[0].tempCool, 'cool')
-                      ? 'text-green-600'
-                      : 'text-red-600'
-                  )}
-                >
-                  {logs[0].tempCool}°F
-                </p>
-              </div>
-              <div className="text-center">
-                <Droplets className="h-6 w-6 mx-auto mb-1 text-cyan-500" />
-                <p className="text-sm text-warm-500">Humidity</p>
-                <p
-                  className={cn(
-                    'text-xl font-bold',
-                    isHumiditySafe(species, logs[0].humidity)
-                      ? 'text-green-600'
-                      : 'text-red-600'
-                  )}
-                >
-                  {logs[0].humidity}%
-                </p>
-              </div>
-            </div>
-          </CardContent>
+          <CardHeader><CardTitle className="text-base">Current Conditions</CardTitle></CardHeader>
+          <CardContent><CurrentConditions log={logs[0]} species={species} /></CardContent>
         </Card>
       )}
 
-      {/* TODO: Environment chart component */}
       {logs.length > 1 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Trends</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-48 flex items-center justify-center text-warm-400">
-              {/* TODO: Recharts line chart */}
-              <p>Environment chart will appear here</p>
-            </div>
-          </CardContent>
+          <CardHeader><CardTitle className="text-base">Trends</CardTitle></CardHeader>
+          <CardContent><EnvironmentChart logs={logs} /></CardContent>
         </Card>
       )}
-
-      {/* TODO: Environment form modal */}
 
       {logs.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <Thermometer className="h-12 w-12 mx-auto mb-4 text-warm-300" />
+            <Thermometer className="h-12 w-12 mx-auto mb-4 text-warm-300" aria-hidden="true" />
             <p className="text-warm-600">No environment readings yet</p>
             <p className="text-sm text-warm-500">Click &quot;Log Reading&quot; to add one</p>
           </CardContent>
@@ -122,54 +123,14 @@ export function EnvironmentHistory({ reptileId }: EnvironmentHistoryProps) {
       ) : (
         <div className="space-y-2">
           {logs.map((log) => (
-            <Card key={log.id}>
-              <CardContent className="py-3 px-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <p className="text-sm text-warm-500">
-                      {formatDateTime(log.timestamp)}
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={cn(
-                          'text-sm',
-                          isTemperatureSafe(species, log.tempHot, 'hot')
-                            ? 'text-warm-700'
-                            : 'text-red-600 font-medium'
-                        )}
-                      >
-                        Hot: {log.tempHot}°F
-                      </span>
-                      <span
-                        className={cn(
-                          'text-sm',
-                          isTemperatureSafe(species, log.tempCool, 'cool')
-                            ? 'text-warm-700'
-                            : 'text-red-600 font-medium'
-                        )}
-                      >
-                        Cool: {log.tempCool}°F
-                      </span>
-                      <span
-                        className={cn(
-                          'text-sm',
-                          isHumiditySafe(species, log.humidity)
-                            ? 'text-warm-700'
-                            : 'text-red-600 font-medium'
-                        )}
-                      >
-                        Humidity: {log.humidity}%
-                      </span>
-                    </div>
-                  </div>
-                  {log.notes && (
-                    <p className="text-sm text-warm-600 max-w-xs truncate">
-                      {log.notes}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <EnvironmentCard
+              key={log.id}
+              log={log}
+              species={species}
+              onEdit={() => handleEdit(log)}
+              onDelete={() => handleDelete(log.id)}
+              isDeleting={deleteLog.isPending}
+            />
           ))}
         </div>
       )}

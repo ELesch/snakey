@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, memo, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -15,6 +16,107 @@ import { ClutchForm } from './clutch-form'
 import { HatchlingList } from './hatchling-list'
 import { Plus, Egg, ChevronDown, ChevronUp, Trash2, Edit, Calendar } from 'lucide-react'
 import type { Clutch } from '@/generated/prisma/client'
+
+interface ClutchItemProps {
+  clutch: Clutch
+  isExpanded: boolean
+  onToggleExpand: () => void
+  onEdit: () => void
+  onDelete: () => void
+  isDeletePending: boolean
+}
+
+const ClutchItem = memo(function ClutchItem({
+  clutch,
+  isExpanded,
+  onToggleExpand,
+  onEdit,
+  onDelete,
+  isDeletePending,
+}: ClutchItemProps) {
+  const dueDays = useMemo(
+    () => (clutch.dueDate ? daysUntil(clutch.dueDate) : null),
+    [clutch.dueDate]
+  )
+
+  return (
+    <Card className="bg-warm-50">
+      <CardContent className="py-3 px-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <Egg className="h-4 w-4 text-amber-600" />
+            <div>
+              <p className="font-medium text-sm">
+                {clutch.eggCount} eggs
+                {clutch.fertileCount !== null &&
+                  ` (${clutch.fertileCount} fertile)`}
+              </p>
+              <p className="text-xs text-warm-500">
+                Laid: {formatDate(clutch.layDate)}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            {dueDays !== null && dueDays > 0 && (
+              <span className="flex items-center gap-1 text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full">
+                <Calendar className="h-3 w-3" />
+                {dueDays} days
+              </span>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onEdit}
+              aria-label={`Edit clutch with ${clutch.eggCount} eggs`}
+            >
+              <Edit className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onDelete}
+              disabled={isDeletePending}
+              aria-label={`Delete clutch with ${clutch.eggCount} eggs`}
+            >
+              <Trash2 className="h-3 w-3 text-red-500" />
+            </Button>
+          </div>
+        </div>
+        {clutch.incubationTemp && (
+          <p className="text-xs text-warm-500 mt-1">
+            Incubation: {Number(clutch.incubationTemp).toFixed(1)}F
+          </p>
+        )}
+        {clutch.notes && (
+          <p className="text-xs text-warm-500 mt-1">{clutch.notes}</p>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggleExpand}
+          className="w-full justify-center mt-2 h-6 text-xs"
+        >
+          {isExpanded ? (
+            <>
+              <ChevronUp className="h-3 w-3 mr-1" />
+              Hide Hatchlings
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-3 w-3 mr-1" />
+              Show Hatchlings
+            </>
+          )}
+        </Button>
+        {isExpanded && (
+          <div className="mt-3 pt-3 border-t border-warm-200">
+            <HatchlingList clutchId={clutch.id} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+})
 
 interface ClutchListProps {
   pairingId: string
@@ -28,15 +130,31 @@ export function ClutchList({ pairingId }: ClutchListProps) {
   const { clutches, isPending, isError, refetch } = useClutches(pairingId)
   const deleteMutation = useDeleteClutch(pairingId)
 
-  const handleDelete = async (clutchId: string) => {
-    if (confirm('Are you sure you want to delete this clutch?')) {
-      await deleteMutation.mutateAsync(clutchId)
-    }
-  }
+  const handleDelete = useCallback(
+    async (clutchId: string) => {
+      if (confirm('Are you sure you want to delete this clutch?')) {
+        await deleteMutation.mutateAsync(clutchId)
+      }
+    },
+    [deleteMutation]
+  )
 
-  const toggleExpanded = (clutchId: string) => {
+  const toggleExpanded = useCallback((clutchId: string) => {
     setExpandedClutchId((prev) => (prev === clutchId ? null : clutchId))
-  }
+  }, [])
+
+  const handleShowForm = useCallback(() => {
+    setShowForm(true)
+  }, [])
+
+  const handleEditClutch = useCallback((clutch: Clutch) => {
+    setEditingClutch(clutch)
+  }, [])
+
+  const handleCloseDialog = useCallback(() => {
+    setShowForm(false)
+    setEditingClutch(null)
+  }, [])
 
   if (isPending) {
     return (
@@ -66,7 +184,7 @@ export function ClutchList({ pairingId }: ClutchListProps) {
     <div className="space-y-3">
       <div className="flex justify-between items-center">
         <h4 className="text-sm font-medium text-warm-700">Clutches</h4>
-        <Button onClick={() => setShowForm(true)} size="sm" variant="outline">
+        <Button onClick={handleShowForm} size="sm" variant="outline">
           <Plus className="h-3 w-3 mr-1" />
           Add Clutch
         </Button>
@@ -76,8 +194,7 @@ export function ClutchList({ pairingId }: ClutchListProps) {
         open={showForm || !!editingClutch}
         onOpenChange={(open) => {
           if (!open) {
-            setShowForm(false)
-            setEditingClutch(null)
+            handleCloseDialog()
           }
         }}
       >
@@ -86,18 +203,17 @@ export function ClutchList({ pairingId }: ClutchListProps) {
             <DialogTitle>
               {editingClutch ? 'Edit Clutch' : 'New Clutch'}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              {editingClutch
+                ? 'Edit the details of this clutch'
+                : 'Record a new clutch of eggs for this pairing'}
+            </DialogDescription>
           </DialogHeader>
           <ClutchForm
             pairingId={pairingId}
             clutch={editingClutch ?? undefined}
-            onSuccess={() => {
-              setShowForm(false)
-              setEditingClutch(null)
-            }}
-            onCancel={() => {
-              setShowForm(false)
-              setEditingClutch(null)
-            }}
+            onSuccess={handleCloseDialog}
+            onCancel={handleCloseDialog}
           />
         </DialogContent>
       </Dialog>
@@ -109,84 +225,17 @@ export function ClutchList({ pairingId }: ClutchListProps) {
         </div>
       ) : (
         <div className="space-y-2">
-          {clutches.map((clutch) => {
-            const dueDays = clutch.dueDate ? daysUntil(clutch.dueDate) : null
-            return (
-              <Card key={clutch.id} className="bg-warm-50">
-                <CardContent className="py-3 px-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <Egg className="h-4 w-4 text-amber-600" />
-                      <div>
-                        <p className="font-medium text-sm">
-                          {clutch.eggCount} eggs
-                          {clutch.fertileCount !== null &&
-                            ` (${clutch.fertileCount} fertile)`}
-                        </p>
-                        <p className="text-xs text-warm-500">
-                          Laid: {formatDate(clutch.layDate)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {dueDays !== null && dueDays > 0 && (
-                        <span className="flex items-center gap-1 text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full">
-                          <Calendar className="h-3 w-3" />
-                          {dueDays} days
-                        </span>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingClutch(clutch)}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(clutch.id)}
-                        disabled={deleteMutation.isPending}
-                      >
-                        <Trash2 className="h-3 w-3 text-red-500" />
-                      </Button>
-                    </div>
-                  </div>
-                  {clutch.incubationTemp && (
-                    <p className="text-xs text-warm-500 mt-1">
-                      Incubation: {Number(clutch.incubationTemp).toFixed(1)}F
-                    </p>
-                  )}
-                  {clutch.notes && (
-                    <p className="text-xs text-warm-500 mt-1">{clutch.notes}</p>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleExpanded(clutch.id)}
-                    className="w-full justify-center mt-2 h-6 text-xs"
-                  >
-                    {expandedClutchId === clutch.id ? (
-                      <>
-                        <ChevronUp className="h-3 w-3 mr-1" />
-                        Hide Hatchlings
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="h-3 w-3 mr-1" />
-                        Show Hatchlings
-                      </>
-                    )}
-                  </Button>
-                  {expandedClutchId === clutch.id && (
-                    <div className="mt-3 pt-3 border-t border-warm-200">
-                      <HatchlingList clutchId={clutch.id} />
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )
-          })}
+          {clutches.map((clutch) => (
+            <ClutchItem
+              key={clutch.id}
+              clutch={clutch}
+              isExpanded={expandedClutchId === clutch.id}
+              onToggleExpand={() => toggleExpanded(clutch.id)}
+              onEdit={() => handleEditClutch(clutch)}
+              onDelete={() => handleDelete(clutch.id)}
+              isDeletePending={deleteMutation.isPending}
+            />
+          ))}
         </div>
       )}
     </div>
