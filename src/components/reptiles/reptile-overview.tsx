@@ -74,9 +74,9 @@ export function ReptileOverview({ reptileId }: ReptileOverviewProps) {
         </CardHeader>
         <CardContent>
           <dl className="space-y-4">
-            <div className="flex justify-between">
-              <dt className="text-warm-600">Last Fed</dt>
-              <dd className="font-medium">
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
+              <dt className="text-warm-600 flex-shrink-0">Last Fed</dt>
+              <dd className="font-medium text-right sm:text-right">
                 {lastFedDate ? (
                   <>
                     {formatDate(lastFedDate)} ({daysSince(lastFedDate)} days ago)
@@ -86,9 +86,9 @@ export function ReptileOverview({ reptileId }: ReptileOverviewProps) {
                 )}
               </dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-warm-600">Last Shed</dt>
-              <dd className="font-medium">
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
+              <dt className="text-warm-600 flex-shrink-0">Last Shed</dt>
+              <dd className="font-medium text-right sm:text-right">
                 {lastShedDate ? (
                   <>
                     {formatDate(lastShedDate)} ({daysSince(lastShedDate)} days ago)
@@ -98,9 +98,9 @@ export function ReptileOverview({ reptileId }: ReptileOverviewProps) {
                 )}
               </dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-warm-600">Current Weight</dt>
-              <dd className="font-medium">
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
+              <dt className="text-warm-600 flex-shrink-0">Current Weight</dt>
+              <dd className="font-medium text-right sm:text-right">
                 {lastWeightValue != null && lastWeightDate ? (
                   <>
                     {lastWeightValue}g ({formatDate(lastWeightDate)})
@@ -112,23 +112,23 @@ export function ReptileOverview({ reptileId }: ReptileOverviewProps) {
                 )}
               </dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-warm-600">Sex</dt>
-              <dd className="font-medium capitalize">
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
+              <dt className="text-warm-600 flex-shrink-0">Sex</dt>
+              <dd className="font-medium capitalize text-right sm:text-right">
                 {reptile.sex?.toLowerCase() || 'Unknown'}
               </dd>
             </div>
             {reptile.birthDate && (
-              <div className="flex justify-between">
-                <dt className="text-warm-600">Birth Date</dt>
-                <dd className="font-medium">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
+                <dt className="text-warm-600 flex-shrink-0">Birth Date</dt>
+                <dd className="font-medium text-right sm:text-right">
                   {formatDate(parseDate(reptile.birthDate)!)}
                 </dd>
               </div>
             )}
-            <div className="flex justify-between">
-              <dt className="text-warm-600">Acquired</dt>
-              <dd className="font-medium">
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
+              <dt className="text-warm-600 flex-shrink-0">Acquired</dt>
+              <dd className="font-medium text-right sm:text-right">
                 {formatDate(parseDate(reptile.acquisitionDate)!)}
               </dd>
             </div>
@@ -143,36 +143,36 @@ export function ReptileOverview({ reptileId }: ReptileOverviewProps) {
           </CardHeader>
           <CardContent>
             <dl className="space-y-4">
-              <div className="flex justify-between">
-                <dt className="text-warm-600">Hot Side</dt>
-                <dd className="font-medium">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
+                <dt className="text-warm-600 flex-shrink-0">Hot Side</dt>
+                <dd className="font-medium text-right sm:text-right">
                   {getTemperatureRange(
                     speciesConfig.tempHotMin,
                     speciesConfig.tempHotMax
                   )}
                 </dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-warm-600">Cool Side</dt>
-                <dd className="font-medium">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
+                <dt className="text-warm-600 flex-shrink-0">Cool Side</dt>
+                <dd className="font-medium text-right sm:text-right">
                   {getTemperatureRange(
                     speciesConfig.tempCoolMin,
                     speciesConfig.tempCoolMax
                   )}
                 </dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-warm-600">Humidity</dt>
-                <dd className="font-medium">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
+                <dt className="text-warm-600 flex-shrink-0">Humidity</dt>
+                <dd className="font-medium text-right sm:text-right">
                   {getHumidityRange(
                     speciesConfig.humidityMin,
                     speciesConfig.humidityMax
                   )}
                 </dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-warm-600">Feeding</dt>
-                <dd className="font-medium">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
+                <dt className="text-warm-600 flex-shrink-0">Feeding</dt>
+                <dd className="font-medium text-right sm:text-right">
                   {getFeedingScheduleMessage(speciesConfig.feedingInterval)}
                 </dd>
               </div>

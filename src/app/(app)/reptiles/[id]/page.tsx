@@ -1,7 +1,7 @@
 'use client'
 
 import { use } from 'react'
-import { notFound } from 'next/navigation'
+import { notFound, useRouter, useSearchParams } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ReptileHeader } from '@/components/reptiles/reptile-header'
 import { ReptileOverview } from '@/components/reptiles/reptile-overview'
@@ -13,22 +13,55 @@ import { PhotoGallery } from '@/components/reptiles/photo-gallery'
 import { VetHistory } from '@/components/reptiles/vet-history'
 import { MedicationList } from '@/components/reptiles/medication-list'
 
+const VALID_TABS = [
+  'overview',
+  'feedings',
+  'sheds',
+  'weights',
+  'environment',
+  'photos',
+  'vet',
+  'medications',
+] as const
+
+type TabValue = (typeof VALID_TABS)[number]
+
 interface ReptileDetailPageProps {
   params: Promise<{ id: string }>
 }
 
 export default function ReptileDetailPage({ params }: ReptileDetailPageProps) {
   const { id } = use(params)
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   if (!id) {
     notFound()
+  }
+
+  // Get tab from URL or default to overview
+  const tabParam = searchParams.get('tab')
+  const currentTab: TabValue =
+    tabParam && VALID_TABS.includes(tabParam as TabValue)
+      ? (tabParam as TabValue)
+      : 'overview'
+
+  const handleTabChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (value === 'overview') {
+      params.delete('tab')
+    } else {
+      params.set('tab', value)
+    }
+    const query = params.toString()
+    router.push(`/reptiles/${id}${query ? `?${query}` : ''}`, { scroll: false })
   }
 
   return (
     <div className="space-y-6">
       <ReptileHeader reptileId={id} />
 
-      <Tabs defaultValue="overview" className="space-y-4">
+      <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList className="flex overflow-x-auto h-auto gap-1 pb-1">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="feedings">Feedings</TabsTrigger>

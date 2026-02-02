@@ -210,6 +210,21 @@ export function getSpeciesConfig(species: string): SpeciesConfig | undefined {
 }
 
 /**
+ * Get display name for a species (common name if known, formatted ID otherwise)
+ */
+export function getSpeciesDisplayName(species: string): string {
+  const config = getSpeciesConfig(species)
+  if (config) {
+    return config.commonName
+  }
+  // Format unknown species: snake_case -> Title Case
+  return species
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
+/**
  * Get all species as options for select
  */
 export function getSpeciesOptions(): Array<{ value: string; label: string }> {

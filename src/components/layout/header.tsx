@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ReptileIcon } from '@/components/icons/reptile-icon'
@@ -28,7 +28,9 @@ export function Header() {
         </Button>
       </header>
 
-      <MobileNav open={mobileNavOpen} onOpenChange={setMobileNavOpen} />
+      <Suspense fallback={null}>
+        <MobileNav open={mobileNavOpen} onOpenChange={setMobileNavOpen} />
+      </Suspense>
     </>
   )
 }
