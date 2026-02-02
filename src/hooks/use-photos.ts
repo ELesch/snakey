@@ -16,6 +16,7 @@ import {
 import { ApiClientError } from '@/lib/api/utils'
 import type { Photo } from '@/generated/prisma/client'
 import type { PhotoCreate, PhotoUpdate, PhotoQuery } from '@/validations/photo'
+import { generateId } from '@/lib/id'
 
 // Query keys for cache management
 export const photoKeys = {
@@ -136,7 +137,7 @@ export function useUploadPhoto(reptileId: string) {
     }) => {
       if (!isOnline) {
         // Store locally for offline support
-        const offlineId = crypto.randomUUID()
+        const offlineId = generateId()
         const offlinePhoto: OfflinePhoto = {
           id: offlineId,
           reptileId,

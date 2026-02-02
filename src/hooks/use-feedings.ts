@@ -13,6 +13,7 @@ import {
 import { ApiClientError } from '@/lib/api/utils'
 import type { Feeding } from '@/generated/prisma/client'
 import type { FeedingCreate, FeedingUpdate, FeedingQuery } from '@/validations/feeding'
+import { generateId } from '@/lib/id'
 
 // Query keys for cache management
 export const feedingKeys = {
@@ -106,7 +107,7 @@ export function useCreateFeeding(reptileId: string) {
   return useMutation({
     mutationFn: async (data: FeedingCreate) => {
       if (!isOnline) {
-        const offlineId = data.id ?? crypto.randomUUID()
+        const offlineId = data.id ?? generateId()
         const offlineFeeding: OfflineFeeding = {
           id: offlineId,
           reptileId,

@@ -13,6 +13,7 @@ import {
 import { ApiClientError } from '@/lib/api/utils'
 import type { Weight } from '@/generated/prisma/client'
 import type { WeightCreate, WeightUpdate, WeightQuery } from '@/validations/weight'
+import { generateId } from '@/lib/id'
 
 // Query keys for cache management
 export const weightKeys = {
@@ -101,7 +102,7 @@ export function useCreateWeight(reptileId: string) {
   return useMutation({
     mutationFn: async (data: WeightCreate) => {
       if (!isOnline) {
-        const offlineId = data.id ?? crypto.randomUUID()
+        const offlineId = data.id ?? generateId()
         const offlineWeight: OfflineWeight = {
           id: offlineId,
           reptileId,

@@ -14,6 +14,7 @@ import {
 import { ApiClientError } from '@/lib/api/utils'
 import type { Reptile } from '@/generated/prisma/client'
 import type { ReptileCreate, ReptileUpdate, ReptileQuery } from '@/validations/reptile'
+import { generateId } from '@/lib/id'
 
 // Query keys for cache management
 export const reptileKeys = {
@@ -168,7 +169,7 @@ export function useCreateReptile() {
     mutationFn: async (data: ReptileCreate) => {
       if (!isOnline) {
         // Create offline record
-        const offlineId = crypto.randomUUID()
+        const offlineId = generateId()
         const offlineReptile: OfflineReptile = {
           id: offlineId,
           userId: '', // Will be set by server

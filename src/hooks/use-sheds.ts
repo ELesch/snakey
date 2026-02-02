@@ -13,6 +13,7 @@ import {
 import { ApiClientError } from '@/lib/api/utils'
 import type { Shed } from '@/generated/prisma/client'
 import type { ShedCreate, ShedUpdate, ShedQuery } from '@/validations/shed'
+import { generateId } from '@/lib/id'
 
 // Query keys for cache management
 export const shedKeys = {
@@ -104,7 +105,7 @@ export function useCreateShed(reptileId: string) {
   return useMutation({
     mutationFn: async (data: ShedCreate) => {
       if (!isOnline) {
-        const offlineId = data.id ?? crypto.randomUUID()
+        const offlineId = data.id ?? generateId()
         const offlineShed: OfflineShed = {
           id: offlineId,
           reptileId,

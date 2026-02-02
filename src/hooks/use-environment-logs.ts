@@ -13,6 +13,7 @@ import {
 import { ApiClientError } from '@/lib/api/utils'
 import type { EnvironmentLog } from '@/generated/prisma/client'
 import type { EnvironmentCreate, EnvironmentUpdate, EnvironmentQuery } from '@/validations/environment'
+import { generateId } from '@/lib/id'
 
 // Query keys for cache management
 export const environmentKeys = {
@@ -107,7 +108,7 @@ export function useCreateEnvironmentLog(reptileId: string) {
   return useMutation({
     mutationFn: async (data: EnvironmentCreate) => {
       if (!isOnline) {
-        const offlineId = data.id ?? crypto.randomUUID()
+        const offlineId = data.id ?? generateId()
         const offlineLog: OfflineEnvironmentLog = {
           id: offlineId,
           reptileId,
