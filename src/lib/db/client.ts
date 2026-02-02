@@ -14,7 +14,16 @@ function createPrismaClient(): PrismaClient {
   }
 
   // Prisma 7 requires adapter at runtime
-  const adapter = new PrismaPg({ connectionString })
+  // Configure with schema 'snakey' to match the Prisma schema definition
+  // Also set connection pool timeouts for stability
+  const adapter = new PrismaPg(
+    {
+      connectionString,
+      connectionTimeoutMillis: 5_000, // 5 second connection timeout
+      idleTimeoutMillis: 300_000, // 5 minute idle timeout
+    },
+    { schema: 'snakey' }
+  )
 
   return new PrismaClient({
     adapter,

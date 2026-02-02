@@ -136,6 +136,8 @@ brew install gh
 | Use `PrismaPg` adapter in db client | Use `PrismaClient` without adapter |
 | Load env in `prisma.config.ts` with dotenv | Use `dotenv-cli` for prisma commands |
 | Import from `@/generated/prisma/client` | Import from `@prisma/client` |
+| Pass schema to adapter: `new PrismaPg(pool, { schema: 'snakey' })` | Omit schema when using custom PostgreSQL schema (causes 500 errors) |
+| Use explicit schema prefix in raw SQL: `"snakey"."Table"` | Assume `$queryRaw` respects adapter schema setting |
 
 ### Tailwind CSS 4.x (AI trained on 3.x)
 
@@ -239,8 +241,11 @@ export default defineConfig({
 ```typescript
 import { PrismaClient } from '@/generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
+const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+// IMPORTANT: Pass schema name if using custom PostgreSQL schema (not "public")
+const adapter = new PrismaPg(pool, { schema: 'snakey' })
 export const prisma = new PrismaClient({ adapter })
 ```
 

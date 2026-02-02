@@ -111,21 +111,22 @@ export class DashboardService {
     // 2. Calculates days since last feeding
     // 3. Compares against species-specific intervals using CASE
     // 4. Counts reptiles that are due (interval - 1 days or more since last feeding, or never fed)
+    // Note: Using explicit schema prefix 'snakey' for raw queries
     const result = await prisma.$queryRaw<[{ count: bigint }]>`
       SELECT COUNT(*) as count
-      FROM "Reptile" r
+      FROM "snakey"."Reptile" r
       WHERE r."userId" = ${userId}
         AND r."deletedAt" IS NULL
         AND (
           -- Never fed
           NOT EXISTS (
-            SELECT 1 FROM "Feeding" f WHERE f."reptileId" = r.id
+            SELECT 1 FROM "snakey"."Feeding" f WHERE f."reptileId" = r.id
           )
           OR
           -- Due for feeding based on species interval
           (
             SELECT EXTRACT(DAY FROM NOW() - MAX(f.date))
-            FROM "Feeding" f
+            FROM "snakey"."Feeding" f
             WHERE f."reptileId" = r.id
           ) >= (
             CASE r.species
