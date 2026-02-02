@@ -91,26 +91,28 @@ export function useReptiles(query: Partial<ReptileQuery> = {}) {
   }
 
   // Determine which data to use - offline-first pattern
-  // Priority: API data (fresh) > offline data (cached) > empty array
-  // Show offline data immediately while API loads in background
+  // Show whatever data is available immediately
   const reptiles = apiData?.data ?? offlineReptiles ?? []
   const meta = apiData?.meta
 
-  // Check if we have any data to display
-  const hasData = (offlineReptiles && offlineReptiles.length > 0) || apiData?.data
+  // Only show loading skeleton when we truly have nothing to show:
+  // - offlineReptiles is undefined (Dexie still initializing) AND
+  // - apiData is not yet available
+  // Once offlineReptiles resolves (even to empty []), show that immediately
+  const offlineResolved = offlineReptiles !== undefined
+  const hasApiData = !!apiData?.data
 
   return {
     reptiles: reptiles as (Reptile | OfflineReptile)[],
     meta,
-    // Only show loading if we have NO data at all
-    // If offline data exists, show it immediately while API loads
-    isPending: !hasData && (isOnline ? isPending : offlineReptiles === undefined),
+    // Show loading only when offline hasn't resolved AND API hasn't responded
+    isPending: !offlineResolved && !hasApiData,
     isError,
     error: error as ApiClientError | null,
     isOnline,
     isOfflineData: !isOnline || !apiData,
-    // Flag to indicate background refresh is happening (has data but fetching fresh)
-    isRefreshing: isOnline && isPending && !!hasData,
+    // Background refresh: offline resolved but API still loading
+    isRefreshing: offlineResolved && isOnline && isPending,
     refetch,
   }
 }
@@ -153,25 +155,23 @@ export function useReptile(
     staleTime: 30 * 1000,
   })
 
-  // Determine which data to use - offline-first pattern
-  // Priority: API data (fresh) > offline data (cached) > undefined
-  // Show offline data immediately while API loads in background
+  // Determine which data to use - show whatever is available immediately
   const data = reptile ?? offlineReptile
 
-  // Check if we have any data to display
-  const hasData = !!offlineReptile || !!reptile
+  // Only show loading when Dexie hasn't resolved AND API hasn't responded
+  const offlineResolved = offlineReptile !== undefined
+  const hasApiData = !!reptile
 
   return {
     reptile: data as Reptile | OfflineReptile | undefined,
-    // Only show loading if we have NO data at all
-    // If offline data exists, show it immediately while API loads
-    isPending: !hasData && (isOnline ? isPending : offlineReptile === undefined),
+    // Show loading only when offline hasn't resolved AND API hasn't responded
+    isPending: !offlineResolved && !hasApiData,
     isError,
     error: error as ApiClientError | null,
     isOnline,
     isOfflineData: !isOnline || !reptile,
-    // Flag to indicate background refresh is happening (has data but fetching fresh)
-    isRefreshing: isOnline && isPending && hasData,
+    // Background refresh: offline resolved but API still loading
+    isRefreshing: offlineResolved && isOnline && isPending,
     refetch,
   }
 }
