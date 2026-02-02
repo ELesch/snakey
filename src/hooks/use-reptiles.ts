@@ -90,18 +90,27 @@ export function useReptiles(query: Partial<ReptileQuery> = {}) {
     await offlineDb.reptiles.bulkPut(offlineRecords)
   }
 
-  // Determine which data to use
-  const reptiles = isOnline && apiData ? apiData.data : (offlineReptiles ?? [])
+  // Determine which data to use - offline-first pattern
+  // Priority: API data (fresh) > offline data (cached) > empty array
+  // Show offline data immediately while API loads in background
+  const reptiles = apiData?.data ?? offlineReptiles ?? []
   const meta = apiData?.meta
+
+  // Check if we have any data to display
+  const hasData = (offlineReptiles && offlineReptiles.length > 0) || apiData?.data
 
   return {
     reptiles: reptiles as (Reptile | OfflineReptile)[],
     meta,
-    isPending: isOnline ? isPending : offlineReptiles === undefined,
+    // Only show loading if we have NO data at all
+    // If offline data exists, show it immediately while API loads
+    isPending: !hasData && (isOnline ? isPending : offlineReptiles === undefined),
     isError,
     error: error as ApiClientError | null,
     isOnline,
     isOfflineData: !isOnline || !apiData,
+    // Flag to indicate background refresh is happening (has data but fetching fresh)
+    isRefreshing: isOnline && isPending && !!hasData,
     refetch,
   }
 }
@@ -144,16 +153,25 @@ export function useReptile(
     staleTime: 30 * 1000,
   })
 
-  // Determine which data to use
-  const data = isOnline && reptile ? reptile : offlineReptile
+  // Determine which data to use - offline-first pattern
+  // Priority: API data (fresh) > offline data (cached) > undefined
+  // Show offline data immediately while API loads in background
+  const data = reptile ?? offlineReptile
+
+  // Check if we have any data to display
+  const hasData = !!offlineReptile || !!reptile
 
   return {
     reptile: data as Reptile | OfflineReptile | undefined,
-    isPending: isOnline ? isPending : offlineReptile === undefined,
+    // Only show loading if we have NO data at all
+    // If offline data exists, show it immediately while API loads
+    isPending: !hasData && (isOnline ? isPending : offlineReptile === undefined),
     isError,
     error: error as ApiClientError | null,
     isOnline,
     isOfflineData: !isOnline || !reptile,
+    // Flag to indicate background refresh is happening (has data but fetching fresh)
+    isRefreshing: isOnline && isPending && hasData,
     refetch,
   }
 }
