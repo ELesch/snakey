@@ -67,16 +67,16 @@ export function ReptileHeader({ reptileId }: ReptileHeaderProps) {
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild aria-label="Go back to reptiles list">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 min-w-0">
+        <div className="flex items-center gap-4 min-w-0">
+          <Button variant="ghost" size="icon" asChild aria-label="Go back to reptiles list" className="flex-shrink-0">
             <Link href="/reptiles">
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-warm-900">{reptile.name}</h1>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold text-warm-900 truncate">{reptile.name}</h1>
               {isOfflineData && (
                 <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full flex items-center gap-1">
                   <WifiOff className="h-3 w-3" />

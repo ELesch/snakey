@@ -58,11 +58,12 @@ export default function ReptileDetailPage({ params }: ReptileDetailPageProps) {
   }
 
   return (
-    <div className="space-y-6 overflow-x-hidden">
+    <div className="space-y-6 overflow-x-hidden max-w-full min-w-0">
       <ReptileHeader reptileId={id} />
 
-      <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-4">
-        <TabsList className="flex overflow-x-auto h-auto gap-1 pb-1 max-w-full">
+      <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-4 min-w-0">
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+          <TabsList className="flex w-max md:w-full h-auto gap-1 pb-1">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="feedings">Feedings</TabsTrigger>
           <TabsTrigger value="sheds">Sheds</TabsTrigger>
@@ -71,7 +72,8 @@ export default function ReptileDetailPage({ params }: ReptileDetailPageProps) {
           <TabsTrigger value="photos">Photos</TabsTrigger>
           <TabsTrigger value="vet">Vet</TabsTrigger>
           <TabsTrigger value="medications">Medications</TabsTrigger>
-        </TabsList>
+          </TabsList>
+        </div>
 
         <TabsContent value="overview">
           <ReptileOverview reptileId={id} />

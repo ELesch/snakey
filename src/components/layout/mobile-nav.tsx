@@ -55,8 +55,11 @@ const reptileTabs = [
   { name: 'Medications', tab: 'medications', icon: Pill },
 ]
 
-// Match cuid (25 chars, alphanumeric, starts with 'c') or UUID formats
-const ID_PATTERN = /^(c[a-z0-9]{24}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i
+// Match cuid (25 chars, starts with 'c'), cuid2 (24 chars, no prefix), or UUID formats
+// - cuid: c + 24 lowercase alphanumeric = 25 chars total
+// - cuid2: 24 lowercase alphanumeric (no guaranteed prefix)
+// - UUID: standard 8-4-4-4-12 hex format
+const ID_PATTERN = /^([a-z0-9]{24,25}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i
 
 interface MobileNavProps {
   open: boolean
