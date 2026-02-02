@@ -13,7 +13,10 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "release:patch": "npm version patch -m \"chore: release v%s\" && git push && git push --tags",
+    "release:minor": "npm version minor -m \"chore: release v%s\" && git push && git push --tags",
+    "release:major": "npm version major -m \"chore: release v%s\" && git push && git push --tags"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.0.0",

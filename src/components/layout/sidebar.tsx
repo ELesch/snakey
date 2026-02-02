@@ -10,6 +10,7 @@ import {
   LogOut,
   ClipboardList,
   BarChart3,
+  Info,
 } from 'lucide-react'
 import { ReptileIcon } from '@/components/icons/reptile-icon'
 import { signOut } from '@/lib/supabase/actions'
@@ -20,6 +21,7 @@ const navigation = [
   { name: 'Event Log', href: '/tracker', icon: ClipboardList },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Breeding', href: '/breeding', icon: Egg },
+  { name: 'About', href: '/about', icon: Info },
 ]
 
 export function Sidebar() {
