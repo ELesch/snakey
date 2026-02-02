@@ -49,6 +49,8 @@ model Reptile {
   @@index([userId])
   @@index([species])
   @@index([shareId])
+  @@index([userId, deletedAt])
+  @@index([deletedAt])
   @@schema("snakey")
 }
 
@@ -219,6 +221,8 @@ model Photo {
   vetVisitId String?
 
   @@index([reptileId, takenAt])
+  @@index([reptileId, deletedAt])
+  @@index([deletedAt])
   @@schema("snakey")
 }
 

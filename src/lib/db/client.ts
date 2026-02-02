@@ -19,8 +19,8 @@ function createPrismaClient(): PrismaClient {
   const adapter = new PrismaPg(
     {
       connectionString,
-      connectionTimeoutMillis: 5_000, // 5 second connection timeout
-      idleTimeoutMillis: 300_000, // 5 minute idle timeout
+      connectionTimeoutMillis: 2_000, // 2 second connection timeout
+      idleTimeoutMillis: 30_000, // 30 second idle timeout (optimized for serverless)
     },
     { schema: 'snakey' }
   )
