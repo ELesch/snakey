@@ -8,39 +8,18 @@ import {
   getHumidityRange,
   getFeedingScheduleMessage,
 } from '@/lib/species/config'
-import { useReptile, useFeedings, useSheds, useWeights } from '@/hooks'
+import { useFeedings, useSheds, useWeights } from '@/hooks'
+import type { Reptile } from '@/generated/prisma/client'
 
 interface ReptileOverviewProps {
   reptileId: string
+  reptile: Reptile
 }
 
-export function ReptileOverview({ reptileId }: ReptileOverviewProps) {
-  const { reptile, isPending: reptileLoading } = useReptile(reptileId)
+export function ReptileOverview({ reptileId, reptile }: ReptileOverviewProps) {
   const { feedings } = useFeedings(reptileId)
   const { sheds } = useSheds(reptileId)
   const { weights } = useWeights(reptileId)
-
-  if (reptileLoading || !reptile) {
-    return (
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Quick Stats</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 animate-pulse">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex justify-between">
-                  <div className="h-4 w-20 bg-warm-200 rounded" />
-                  <div className="h-4 w-32 bg-warm-200 rounded" />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
 
   const speciesConfig = getSpeciesConfig(reptile.species)
 

@@ -1,10 +1,19 @@
-import { Suspense } from 'react'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ReptileGrid } from '@/components/reptiles/reptile-grid'
-import { ReptileGridSkeleton } from '@/components/reptiles/reptile-grid-skeleton'
+import { getUserId } from '@/lib/supabase/server'
+import { ReptileService } from '@/services/reptile.service'
 
-export default function ReptilesPage() {
+export default async function ReptilesPage() {
+  const userId = await getUserId()
+  if (!userId) {
+    redirect('/login')
+  }
+
+  const reptileService = new ReptileService()
+  const { data: reptiles } = await reptileService.list(userId, {})
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -17,9 +26,7 @@ export default function ReptilesPage() {
         </Button>
       </div>
 
-      <Suspense fallback={<ReptileGridSkeleton />}>
-        <ReptileGrid />
-      </Suspense>
+      <ReptileGrid reptiles={reptiles} />
     </div>
   )
 }

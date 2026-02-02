@@ -1,112 +1,38 @@
-'use client'
-
-import { use } from 'react'
-import { notFound, useRouter, useSearchParams } from 'next/navigation'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { notFound, redirect } from 'next/navigation'
 import { ReptileHeader } from '@/components/reptiles/reptile-header'
-import { ReptileOverview } from '@/components/reptiles/reptile-overview'
-import { FeedingHistory } from '@/components/reptiles/feeding-history'
-import { ShedHistory } from '@/components/reptiles/shed-history'
-import { WeightHistory } from '@/components/reptiles/weight-history'
-import { EnvironmentHistory } from '@/components/reptiles/environment-history'
-import { PhotoGallery } from '@/components/reptiles/photo-gallery'
-import { VetHistory } from '@/components/reptiles/vet-history'
-import { MedicationList } from '@/components/reptiles/medication-list'
-
-const VALID_TABS = [
-  'overview',
-  'feedings',
-  'sheds',
-  'weights',
-  'environment',
-  'photos',
-  'vet',
-  'medications',
-] as const
-
-type TabValue = (typeof VALID_TABS)[number]
+import { ReptileTabs } from '@/components/reptiles/reptile-tabs'
+import { getUserId } from '@/lib/supabase/server'
+import { ReptileService } from '@/services/reptile.service'
+import { NotFoundError, ForbiddenError } from '@/lib/errors'
 
 interface ReptileDetailPageProps {
   params: Promise<{ id: string }>
 }
 
-export default function ReptileDetailPage({ params }: ReptileDetailPageProps) {
-  const { id } = use(params)
-  const router = useRouter()
-  const searchParams = useSearchParams()
+export default async function ReptileDetailPage({ params }: ReptileDetailPageProps) {
+  const { id } = await params
 
-  if (!id) {
-    notFound()
+  const userId = await getUserId()
+  if (!userId) {
+    redirect('/login')
   }
 
-  // Get tab from URL or default to overview
-  const tabParam = searchParams.get('tab')
-  const currentTab: TabValue =
-    tabParam && VALID_TABS.includes(tabParam as TabValue)
-      ? (tabParam as TabValue)
-      : 'overview'
+  const reptileService = new ReptileService()
+  let reptile
 
-  const handleTabChange = (value: string) => {
-    const params = new URLSearchParams(searchParams.toString())
-    if (value === 'overview') {
-      params.delete('tab')
-    } else {
-      params.set('tab', value)
+  try {
+    reptile = await reptileService.getById(userId, id)
+  } catch (error) {
+    if (error instanceof NotFoundError || error instanceof ForbiddenError) {
+      notFound()
     }
-    const query = params.toString()
-    router.push(`/reptiles/${id}${query ? `?${query}` : ''}`, { scroll: false })
+    throw error
   }
 
   return (
     <div className="space-y-6 overflow-x-hidden max-w-full min-w-0">
-      <ReptileHeader reptileId={id} />
-
-      <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-4 min-w-0">
-        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-          <TabsList className="flex w-max md:w-full h-auto gap-1 pb-1">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="feedings">Feedings</TabsTrigger>
-          <TabsTrigger value="sheds">Sheds</TabsTrigger>
-          <TabsTrigger value="weights">Weights</TabsTrigger>
-          <TabsTrigger value="environment">Environment</TabsTrigger>
-          <TabsTrigger value="photos">Photos</TabsTrigger>
-          <TabsTrigger value="vet">Vet</TabsTrigger>
-          <TabsTrigger value="medications">Medications</TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value="overview">
-          <ReptileOverview reptileId={id} />
-        </TabsContent>
-
-        <TabsContent value="feedings">
-          <FeedingHistory reptileId={id} />
-        </TabsContent>
-
-        <TabsContent value="sheds">
-          <ShedHistory reptileId={id} />
-        </TabsContent>
-
-        <TabsContent value="weights">
-          <WeightHistory reptileId={id} />
-        </TabsContent>
-
-        <TabsContent value="environment">
-          <EnvironmentHistory reptileId={id} />
-        </TabsContent>
-
-        <TabsContent value="photos">
-          <PhotoGallery reptileId={id} />
-        </TabsContent>
-
-        <TabsContent value="vet">
-          <VetHistory reptileId={id} />
-        </TabsContent>
-
-        <TabsContent value="medications">
-          <MedicationList reptileId={id} />
-        </TabsContent>
-      </Tabs>
+      <ReptileHeader reptile={reptile} reptileId={id} />
+      <ReptileTabs reptileId={id} reptile={reptile} />
     </div>
   )
 }
