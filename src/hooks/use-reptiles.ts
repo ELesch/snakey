@@ -90,29 +90,29 @@ export function useReptiles(query: Partial<ReptileQuery> = {}) {
     await offlineDb.reptiles.bulkPut(offlineRecords)
   }
 
-  // Determine which data to use - offline-first pattern
-  // Show whatever data is available immediately
+  // Determine which data to use
+  // Priority: API data (fast, cached by TanStack Query) > Dexie data (slow on mobile)
   const reptiles = apiData?.data ?? offlineReptiles ?? []
   const meta = apiData?.meta
 
-  // Only show loading skeleton when we truly have nothing to show:
-  // - offlineReptiles is undefined (Dexie still initializing) AND
-  // - apiData is not yet available
-  // Once offlineReptiles resolves (even to empty []), show that immediately
-  const offlineResolved = offlineReptiles !== undefined
-  const hasApiData = !!apiData?.data
+  // CRITICAL FIX FOR MOBILE PERFORMANCE:
+  // Don't wait for Dexie (IndexedDB) when online - it's slow on mobile (200-500ms)
+  // TanStack Query caches API data across navigations, so use that for loading state
+  // Only wait for Dexie when offline (no other option)
+  const isLoading = isOnline
+    ? isPending && !apiData  // Online: only wait for API (TanStack cache is fast)
+    : offlineReptiles === undefined  // Offline: must wait for Dexie
 
   return {
     reptiles: reptiles as (Reptile | OfflineReptile)[],
     meta,
-    // Show loading only when offline hasn't resolved AND API hasn't responded
-    isPending: !offlineResolved && !hasApiData,
+    isPending: isLoading,
     isError,
     error: error as ApiClientError | null,
     isOnline,
     isOfflineData: !isOnline || !apiData,
-    // Background refresh: offline resolved but API still loading
-    isRefreshing: offlineResolved && isOnline && isPending,
+    // Background refresh: have data but still fetching
+    isRefreshing: !isLoading && isPending,
     refetch,
   }
 }
@@ -155,23 +155,27 @@ export function useReptile(
     staleTime: 30 * 1000,
   })
 
-  // Determine which data to use - show whatever is available immediately
+  // Determine which data to use
+  // Priority: API data (fast, cached by TanStack Query) > Dexie data (slow on mobile)
   const data = reptile ?? offlineReptile
 
-  // Only show loading when Dexie hasn't resolved AND API hasn't responded
-  const offlineResolved = offlineReptile !== undefined
-  const hasApiData = !!reptile
+  // CRITICAL FIX FOR MOBILE PERFORMANCE:
+  // Don't wait for Dexie (IndexedDB) when online - it's slow on mobile (200-500ms)
+  // TanStack Query caches API data across navigations, so use that for loading state
+  // Only wait for Dexie when offline (no other option)
+  const isLoading = isOnline
+    ? isPending && !reptile  // Online: only wait for API (TanStack cache is fast)
+    : offlineReptile === undefined  // Offline: must wait for Dexie
 
   return {
     reptile: data as Reptile | OfflineReptile | undefined,
-    // Show loading only when offline hasn't resolved AND API hasn't responded
-    isPending: !offlineResolved && !hasApiData,
+    isPending: isLoading,
     isError,
     error: error as ApiClientError | null,
     isOnline,
     isOfflineData: !isOnline || !reptile,
-    // Background refresh: offline resolved but API still loading
-    isRefreshing: offlineResolved && isOnline && isPending,
+    // Background refresh: have data but still fetching
+    isRefreshing: !isLoading && isPending,
     refetch,
   }
 }
