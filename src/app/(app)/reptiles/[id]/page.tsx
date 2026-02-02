@@ -58,11 +58,11 @@ export default function ReptileDetailPage({ params }: ReptileDetailPageProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       <ReptileHeader reptileId={id} />
 
       <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-4">
-        <TabsList className="flex overflow-x-auto h-auto gap-1 pb-1">
+        <TabsList className="flex overflow-x-auto h-auto gap-1 pb-1 max-w-full">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="feedings">Feedings</TabsTrigger>
           <TabsTrigger value="sheds">Sheds</TabsTrigger>

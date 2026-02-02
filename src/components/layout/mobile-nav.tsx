@@ -55,8 +55,8 @@ const reptileTabs = [
   { name: 'Medications', tab: 'medications', icon: Pill },
 ]
 
-// UUID v4 regex pattern
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+// Match cuid (25 chars, alphanumeric, starts with 'c') or UUID formats
+const ID_PATTERN = /^(c[a-z0-9]{24}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i
 
 interface MobileNavProps {
   open: boolean
@@ -71,7 +71,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
   // Detect if we're on a reptile detail page
   const reptileId = useMemo(() => {
     const match = pathname.match(/^\/reptiles\/([^/]+)/)
-    if (match && match[1] && UUID_PATTERN.test(match[1])) {
+    if (match && match[1] && ID_PATTERN.test(match[1])) {
       return match[1]
     }
     return null
