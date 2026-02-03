@@ -37,6 +37,7 @@ vi.mock('@/lib/supabase/storage', () => ({
   uploadPhoto: vi.fn(),
   deletePhoto: vi.fn(),
   getSignedUrl: vi.fn(),
+  getSignedUploadUrl: vi.fn(),
 }))
 
 // Mock logger
@@ -67,6 +68,7 @@ describe('PhotoService', () => {
     uploadPhoto: Mock
     deletePhoto: Mock
     getSignedUrl: Mock
+    getSignedUploadUrl: Mock
   }
 
   const userId = 'user-123'
@@ -98,13 +100,14 @@ describe('PhotoService', () => {
     vi.clearAllMocks()
 
     // Get mock instances
-    const { uploadPhoto, deletePhoto, getSignedUrl } = await import('@/lib/supabase/storage')
+    const { uploadPhoto, deletePhoto, getSignedUrl, getSignedUploadUrl } = await import('@/lib/supabase/storage')
     const { reptileRepository } = await import('@/repositories/reptile.repository')
 
     mockStorage = {
       uploadPhoto: uploadPhoto as Mock,
       deletePhoto: deletePhoto as Mock,
       getSignedUrl: getSignedUrl as Mock,
+      getSignedUploadUrl: getSignedUploadUrl as Mock,
     }
 
     service = new PhotoService()
@@ -385,7 +388,7 @@ describe('PhotoService', () => {
   describe('getUploadUrl', () => {
     it('should generate a signed upload URL for a reptile owned by the user', async () => {
       mockReptileRepo.findById.mockResolvedValue(mockReptile)
-      mockStorage.getSignedUrl.mockResolvedValue('https://storage.example.com/signed-url')
+      mockStorage.getSignedUploadUrl.mockResolvedValue('https://storage.example.com/signed-url')
 
       const result = await service.getUploadUrl(userId, reptileId, {
         filename: 'test-photo.jpg',
@@ -432,7 +435,7 @@ describe('PhotoService', () => {
 
     it('should accept valid image content types', async () => {
       mockReptileRepo.findById.mockResolvedValue(mockReptile)
-      mockStorage.getSignedUrl.mockResolvedValue('https://storage.example.com/signed-url')
+      mockStorage.getSignedUploadUrl.mockResolvedValue('https://storage.example.com/signed-url')
 
       const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic']
 

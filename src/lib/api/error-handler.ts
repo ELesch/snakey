@@ -113,10 +113,18 @@ export function withErrorHandler<T>(
         return errorResponse('SYNC_CONFLICT', error.message, 409)
       }
 
-      // Log unexpected errors
-      log.error({ error }, 'Unhandled error in route handler')
+      // Log unexpected errors with full details
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      const errorStack = error instanceof Error ? error.stack : undefined
+      log.error({ error, errorMessage, errorStack }, 'Unhandled error in route handler')
 
-      return errorResponse('INTERNAL_ERROR', 'Internal server error', 500)
+      // In development, return the actual error message for debugging
+      const isDev = process.env.NODE_ENV === 'development'
+      return errorResponse(
+        'INTERNAL_ERROR',
+        isDev ? `Internal server error: ${errorMessage}` : 'Internal server error',
+        500
+      )
     }
   }
 }

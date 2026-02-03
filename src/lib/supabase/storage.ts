@@ -1,5 +1,6 @@
 // Supabase Storage Helpers
 import { createClient } from './server'
+import { StorageError } from '@/lib/errors'
 
 const BUCKET_NAME = 'photos'
 
@@ -29,7 +30,7 @@ export async function uploadPhoto(
     })
 
   if (error) {
-    throw new Error(`Failed to upload photo: ${error.message}`)
+    throw new StorageError(`Failed to upload photo: ${error.message}`)
   }
 
   const {
@@ -55,7 +56,7 @@ export async function getSignedUrl(
     .createSignedUrl(path, expiresIn)
 
   if (error || !data) {
-    throw new Error(`Failed to get signed URL: ${error?.message}`)
+    throw new StorageError(`Failed to get signed URL: ${error?.message}`)
   }
 
   return data.signedUrl
@@ -73,7 +74,7 @@ export async function getSignedUploadUrl(
     .createSignedUploadUrl(path)
 
   if (error || !data) {
-    throw new Error(`Failed to get signed upload URL: ${error?.message}`)
+    throw new StorageError(`Failed to get signed upload URL: ${error?.message}`)
   }
 
   return data.signedUrl
@@ -87,7 +88,7 @@ export async function deletePhoto(path: string): Promise<void> {
   const { error } = await supabase.storage.from(BUCKET_NAME).remove([path])
 
   if (error) {
-    throw new Error(`Failed to delete photo: ${error.message}`)
+    throw new StorageError(`Failed to delete photo: ${error.message}`)
   }
 }
 
@@ -104,7 +105,7 @@ export async function listUserPhotos(
     .list(`${userId}/${category}`)
 
   if (error) {
-    throw new Error(`Failed to list photos: ${error.message}`)
+    throw new StorageError(`Failed to list photos: ${error.message}`)
   }
 
   return data.map((file) => `${userId}/${category}/${file.name}`)
