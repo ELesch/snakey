@@ -36,8 +36,9 @@ function toOfflinePhoto(
   return {
     id: photo.id,
     reptileId: photo.reptileId,
-    storagePath: photo.storagePath,
+    storagePath: photo.storagePath ?? undefined,
     thumbnailPath: photo.thumbnailPath ?? undefined,
+    imageData: photo.imageData ?? undefined,
     caption: photo.caption ?? undefined,
     takenAt: new Date(photo.takenAt).getTime(),
     category: photo.category,

@@ -77,8 +77,9 @@ export interface OfflineEnvironmentLog extends SyncedEntity {
 
 export interface OfflinePhoto extends SyncedEntity {
   reptileId: string
-  storagePath: string
+  storagePath?: string
   thumbnailPath?: string
+  imageData?: string  // Base64 encoded image data
   caption?: string
   takenAt: number
   category: 'GENERAL' | 'MORPH' | 'SHED' | 'VET' | 'ENCLOSURE'
