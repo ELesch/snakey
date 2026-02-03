@@ -7,9 +7,9 @@ import { FormField, FormTextarea, FormCheckbox, FormSelect, FormError } from '@/
 import { ImagePicker } from '@/components/ui/image-picker'
 import { getSpeciesOptions } from '@/lib/species/defaults'
 import { useCreateReptile, useUpdateReptile } from '@/hooks'
-import { useUploadPhoto } from '@/hooks/use-photos'
 import { Loader2 } from 'lucide-react'
 import { logger } from '@/lib/logger'
+import { processImage } from '@/lib/image-utils'
 import type { Reptile } from '@/generated/prisma/client'
 
 /**
@@ -116,14 +116,7 @@ export function ReptileForm({
   // Saving state for multi-step process
   const [savingStatus, setSavingStatus] = useState<string | null>(null)
 
-  // Track if we have a temporary reptileId for photo upload (null until reptile is created)
-  const [createdReptileId, setCreatedReptileId] = useState<string | null>(reptileId || null)
-
-  // Upload hook - only create when we have a reptileId
-  const uploadMutation = useUploadPhoto(createdReptileId || '')
-
-  const isPending = createMutation.isPending || updateMutation.isPending ||
-    uploadMutation.isPending || savingStatus !== null
+  const isPending = createMutation.isPending || updateMutation.isPending || savingStatus !== null
 
   // Clean up preview URL on unmount
   useEffect(() => {
@@ -162,13 +155,11 @@ export function ReptileForm({
           savedReptile = await updateMutation.mutateAsync({ id: reptileId, data: payload })
         } else {
           savedReptile = await createMutation.mutateAsync(payload)
-          // Set the created reptile ID for photo upload
-          setCreatedReptileId(savedReptile.id)
         }
 
-        // Step 2: Upload profile photo if selected
+        // Step 2: Process and save profile photo if selected
         if (profileImage) {
-          setSavingStatus('Uploading photo...')
+          setSavingStatus('Processing photo...')
           try {
             await uploadPhotoToReptile(savedReptile.id, profileImage)
           } catch (photoErr) {
@@ -209,44 +200,17 @@ export function ReptileForm({
     },
   })
 
-  // Upload photo to reptile using fetch (to use reptile ID directly)
+  // Upload photo to reptile - processes image and stores in database
   async function uploadPhotoToReptile(targetReptileId: string, file: File): Promise<void> {
-    // Get signed upload URL
-    const uploadUrlRes = await fetch('/api/photos/upload-url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        reptileId: targetReptileId,
-        filename: file.name,
-        contentType: file.type,
-      }),
-    })
+    // Process image: resize to 800x800 max, convert to JPEG, compress at 60%
+    const imageData = await processImage(file)
 
-    if (!uploadUrlRes.ok) {
-      const errorData = await uploadUrlRes.json().catch(() => ({}))
-      throw new Error(errorData.error?.message || `Failed to get upload URL (${uploadUrlRes.status})`)
-    }
-
-    const { uploadUrl, storagePath, thumbnailPath } = await uploadUrlRes.json()
-
-    // Upload to storage
-    const uploadRes = await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: { 'Content-Type': file.type },
-      body: file,
-    })
-
-    if (!uploadRes.ok) {
-      throw new Error(`Failed to upload file to storage (${uploadRes.status})`)
-    }
-
-    // Create photo record with isPrimary: true
+    // Create photo record with imageData directly in database
     const createRes = await fetch(`/api/reptiles/${targetReptileId}/photos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        storagePath,
-        thumbnailPath,
+        imageData,
         category: 'GENERAL',
         takenAt: new Date().toISOString(),
         isPrimary: true,
@@ -255,7 +219,7 @@ export function ReptileForm({
 
     if (!createRes.ok) {
       const errorData = await createRes.json().catch(() => ({}))
-      throw new Error(errorData.error?.message || `Failed to create photo record (${createRes.status})`)
+      throw new Error(errorData.error?.message || `Failed to save photo (${createRes.status})`)
     }
   }
 

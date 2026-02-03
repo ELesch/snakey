@@ -7,8 +7,9 @@ import type { Reptile } from '@/generated/prisma/client'
  */
 export type ReptileProfilePhoto = {
   id: string
-  storagePath: string
+  storagePath: string | null
   thumbnailPath: string | null
+  imageData: string | null
 }
 
 /**

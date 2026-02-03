@@ -112,6 +112,7 @@ export class PhotoService {
       reptileId,
       storagePath: validated.storagePath,
       thumbnailPath: validated.thumbnailPath,
+      imageData: validated.imageData,
       caption: validated.caption,
       takenAt: validated.takenAt,
       category: validated.category as PhotoCategory,
@@ -161,14 +162,17 @@ export class PhotoService {
     const deletedPhoto = await this.photoRepository.softDelete(photoId)
 
     // Try to delete from storage (best effort - don't fail if storage fails)
-    try {
-      await deletePhoto(existing.storagePath)
-      if (existing.thumbnailPath) {
-        await deletePhoto(existing.thumbnailPath)
+    // Only attempt if photo was stored in Supabase (has storagePath)
+    if (existing.storagePath) {
+      try {
+        await deletePhoto(existing.storagePath)
+        if (existing.thumbnailPath) {
+          await deletePhoto(existing.thumbnailPath)
+        }
+      } catch (error) {
+        log.warn({ photoId, error }, 'Failed to delete from storage')
+        // Continue - database is already soft-deleted
       }
-    } catch (error) {
-      log.warn({ photoId, error }, 'Failed to delete from storage')
-      // Continue - database is already soft-deleted
     }
 
     log.info({ photoId }, 'Photo deleted')

@@ -32,10 +32,16 @@ export default async function EditReptilePage({ params }: EditReptilePageProps) 
   }
 
   // Extract primary photo URL for display in the form
+  // Prefer imageData (stored in database), fall back to Supabase storage URL
   const primaryPhoto = (reptile as any).photos?.find((p: any) => p.isPrimary)
-  const profilePhotoUrl = primaryPhoto
-    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${primaryPhoto.thumbnailPath || primaryPhoto.storagePath}`
-    : undefined
+  let profilePhotoUrl: string | undefined
+  if (primaryPhoto) {
+    if (primaryPhoto.imageData) {
+      profilePhotoUrl = primaryPhoto.imageData
+    } else if (primaryPhoto.storagePath) {
+      profilePhotoUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${primaryPhoto.thumbnailPath || primaryPhoto.storagePath}`
+    }
+  }
 
   return (
     <div className="max-w-2xl mx-auto">

@@ -205,8 +205,9 @@ model Medication {
 model Photo {
   id            String        @id @default(cuid())
   reptileId     String
-  storagePath   String
+  storagePath   String?       // Optional - for Supabase storage
   thumbnailPath String?
+  imageData     String?       // Base64 encoded image data (for database storage)
   caption       String?
   takenAt       DateTime      @default(now())
   category      PhotoCategory @default(GENERAL)

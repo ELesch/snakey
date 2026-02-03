@@ -15,13 +15,22 @@ export const PhotoCreateSchema = z.object({
   id: z.string().cuid2().optional(), // For offline-created records
   storagePath: z
     .string()
-    .min(1, 'Storage path is required')
-    .max(500, 'Storage path must be 500 characters or less'),
+    .max(500, 'Storage path must be 500 characters or less')
+    .optional()
+    .nullable(),
   thumbnailPath: z
     .string()
     .max(500, 'Thumbnail path must be 500 characters or less')
     .optional()
     .nullable(),
+  imageData: z
+    .string()
+    .optional()
+    .nullable()
+    .refine(
+      (val) => !val || val.startsWith('data:image/'),
+      { message: 'Image data must be a valid data URL' }
+    ),
   caption: z
     .string()
     .max(500, 'Caption must be 500 characters or less')
@@ -33,7 +42,10 @@ export const PhotoCreateSchema = z.object({
   isPrimary: z.boolean().default(false),
   shedId: z.string().cuid2().optional().nullable(),
   vetVisitId: z.string().cuid2().optional().nullable(),
-})
+}).refine(
+  (data) => data.storagePath || data.imageData,
+  { message: 'Either storagePath or imageData is required' }
+)
 
 export type PhotoCreate = z.infer<typeof PhotoCreateSchema>
 

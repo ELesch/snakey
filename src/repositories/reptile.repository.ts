@@ -62,7 +62,7 @@ export class ReptileRepository {
             photos: {
               where: { isPrimary: true, deletedAt: null },
               take: 1,
-              select: { id: true, storagePath: true, thumbnailPath: true },
+              select: { id: true, storagePath: true, thumbnailPath: true, imageData: true },
             },
           }
         : undefined,

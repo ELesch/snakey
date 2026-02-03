@@ -15,26 +15,35 @@ interface ReptileCardProps {
 }
 
 /**
- * Generate the Supabase storage URL for a photo
+ * Get the photo URL - prefer imageData (base64), fall back to Supabase storage
  */
-function getPhotoUrl(storagePath: string, thumbnailPath: string | null): string {
-  const path = thumbnailPath || storagePath
-  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${path}`
+function getPhotoSrc(photo: { storagePath: string | null; thumbnailPath: string | null; imageData: string | null }): string | null {
+  // Prefer imageData (stored in database)
+  if (photo.imageData) {
+    return photo.imageData
+  }
+  // Fall back to Supabase storage URL
+  if (photo.storagePath) {
+    const path = photo.thumbnailPath || photo.storagePath
+    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${path}`
+  }
+  return null
 }
 
 const ReptileCard = memo(function ReptileCard({ reptile }: ReptileCardProps) {
   const [imageError, setImageError] = useState(false)
-  const hasPhoto = reptile.photos && reptile.photos.length > 0 && !imageError
-  const photo = hasPhoto ? reptile.photos![0] : null
+  const photo = reptile.photos && reptile.photos.length > 0 ? reptile.photos[0] : null
+  const photoSrc = photo ? getPhotoSrc(photo) : null
+  const hasPhoto = photoSrc && !imageError
 
   return (
     <Link href={`/reptiles/${reptile.id}`}>
       <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
         <CardContent className="p-0">
           <div className="aspect-square bg-[var(--color-muted)] rounded-t-lg overflow-hidden relative">
-            {hasPhoto && photo ? (
+            {hasPhoto ? (
               <Image
-                src={getPhotoUrl(photo.storagePath, photo.thumbnailPath)}
+                src={photoSrc}
                 alt={reptile.name}
                 fill
                 className="object-cover"

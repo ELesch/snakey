@@ -92,8 +92,9 @@ export class PhotoRepository {
 
   async create(data: {
     reptileId: string
-    storagePath: string
+    storagePath?: string | null
     thumbnailPath?: string | null
+    imageData?: string | null
     caption?: string | null
     takenAt?: Date
     category?: PhotoCategory
@@ -106,8 +107,9 @@ export class PhotoRepository {
       data: {
         ...(data.id && { id: data.id }),
         reptileId: data.reptileId,
-        storagePath: data.storagePath,
+        storagePath: data.storagePath ?? null,
         thumbnailPath: data.thumbnailPath ?? null,
+        imageData: data.imageData ?? null,
         caption: data.caption ?? null,
         takenAt: data.takenAt ?? new Date(),
         category: data.category ?? 'GENERAL',
