@@ -147,7 +147,7 @@ export function FormTextarea({
         disabled={disabled}
         aria-invalid={!!error}
         aria-describedby={error ? errorId : undefined}
-        className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm text-[var(--color-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       />
       {error && (
         <p id={errorId} className="mt-1 text-sm text-destructive" role="alert">

@@ -51,7 +51,7 @@ const HatchlingItem = memo(function HatchlingItem({
   isDeletePending,
 }: HatchlingItemProps) {
   return (
-    <div className="flex items-center justify-between bg-white rounded p-2 border border-warm-100">
+    <div className="flex items-center justify-between bg-[var(--color-card)] rounded p-2 border border-[var(--color-border)]">
       <div className="flex items-center gap-2">
         <Baby className="h-3 w-3 text-warm-400" />
         <div>

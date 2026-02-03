@@ -207,7 +207,7 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
           placeholder="Any environmental observations..."
           value={values.notes}
           onChange={handleChange}
-          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)]"
         />
       </div>
 
