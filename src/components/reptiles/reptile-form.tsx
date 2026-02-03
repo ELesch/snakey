@@ -224,7 +224,7 @@ export function ReptileForm({
 
     if (!uploadUrlRes.ok) {
       const errorData = await uploadUrlRes.json().catch(() => ({}))
-      throw new Error(errorData.error || `Failed to get upload URL (${uploadUrlRes.status})`)
+      throw new Error(errorData.error?.message || `Failed to get upload URL (${uploadUrlRes.status})`)
     }
 
     const { uploadUrl, storagePath, thumbnailPath } = await uploadUrlRes.json()
@@ -255,7 +255,7 @@ export function ReptileForm({
 
     if (!createRes.ok) {
       const errorData = await createRes.json().catch(() => ({}))
-      throw new Error(errorData.error || `Failed to create photo record (${createRes.status})`)
+      throw new Error(errorData.error?.message || `Failed to create photo record (${createRes.status})`)
     }
   }
 
