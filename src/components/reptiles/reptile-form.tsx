@@ -172,12 +172,15 @@ export function ReptileForm({
           try {
             await uploadPhotoToReptile(savedReptile.id, profileImage)
           } catch (photoErr) {
-            // Photo upload failed but reptile was created successfully
-            // Log error but don't fail the entire operation
+            // Photo upload failed - show error to user and don't close the form
             logger.error(
               { err: photoErr, reptileId: savedReptile.id },
               'Failed to upload profile photo'
             )
+            setSavingStatus(null)
+            const errorMessage = photoErr instanceof Error ? photoErr.message : 'Failed to upload photo'
+            setFieldError('name', `Reptile saved but photo upload failed: ${errorMessage}`)
+            return // Don't close the form - let user retry or dismiss
           }
         }
 
@@ -209,17 +212,19 @@ export function ReptileForm({
   // Upload photo to reptile using fetch (to use reptile ID directly)
   async function uploadPhotoToReptile(targetReptileId: string, file: File): Promise<void> {
     // Get signed upload URL
-    const uploadUrlRes = await fetch(`/api/reptiles/${targetReptileId}/photos/upload-url`, {
+    const uploadUrlRes = await fetch('/api/photos/upload-url', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        reptileId: targetReptileId,
         filename: file.name,
         contentType: file.type,
       }),
     })
 
     if (!uploadUrlRes.ok) {
-      throw new Error('Failed to get upload URL')
+      const errorData = await uploadUrlRes.json().catch(() => ({}))
+      throw new Error(errorData.error || `Failed to get upload URL (${uploadUrlRes.status})`)
     }
 
     const { uploadUrl, storagePath, thumbnailPath } = await uploadUrlRes.json()
@@ -232,7 +237,7 @@ export function ReptileForm({
     })
 
     if (!uploadRes.ok) {
-      throw new Error('Failed to upload file to storage')
+      throw new Error(`Failed to upload file to storage (${uploadRes.status})`)
     }
 
     // Create photo record with isPrimary: true
@@ -249,7 +254,8 @@ export function ReptileForm({
     })
 
     if (!createRes.ok) {
-      throw new Error('Failed to create photo record')
+      const errorData = await createRes.json().catch(() => ({}))
+      throw new Error(errorData.error || `Failed to create photo record (${createRes.status})`)
     }
   }
 
