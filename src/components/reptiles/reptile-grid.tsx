@@ -31,7 +31,7 @@ const ReptileCard = memo(function ReptileCard({ reptile }: ReptileCardProps) {
     <Link href={`/reptiles/${reptile.id}`}>
       <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
         <CardContent className="p-0">
-          <div className="aspect-square bg-warm-100 rounded-t-lg overflow-hidden relative">
+          <div className="aspect-square bg-[var(--color-muted)] rounded-t-lg overflow-hidden relative">
             {hasPhoto && photo ? (
               <Image
                 src={getPhotoUrl(photo.storagePath, photo.thumbnailPath)}
@@ -43,15 +43,15 @@ const ReptileCard = memo(function ReptileCard({ reptile }: ReptileCardProps) {
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <ReptileIcon variant="snake" className="h-16 w-16 text-warm-300" aria-hidden="true" />
+                <ReptileIcon variant="snake" className="h-16 w-16 text-[var(--color-muted-foreground)]" aria-hidden="true" />
               </div>
             )}
           </div>
           <div className="p-4">
-            <h3 className="font-semibold text-warm-900">{reptile.name}</h3>
-            <p className="text-sm text-warm-600">{reptile.species}</p>
+            <h3 className="font-semibold text-[var(--color-card-foreground)]">{reptile.name}</h3>
+            <p className="text-sm text-[var(--color-muted-foreground)]">{reptile.species}</p>
             {reptile.morph && (
-              <p className="text-xs text-warm-500">{reptile.morph}</p>
+              <p className="text-xs text-[var(--color-muted-foreground)]">{reptile.morph}</p>
             )}
           </div>
         </CardContent>
