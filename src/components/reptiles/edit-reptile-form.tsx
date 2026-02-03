@@ -7,9 +7,10 @@ import type { Reptile } from '@/generated/prisma/client'
 interface EditReptileFormProps {
   reptileId: string
   reptile: Reptile
+  existingProfilePhotoUrl?: string
 }
 
-export function EditReptileForm({ reptileId, reptile }: EditReptileFormProps) {
+export function EditReptileForm({ reptileId, reptile, existingProfilePhotoUrl }: EditReptileFormProps) {
   const router = useRouter()
 
   const handleSuccess = (updatedReptile: Reptile) => {
@@ -24,6 +25,7 @@ export function EditReptileForm({ reptileId, reptile }: EditReptileFormProps) {
     <ReptileForm
       reptileId={reptileId}
       initialData={reptile}
+      existingProfilePhotoUrl={existingProfilePhotoUrl}
       onSuccess={handleSuccess}
       onCancel={handleCancel}
     />

@@ -21,13 +21,21 @@ export default async function EditReptilePage({ params }: EditReptilePageProps) 
   let reptile
 
   try {
-    reptile = await reptileService.getById(userId, id)
+    reptile = await reptileService.getById(userId, id, {
+      include: { photos: true }
+    })
   } catch (error) {
     if (error instanceof NotFoundError || error instanceof ForbiddenError) {
       notFound()
     }
     throw error
   }
+
+  // Extract primary photo URL for display in the form
+  const primaryPhoto = (reptile as any).photos?.find((p: any) => p.isPrimary)
+  const profilePhotoUrl = primaryPhoto
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${primaryPhoto.thumbnailPath || primaryPhoto.storagePath}`
+    : undefined
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -36,7 +44,11 @@ export default async function EditReptilePage({ params }: EditReptilePageProps) 
           <CardTitle>Edit {reptile.name}</CardTitle>
         </CardHeader>
         <CardContent>
-          <EditReptileForm reptileId={id} reptile={reptile} />
+          <EditReptileForm
+            reptileId={id}
+            reptile={reptile}
+            existingProfilePhotoUrl={profilePhotoUrl}
+          />
         </CardContent>
       </Card>
     </div>

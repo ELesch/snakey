@@ -332,7 +332,7 @@ export function ReptileForm({
         </Button>
         <Button type="submit" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
-          {savingStatus || (isEditing ? 'Update Reptile' : 'Add Reptile')}
+          {savingStatus || (isEditing ? 'Save' : 'Add Reptile')}
         </Button>
       </div>
     </form>
