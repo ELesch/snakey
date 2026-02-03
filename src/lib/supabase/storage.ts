@@ -42,7 +42,7 @@ export async function uploadPhoto(
 }
 
 /**
- * Get a signed URL for a private photo
+ * Get a signed URL for downloading a private photo
  */
 export async function getSignedUrl(
   path: string,
@@ -54,6 +54,23 @@ export async function getSignedUrl(
 
   if (error || !data) {
     throw new Error(`Failed to get signed URL: ${error?.message}`)
+  }
+
+  return data.signedUrl
+}
+
+/**
+ * Get a signed URL for uploading a photo
+ */
+export async function getSignedUploadUrl(
+  path: string
+): Promise<string> {
+  const { data, error } = await supabase.storage
+    .from(BUCKET_NAME)
+    .createSignedUploadUrl(path)
+
+  if (error || !data) {
+    throw new Error(`Failed to get signed upload URL: ${error?.message}`)
   }
 
   return data.signedUrl

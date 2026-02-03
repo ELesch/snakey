@@ -10,7 +10,7 @@ import {
   UploadUrlRequestSchema,
   type PhotoQuery,
 } from '@/validations/photo'
-import { deletePhoto, getSignedUrl } from '@/lib/supabase/storage'
+import { deletePhoto, getSignedUploadUrl } from '@/lib/supabase/storage'
 import { verifyReptileOwnership, verifyRecordOwnership } from './base.service'
 import type { Photo, PhotoCategory } from '@/generated/prisma/client'
 import { randomUUID } from 'crypto'
@@ -192,7 +192,7 @@ export class PhotoService {
 
     log.info({ userId, reptileId, storagePath }, 'Generating upload URL')
 
-    const uploadUrl = await getSignedUrl(storagePath, 3600)
+    const uploadUrl = await getSignedUploadUrl(storagePath)
 
     return {
       uploadUrl,
