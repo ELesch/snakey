@@ -1,5 +1,5 @@
 // Supabase Storage Helpers
-import { supabase } from './client'
+import { createClient } from './server'
 
 const BUCKET_NAME = 'photos'
 
@@ -16,6 +16,7 @@ export async function uploadPhoto(
   file: File,
   category: 'originals' | 'thumbnails' = 'originals'
 ): Promise<UploadResult> {
+  const supabase = await createClient()
   const fileExt = file.name.split('.').pop()
   const fileName = `${crypto.randomUUID()}.${fileExt}`
   const filePath = `${userId}/${category}/${fileName}`
@@ -48,6 +49,7 @@ export async function getSignedUrl(
   path: string,
   expiresIn: number = 3600
 ): Promise<string> {
+  const supabase = await createClient()
   const { data, error } = await supabase.storage
     .from(BUCKET_NAME)
     .createSignedUrl(path, expiresIn)
@@ -65,6 +67,7 @@ export async function getSignedUrl(
 export async function getSignedUploadUrl(
   path: string
 ): Promise<string> {
+  const supabase = await createClient()
   const { data, error } = await supabase.storage
     .from(BUCKET_NAME)
     .createSignedUploadUrl(path)
@@ -80,6 +83,7 @@ export async function getSignedUploadUrl(
  * Delete a photo from storage
  */
 export async function deletePhoto(path: string): Promise<void> {
+  const supabase = await createClient()
   const { error } = await supabase.storage.from(BUCKET_NAME).remove([path])
 
   if (error) {
@@ -94,6 +98,7 @@ export async function listUserPhotos(
   userId: string,
   category: 'originals' | 'thumbnails' = 'originals'
 ): Promise<string[]> {
+  const supabase = await createClient()
   const { data, error } = await supabase.storage
     .from(BUCKET_NAME)
     .list(`${userId}/${category}`)
