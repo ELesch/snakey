@@ -8,6 +8,17 @@
  *   import { parseSession, extractMetrics, findSessions } from './transcript-parser.mjs';
  *   const parsed = await parseSession(sessionPath);
  *   const metrics = extractMetrics(parsed);
+ *
+ * Transcript Format (Claude Code JSONL):
+ *   - Entry types: user, assistant, system, progress, file-history-snapshot
+ *   - User messages: { type: "user", message: { role: "user", content: "..." } }
+ *   - Assistant messages: { type: "assistant", message: { model: "...", content: [...] } }
+ *   - System events: { type: "system", subtype: "compact_boundary" | "session_start" | ... }
+ *   - Agent progress: { type: "progress", data: { type: "agent_progress", ... } }
+ *
+ * IMPORTANT: System prompts (CLAUDE.md content) are NOT stored in transcripts.
+ * They are injected at API level with each call. Therefore, orchestrator version
+ * cannot be extracted from transcripts directly - use getProjectVersion() instead.
  */
 
 import { createReadStream, existsSync, readFileSync, readdirSync, statSync } from 'fs';
@@ -15,6 +26,36 @@ import { createInterface } from 'readline';
 import { join, basename, dirname } from 'path';
 import { createHash } from 'crypto';
 import { homedir } from 'os';
+
+/**
+ * Get orchestrator version from project manifest
+ * This is the reliable way to get version since CLAUDE.md is not stored in transcripts
+ * @param {string} projectPath - Path to project directory
+ * @returns {{orchestratorVersion: string|null, templateVersion: string|null}} - Version info
+ */
+export function getProjectVersion(projectPath) {
+  const manifestPath = join(projectPath, '.claude', 'manifest.json');
+  if (!existsSync(manifestPath)) {
+    return { orchestratorVersion: null, templateVersion: null };
+  }
+
+  try {
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    // Check multiple possible locations for version info
+    const orchestratorVersion =
+      manifest.orchestrator?.version ||  // v2.16.0+ format: orchestrator.version
+      manifest.orchestratorVersion ||     // Alternative top-level format
+      manifest.createdWith ||             // Legacy format
+      null;
+    const templateVersion =
+      manifest.orchestrator?.templateVersion ||  // v2.16.0+ format
+      manifest.templateVersion ||                 // Alternative format
+      null;
+    return { orchestratorVersion, templateVersion };
+  } catch (e) {
+    return { orchestratorVersion: null, templateVersion: null };
+  }
+}
 
 /**
  * Hash a project path to find its Claude Code data directory
@@ -102,9 +143,10 @@ export function getMostRecentSession(projectPath = process.cwd()) {
 /**
  * Parse a session transcript JSONL file
  * @param {string} sessionPath - Path to .jsonl file
+ * @param {string} [projectPath] - Optional project path to extract version from manifest
  * @returns {Promise<ParsedSession>} - Parsed session data
  */
-export async function parseSession(sessionPath) {
+export async function parseSession(sessionPath, projectPath = null) {
   if (!existsSync(sessionPath)) {
     throw new Error(`Session file not found: ${sessionPath}`);
   }
@@ -112,6 +154,7 @@ export async function parseSession(sessionPath) {
   const messages = [];
   const toolCalls = [];
   const subagentCalls = [];
+  const systemEvents = [];
   let sessionStart = null;
   let sessionEnd = null;
   let sessionId = basename(sessionPath, '.jsonl');
@@ -121,6 +164,19 @@ export async function parseSession(sessionPath) {
     input: fileStream,
     crlfDelay: Infinity
   });
+
+  // NOTE: Version extraction from transcript content won't work because
+  // CLAUDE.md is injected at API level, not stored in transcripts.
+  // Use getProjectVersion(projectPath) or pass projectPath parameter instead.
+  let orchestratorVersion = null;
+  let templateVersion = null;
+
+  // If project path provided, get version from manifest
+  if (projectPath) {
+    const versions = getProjectVersion(projectPath);
+    orchestratorVersion = versions.orchestratorVersion;
+    templateVersion = versions.templateVersion;
+  }
 
   for await (const line of rl) {
     if (!line.trim()) continue;
@@ -137,6 +193,34 @@ export async function parseSession(sessionPath) {
 
       // Capture session ID from entries if available
       if (entry.sessionId) sessionId = entry.sessionId;
+
+      // Try to extract orchestrator version from content (low probability of success
+      // since CLAUDE.md is not stored in transcripts, but plan file content might be)
+      const content = JSON.stringify(entry);
+      if (!orchestratorVersion) {
+        const versionMatch = content.match(/\*\*Orchestrator Framework Version:\*\*\s*(\d+\.\d+\.\d+)\s*\(Template:\s*(\d+\.\d+\.\d+)\)/);
+        if (versionMatch) {
+          orchestratorVersion = versionMatch[1];
+          templateVersion = versionMatch[2];
+        }
+      }
+
+      // Process system events (compact_boundary, session_start, etc.)
+      if (entry.type === 'system') {
+        systemEvents.push({
+          subtype: entry.subtype,
+          content: entry.content,
+          timestamp: entry.timestamp,
+          metadata: entry.compactMetadata || entry.metadata
+        });
+        continue;
+      }
+
+      // Process file-history-snapshot (track file state changes)
+      if (entry.type === 'file-history-snapshot') {
+        // These track file state but aren't needed for compliance analysis
+        continue;
+      }
 
       // Process based on entry type
       if (entry.type === 'user') {
@@ -219,9 +303,12 @@ export async function parseSession(sessionPath) {
     sessionStart,
     sessionEnd,
     duration: sessionStart && sessionEnd ? (sessionEnd - sessionStart) / 1000 : 0,
+    orchestratorVersion,
+    templateVersion,
     messages,
     toolCalls,
-    subagentCalls
+    subagentCalls,
+    systemEvents
   };
 }
 
@@ -231,7 +318,7 @@ export async function parseSession(sessionPath) {
  * @returns {SessionMetrics} - Extracted metrics
  */
 export function extractMetrics(parsed) {
-  const { toolCalls, subagentCalls, sessionStart, sessionEnd, duration } = parsed;
+  const { toolCalls, subagentCalls, systemEvents, sessionStart, sessionEnd, duration, orchestratorVersion, templateVersion } = parsed;
 
   // Separate main context vs subagent tool calls
   const mainToolCalls = toolCalls.filter(tc => !tc.isSubagent);
@@ -309,6 +396,10 @@ export function extractMetrics(parsed) {
     sessionStart,
     sessionEnd,
 
+    // Orchestrator version (extracted from CLAUDE.md in transcript)
+    orchestratorVersion,
+    templateVersion,
+
     // Plan mode
     planModeEntered,
     planModeExited,
@@ -347,7 +438,10 @@ export function extractMetrics(parsed) {
 
     // Subagent summary
     subagentCount: subagentCalls.length,
-    subagentToolCalls: subagentToolCalls.length
+    subagentToolCalls: subagentToolCalls.length,
+
+    // System events
+    compactCount: (systemEvents || []).filter(e => e.subtype === 'compact_boundary').length
   };
 }
 

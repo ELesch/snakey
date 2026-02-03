@@ -155,3 +155,23 @@ After verification, document:
 4. **Never accumulate** failures across agents
 
 **Principle:** Catch problems early. One verified agent at a time.
+
+## Post-Verification Reminder
+
+After completing verification, check if you need a checkpoint:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  CHECKPOINT CHECK                                        │
+│                                                          │
+│  Have you completed 3+ agents since last checkpoint?    │
+│  ├─ YES → Run /orchestrator-checkpoint                  │
+│  └─ NO  → Proceed to next agent                         │
+│                                                          │
+│  Has it been 5+ turns since last checkpoint?            │
+│  ├─ YES → Run /orchestrator-checkpoint                  │
+│  └─ NO  → Proceed to next agent                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Reminder:** The orchestrator's job is to COORDINATE, not to DO the work. If you're about to read many files or write code directly—stop and delegate instead.

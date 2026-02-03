@@ -42,6 +42,56 @@ Each technology has agents for different task types:
    └── Tailwind (styling, theme) → *-tailwind-v4
 ```
 
+### Research Task Decision Tree
+
+Three concepts can cause confusion: the built-in `Explore` agent, custom `explore-*` agents, and the "Research" role. Use this decision tree:
+
+```
+Need to research/explore/understand something?
+│
+├─ Quick and simple? (pattern search, <5 files, simple question)
+│  └─→ Built-in Explore agent
+│       (Fast Haiku model, read-only, no domain knowledge)
+│
+├─ Technology-specific investigation?
+│  ├─→ explore-{tech} agent exists?
+│  │   └─ YES → Use explore-{tech}
+│  │            (Has embedded patterns and gotchas)
+│  │
+│  └─→ NO → Customize Explore via prompt
+│           (Add CONTEXT section with tech-specific knowledge)
+│
+├─ Diagnosing an error or bug?
+│  ├─→ debug-{tech} agent exists?
+│  │   └─ YES → Use debug-{tech}
+│  │
+│  └─→ NO → Customize Explore or general-purpose
+│
+└─ Need to understand architecture or patterns?
+   ├─→ explore-{tech} exists?
+   │   └─ YES → Use it
+   │
+   └─→ NO → Built-in Explore with @file references
+```
+
+**Key distinctions:**
+
+| Agent Type | Domain Knowledge | Speed | Use When |
+|------------|------------------|-------|----------|
+| Built-in `Explore` | None | Fast (Haiku) | Simple searches, quick questions |
+| Custom `explore-*` | Yes (embedded) | Normal | Technology-specific investigation |
+| Custom `debug-*` | Yes (embedded) | Normal | Error diagnosis, tracing issues |
+| Custom `audit-*` | Yes (embedded) | Normal | Pattern compliance review |
+
+**Example decisions for Snakey:**
+
+| Task | Use This | Why |
+|------|----------|-----|
+| "Find all uses of reptileId" | Explore | Simple grep, no domain knowledge needed |
+| "How does offline sync work?" | explore-nextjs-15 | Needs Next.js + Serwist knowledge |
+| "Why is Prisma throwing this error?" | debug-prisma-7 | Needs Prisma error patterns |
+| "Does this code follow our patterns?" | audit-nextjs-15 | Pattern compliance check |
+
 ### Quick Reference
 
 | User Request | Agent |
@@ -82,6 +132,72 @@ Use general agents (`dev-backend`, `dev-frontend`, `dev-test`) when:
 - Task spans multiple technologies equally
 - Task is about business logic, not framework-specific patterns
 - Domain agent returns `RESEARCH_NEEDED` for cross-cutting concerns
+
+### Fallback: No Domain Agent Exists
+
+When no domain agent exists for a technology, **customize a built-in agent via the prompt** instead of working directly.
+
+**IMPORTANT:** Custom agents created during a session aren't available until session restart. Don't create new agent files mid-task - instead, provide context through the prompt.
+
+**Built-in agent selection:**
+
+| Task Type | Agent | Use When |
+|-----------|-------|----------|
+| Research/investigate | `Explore` | Understanding code, finding patterns |
+| Multi-step implementation | `general-purpose` | Building features, code changes |
+| Run commands | `Bash` | Terminal operations |
+
+**Effective prompt structure:**
+
+```
+Use {agent-type} agent to {task summary}.
+
+CONTEXT:
+- {Technology/patterns being used}
+- {Reference files with @path notation}
+- {Key conventions or constraints}
+
+TASK:
+- {Specific work to accomplish}
+- {Expected changes}
+
+CONSTRAINTS:
+- {What NOT to modify}
+- {Patterns to follow}
+
+OUTPUT:
+- {What to return to orchestrator}
+- {Verification steps}
+```
+
+**Example - Adding Stripe integration (no domain agent):**
+
+```
+Use general-purpose agent to add Stripe payment processing.
+
+CONTEXT:
+- This project uses Next.js 15 with App Router
+- API patterns in @src/app/api/
+- Environment variables documented in @.env.example
+- Use logger from @src/lib/logger.ts
+
+TASK:
+- Create Stripe checkout session endpoint
+- Add webhook handler for payment events
+- Follow existing API route patterns
+
+CONSTRAINTS:
+- Don't modify existing payment code if any
+- Use server-only for Stripe secret key
+- Add new env vars to .env.example
+
+OUTPUT:
+- List of created/modified files
+- Env vars that need to be set
+- Test the endpoint works
+```
+
+The prompt becomes a **temporary agent definition** providing the context that a custom agent would embed.
 
 ---
 
@@ -239,6 +355,7 @@ Skills are reusable workflows that can be invoked by users or agents.
 | `/audit-decision` | Record significant decisions with alternatives and rationale | Users |
 | `/audit-summary` | Analyze session logs and generate summary report | Users |
 | `/analyze-orchestrator` | Analyze sessions for orchestrator pattern compliance | Users |
+| `/analyze-task` | Task-level compliance analysis (cross-session) | Users |
 
 ---
 
@@ -371,6 +488,37 @@ Analyze session transcripts for orchestrator pattern compliance:
 
 **Output:** Reports saved to `.claude/audit/analysis/`
 
+### Using /analyze-task
+
+Analyze orchestrator compliance at the **task level** rather than session level. A task may span multiple sessions (planning in one, execution in another).
+
+```bash
+node .claude/scripts/analyze-task.mjs                    # Analyze most recent task
+node .claude/scripts/analyze-task.mjs --slug <slug>      # Analyze task by slug
+node .claude/scripts/analyze-task.mjs --session <id>     # Find and analyze task containing session
+node .claude/scripts/analyze-task.mjs --list             # List all tasks
+node .claude/scripts/analyze-task.mjs --timeline         # Show task timeline
+node .claude/scripts/analyze-task.mjs --batch            # Analyze all tasks
+```
+
+**Why task-level analysis?**
+
+Session-level analysis can produce false violations when:
+- Planning happens in session A, execution in session B
+- User accepts plan (context clears for execution session)
+- Multi-session workflows are used intentionally
+
+**Task linkage signals:**
+
+| Signal | Reliability | Description |
+|--------|-------------|-------------|
+| Slug match | High | Same slug across sessions |
+| Plan content | Very High | `planContent` field in execution session |
+| Transcript reference | High | Execution session references planning transcript |
+| Timing proximity | Medium | Sessions within 5 minutes |
+
+**Output:** Reports saved to `.claude/audit/analysis/task-{slug}.md`
+
 ---
 
 ## "Need More Research" Protocol
@@ -440,25 +588,49 @@ Coding/Testing Agent resumes
 
 ---
 
-## Mandatory Agent Creation Rules
+## Mandatory Delegation Rules
 
-**The orchestrator MUST NOT work directly when an agent could be created.**
+**The orchestrator MUST delegate work—it must NOT do work directly.**
 
 | If Task Requires... | Action |
 |---------------------|--------|
-| Reading >3 files | Create or use Research agent |
-| Writing any code files | Create or use Coding agent |
-| Analyzing code | Create or use analyzer agent |
-| Any specialized work | Create agent with context |
+| Reading >3 files | Delegate to Research agent (or fallback) |
+| Writing any code files | Delegate to Coding agent (or fallback) |
+| Analyzing code | Delegate to analyzer agent (or fallback) |
+| Any specialized work | Delegate to appropriate agent |
+
+### The Agent Creation Paradox
+
+Custom agents created mid-session **won't be available until session restart**. This creates two scenarios:
+
+| Scenario | Action |
+|----------|--------|
+| **Current task** | MUST use fallback pattern (customize built-in agent) |
+| **Future sessions** | SHOULD create agent file (optional, for reuse) |
 
 ### When No Agent Exists
 
-If no existing agent covers the task:
+**For the current task:**
+1. Choose the right built-in agent (`Explore`, `general-purpose`, or `Bash`)
+2. Customize via structured prompt (CONTEXT, TASK, CONSTRAINTS, OUTPUT)
+3. Delegate immediately using the Task tool
 
-1. **Create a new agent** at `.claude/agents/{task-name}.md`
-2. **Define the role** (Research, Coding, Testing, or Review)
-3. **Specify constraints** (file limits, scope boundaries)
-4. **Delegate immediately** using the Task tool
+See [Fallback: No Domain Agent Exists](#fallback-no-domain-agent-exists) for the prompt structure.
+
+**For future sessions (optional):**
+1. After completing the task, create `.claude/agents/{task-name}.md`
+2. Define the role (Research, Coding, Testing, or Review)
+3. Specify constraints (file limits, scope boundaries)
+4. The agent will be available in subsequent sessions
+
+### Anti-Pattern: Direct Work
+
+The orchestrator should NEVER:
+- Read 10+ files to "understand" the codebase (delegate to Research agent)
+- Edit ANY code files directly (delegate to Coding agent)
+- Say "there's no agent for this" and do it directly (USE FALLBACK PATTERN)
+- Create an agent file and try to use it immediately (WON'T WORK)
+- Delay the task to discuss agent creation strategy
 
 ---
 
