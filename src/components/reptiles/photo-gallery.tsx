@@ -26,9 +26,17 @@ export function PhotoGallery({ reptileId }: PhotoGalleryProps) {
     if ('blob' in photo && photo.blob) {
       return URL.createObjectURL(photo.blob)
     }
-    // For synced photos, use Supabase storage URL
+    // For photos stored as base64 in database
+    if ('imageData' in photo && photo.imageData) {
+      return photo.imageData
+    }
+    // For synced photos with Supabase storage, use storage URL
     const storagePath = photo.thumbnailPath || photo.storagePath
-    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${storagePath}`
+    if (storagePath) {
+      return `${process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()}/storage/v1/object/public/photos/${storagePath}`
+    }
+    // Fallback - no valid image source
+    return ''
   }
 
   if (isPending) {
