@@ -37,10 +37,10 @@ export function FeedingCard({ feeding, onEdit, onDelete, isDeleting }: FeedingCa
             )}
             <div>
               <p className="font-medium">{feeding.preySize} {feeding.preyType}</p>
-              <p className="text-sm text-warm-500">{formatDate(feedingDate)}</p>
+              <p className="text-sm text-warm-700">{formatDate(feedingDate)}</p>
             </div>
             {feeding.notes && (
-              <p className="text-sm text-warm-600 max-w-xs truncate hidden sm:block">{feeding.notes}</p>
+              <p className="text-sm text-warm-700 max-w-xs truncate hidden sm:block">{feeding.notes}</p>
             )}
           </div>
           <div className="flex items-center gap-1">

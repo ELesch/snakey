@@ -22,7 +22,7 @@ export default function BreedingPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-warm-900">Breeding Records</h1>
-        <p className="text-warm-600">Track pairings, clutches, and hatchlings</p>
+        <p className="text-warm-700">Track pairings, clutches, and hatchlings</p>
       </div>
 
       <Suspense fallback={<PairingListSkeleton />}>

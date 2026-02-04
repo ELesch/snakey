@@ -47,7 +47,7 @@ export function ReptileHeader({ reptile, reptileId }: ReptileHeaderProps) {
           </Button>
           <div className="min-w-0">
             <h1 className="text-2xl font-bold text-warm-900 truncate">{reptile.name}</h1>
-            <p className="text-warm-600">
+            <p className="text-warm-700">
               {reptile.species}
               {reptile.morph && ` - ${reptile.morph}`}
             </p>

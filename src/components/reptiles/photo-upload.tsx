@@ -263,8 +263,8 @@ function DropZone({ onDrop, onInputChange }: DropZoneProps) {
       className="border-2 border-dashed border-warm-300 rounded-lg p-8 text-center hover:border-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors cursor-pointer"
     >
       <ImageIcon className="h-12 w-12 mx-auto mb-4 text-warm-400" aria-hidden="true" />
-      <p className="text-warm-600 mb-2">Drag and drop an image here</p>
-      <p className="text-sm text-warm-500 mb-4">or</p>
+      <p className="text-warm-700 mb-2">Drag and drop an image here</p>
+      <p className="text-sm text-warm-700 mb-4">or</p>
       <span className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-md pointer-events-none">
         Choose File
       </span>
@@ -276,7 +276,7 @@ function DropZone({ onDrop, onInputChange }: DropZoneProps) {
         className="sr-only"
         aria-hidden="true"
       />
-      <p className="text-xs text-warm-500 mt-4">
+      <p className="text-xs text-warm-700 mt-4">
         JPEG, PNG, WebP, or HEIC up to 10MB
       </p>
     </div>
@@ -321,7 +321,7 @@ function ProgressBar({ progress }: ProgressBarProps) {
           style={{ width: `${progress}%` }}
         />
       </div>
-      <p className="text-xs text-warm-500 text-right">{progress}%</p>
+      <p className="text-xs text-warm-700 text-right">{progress}%</p>
     </div>
   )
 }

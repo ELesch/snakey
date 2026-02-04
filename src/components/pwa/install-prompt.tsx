@@ -60,7 +60,7 @@ export function InstallPrompt() {
           </div>
           <div className="flex-1">
             <h3 className="font-semibold text-warm-900">Install Snakey</h3>
-            <p className="text-sm text-warm-600 mt-1">
+            <p className="text-sm text-warm-700 mt-1">
               Install the app for offline access and a better experience.
             </p>
             <div className="flex gap-2 mt-3">

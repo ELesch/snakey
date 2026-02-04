@@ -22,7 +22,7 @@ export default function AboutPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-warm-900">About</h1>
-        <p className="text-warm-600">Application information</p>
+        <p className="text-warm-700">Application information</p>
       </div>
 
       <Card>
@@ -38,12 +38,12 @@ export default function AboutPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <dt className="text-sm font-medium text-warm-500">Version</dt>
+              <dt className="text-sm font-medium text-warm-700">Version</dt>
               <dd className="text-warm-900">{version}</dd>
             </div>
 
             <div>
-              <dt className="text-sm font-medium text-warm-500">Git Commit</dt>
+              <dt className="text-sm font-medium text-warm-700">Git Commit</dt>
               <dd className="text-warm-900">
                 {githubCommitUrl ? (
                   <a
@@ -63,7 +63,7 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <dt className="text-sm font-medium text-warm-500">Build Date</dt>
+              <dt className="text-sm font-medium text-warm-700">Build Date</dt>
               <dd className="text-warm-900">{formattedBuildDate}</dd>
             </div>
           </div>

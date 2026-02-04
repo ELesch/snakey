@@ -128,8 +128,8 @@ export function PairingList({ onPairingSelect }: PairingListProps) {
         <Card>
           <CardContent className="py-12 text-center">
             <Heart className="h-12 w-12 mx-auto mb-4 text-warm-300" />
-            <p className="text-warm-600">No pairings yet</p>
-            <p className="text-sm text-warm-500">
+            <p className="text-warm-700">No pairings yet</p>
+            <p className="text-sm text-warm-700">
               Click &quot;New Pairing&quot; to record a breeding pair
             </p>
           </CardContent>

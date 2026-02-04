@@ -49,7 +49,7 @@ export function ServiceWorkerUpdatePrompt() {
           </div>
           <div className="flex-1">
             <h3 className="font-semibold text-warm-900">Update Available</h3>
-            <p className="text-sm text-warm-600 mt-1">
+            <p className="text-sm text-warm-700 mt-1">
               A new version of Snakey is available.
             </p>
             <div className="flex gap-2 mt-3">

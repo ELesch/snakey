@@ -57,8 +57,8 @@ export function ShedHistory({ reptileId }: ShedHistoryProps) {
       <Card>
         <CardContent className="py-12 text-center">
           <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-400" aria-hidden="true" />
-          <p className="text-warm-600">Failed to load shed history</p>
-          <p className="text-sm text-warm-500">{error?.message}</p>
+          <p className="text-warm-700">Failed to load shed history</p>
+          <p className="text-sm text-warm-700">{error?.message}</p>
         </CardContent>
       </Card>
     )
@@ -100,8 +100,8 @@ export function ShedHistory({ reptileId }: ShedHistoryProps) {
         <Card>
           <CardContent className="py-12 text-center">
             <Layers className="h-12 w-12 mx-auto mb-4 text-warm-300" aria-hidden="true" />
-            <p className="text-warm-600">No shed records yet</p>
-            <p className="text-sm text-warm-500">Click &quot;Log Shed&quot; to add one</p>
+            <p className="text-warm-700">No shed records yet</p>
+            <p className="text-sm text-warm-700">Click &quot;Log Shed&quot; to add one</p>
           </CardContent>
         </Card>
       ) : (

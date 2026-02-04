@@ -58,7 +58,7 @@ export function PhotoGallery({ reptileId }: PhotoGalleryProps) {
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">Photos</h3>
           {isOfflineData && (
-            <span className="flex items-center gap-1 text-xs text-warm-500">
+            <span className="flex items-center gap-1 text-xs text-warm-700">
               <WifiOff className="h-3 w-3" />
               Offline
             </span>
@@ -74,8 +74,8 @@ export function PhotoGallery({ reptileId }: PhotoGalleryProps) {
         <Card>
           <CardContent className="py-12 text-center">
             <ImageIcon className="h-12 w-12 mx-auto mb-4 text-warm-300" />
-            <p className="text-warm-600">No photos yet</p>
-            <p className="text-sm text-warm-500">
+            <p className="text-warm-700">No photos yet</p>
+            <p className="text-sm text-warm-700">
               Click &quot;Add Photo&quot; to upload one
             </p>
           </CardContent>

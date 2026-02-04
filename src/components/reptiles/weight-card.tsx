@@ -29,9 +29,9 @@ export function WeightCard({ weight, trend, onEdit, onDelete, isDeleting }: Weig
               {trend === 'down' && <TrendingDown className="h-4 w-4 text-red-600" aria-label="Losing" />}
               {trend === 'stable' && <Minus className="h-4 w-4 text-warm-400" aria-label="Stable" />}
             </div>
-            <p className="text-warm-500">{formatDate(weightDate)}</p>
+            <p className="text-warm-700">{formatDate(weightDate)}</p>
             {weight.notes && (
-              <p className="text-sm text-warm-600 max-w-xs truncate hidden sm:block">{weight.notes}</p>
+              <p className="text-sm text-warm-700 max-w-xs truncate hidden sm:block">{weight.notes}</p>
             )}
           </div>
           <div className="flex items-center gap-1">

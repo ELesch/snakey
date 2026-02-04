@@ -20,7 +20,7 @@ export function CurrentConditions({ log, species }: CurrentConditionsProps) {
       {temp !== null && (
         <div className="text-center">
           <Thermometer className="h-6 w-6 mx-auto mb-1 text-red-500" aria-hidden="true" />
-          <p className="text-sm text-warm-500">Temperature</p>
+          <p className="text-sm text-warm-700">Temperature</p>
           <p className={cn('text-xl font-bold', isTemperatureSafe(species, temp, 'hot') ? 'text-green-600' : 'text-red-600')}>
             {temp}F
           </p>
@@ -29,7 +29,7 @@ export function CurrentConditions({ log, species }: CurrentConditionsProps) {
       {humid !== null && (
         <div className="text-center">
           <Droplets className="h-6 w-6 mx-auto mb-1 text-cyan-500" aria-hidden="true" />
-          <p className="text-sm text-warm-500">Humidity</p>
+          <p className="text-sm text-warm-700">Humidity</p>
           <p className={cn('text-xl font-bold', isHumiditySafe(species, humid) ? 'text-green-600' : 'text-red-600')}>
             {humid}%
           </p>

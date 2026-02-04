@@ -55,7 +55,7 @@ export function FeedingHistory({ reptileId }: FeedingHistoryProps) {
         <Card>
           <CardContent className="py-12 text-center">
             <Loader2 className="h-8 w-8 mx-auto mb-4 text-warm-400 animate-spin" aria-hidden="true" />
-            <p className="text-warm-500">Loading feeding history...</p>
+            <p className="text-warm-700">Loading feeding history...</p>
           </CardContent>
         </Card>
       </div>
@@ -75,7 +75,7 @@ export function FeedingHistory({ reptileId }: FeedingHistoryProps) {
           <CardContent className="py-12 text-center">
             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-400" aria-hidden="true" />
             <p className="text-red-600">Failed to load feeding history</p>
-            <p className="text-sm text-warm-500">{error?.message || 'Please try again later'}</p>
+            <p className="text-sm text-warm-700">{error?.message || 'Please try again later'}</p>
           </CardContent>
         </Card>
       </div>
@@ -117,8 +117,8 @@ export function FeedingHistory({ reptileId }: FeedingHistoryProps) {
         <Card>
           <CardContent className="py-12 text-center">
             <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 text-warm-300" aria-hidden="true" />
-            <p className="text-warm-600">No feeding records yet</p>
-            <p className="text-sm text-warm-500">Click &quot;Log Feeding&quot; to add one</p>
+            <p className="text-warm-700">No feeding records yet</p>
+            <p className="text-sm text-warm-700">Click &quot;Log Feeding&quot; to add one</p>
           </CardContent>
         </Card>
       ) : (

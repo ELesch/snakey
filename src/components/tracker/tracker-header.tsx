@@ -64,7 +64,7 @@ export function TrackerHeader({
 
   if (isPending) {
     return (
-      <div className="flex items-center gap-2 text-warm-500">
+      <div className="flex items-center gap-2 text-warm-700">
         <Loader2 className="h-4 w-4 animate-spin" />
         <span className="text-sm">Loading reptiles...</span>
       </div>
@@ -73,7 +73,7 @@ export function TrackerHeader({
 
   if (reptiles.length === 0) {
     return (
-      <div className="text-warm-500 text-sm">
+      <div className="text-warm-700 text-sm">
         No reptiles found. Add a reptile first to start tracking.
       </div>
     )

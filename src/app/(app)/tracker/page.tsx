@@ -17,7 +17,7 @@ export default function TrackerPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-warm-900">Quick Tracker</h1>
-        <p className="text-warm-600">
+        <p className="text-warm-700">
           Log events quickly without navigating to individual reptile profiles
         </p>
       </div>

@@ -54,7 +54,7 @@ export function ReptileOverview({ reptileId, reptile }: ReptileOverviewProps) {
         <CardContent>
           <dl className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
-              <dt className="text-warm-600 flex-shrink-0">Last Fed</dt>
+              <dt className="text-warm-700 flex-shrink-0">Last Fed</dt>
               <dd className="font-medium text-right sm:text-right">
                 {lastFedDate ? (
                   <>
@@ -66,7 +66,7 @@ export function ReptileOverview({ reptileId, reptile }: ReptileOverviewProps) {
               </dd>
             </div>
             <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
-              <dt className="text-warm-600 flex-shrink-0">Last Shed</dt>
+              <dt className="text-warm-700 flex-shrink-0">Last Shed</dt>
               <dd className="font-medium text-right sm:text-right">
                 {lastShedDate ? (
                   <>
@@ -78,7 +78,7 @@ export function ReptileOverview({ reptileId, reptile }: ReptileOverviewProps) {
               </dd>
             </div>
             <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
-              <dt className="text-warm-600 flex-shrink-0">Current Weight</dt>
+              <dt className="text-warm-700 flex-shrink-0">Current Weight</dt>
               <dd className="font-medium text-right sm:text-right">
                 {lastWeightValue != null && lastWeightDate ? (
                   <>
@@ -92,21 +92,21 @@ export function ReptileOverview({ reptileId, reptile }: ReptileOverviewProps) {
               </dd>
             </div>
             <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
-              <dt className="text-warm-600 flex-shrink-0">Sex</dt>
+              <dt className="text-warm-700 flex-shrink-0">Sex</dt>
               <dd className="font-medium capitalize text-right sm:text-right">
                 {reptile.sex?.toLowerCase() || 'Unknown'}
               </dd>
             </div>
             {reptile.birthDate && (
               <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
-                <dt className="text-warm-600 flex-shrink-0">Birth Date</dt>
+                <dt className="text-warm-700 flex-shrink-0">Birth Date</dt>
                 <dd className="font-medium text-right sm:text-right">
                   {formatDate(parseDate(reptile.birthDate)!)}
                 </dd>
               </div>
             )}
             <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
-              <dt className="text-warm-600 flex-shrink-0">Acquired</dt>
+              <dt className="text-warm-700 flex-shrink-0">Acquired</dt>
               <dd className="font-medium text-right sm:text-right">
                 {formatDate(parseDate(reptile.acquisitionDate)!)}
               </dd>
@@ -123,7 +123,7 @@ export function ReptileOverview({ reptileId, reptile }: ReptileOverviewProps) {
           <CardContent>
             <dl className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
-                <dt className="text-warm-600 flex-shrink-0">Hot Side</dt>
+                <dt className="text-warm-700 flex-shrink-0">Hot Side</dt>
                 <dd className="font-medium text-right sm:text-right">
                   {getTemperatureRange(
                     speciesConfig.tempHotMin,
@@ -132,7 +132,7 @@ export function ReptileOverview({ reptileId, reptile }: ReptileOverviewProps) {
                 </dd>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
-                <dt className="text-warm-600 flex-shrink-0">Cool Side</dt>
+                <dt className="text-warm-700 flex-shrink-0">Cool Side</dt>
                 <dd className="font-medium text-right sm:text-right">
                   {getTemperatureRange(
                     speciesConfig.tempCoolMin,
@@ -141,7 +141,7 @@ export function ReptileOverview({ reptileId, reptile }: ReptileOverviewProps) {
                 </dd>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
-                <dt className="text-warm-600 flex-shrink-0">Humidity</dt>
+                <dt className="text-warm-700 flex-shrink-0">Humidity</dt>
                 <dd className="font-medium text-right sm:text-right">
                   {getHumidityRange(
                     speciesConfig.humidityMin,
@@ -150,14 +150,14 @@ export function ReptileOverview({ reptileId, reptile }: ReptileOverviewProps) {
                 </dd>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
-                <dt className="text-warm-600 flex-shrink-0">Feeding</dt>
+                <dt className="text-warm-700 flex-shrink-0">Feeding</dt>
                 <dd className="font-medium text-right sm:text-right">
                   {getFeedingScheduleMessage(speciesConfig.feedingInterval)}
                 </dd>
               </div>
             </dl>
             {speciesConfig.notes && (
-              <p className="mt-4 text-sm text-warm-600 bg-warm-50 p-3 rounded">
+              <p className="mt-4 text-sm text-warm-700 bg-warm-50 p-3 rounded">
                 {speciesConfig.notes}
               </p>
             )}

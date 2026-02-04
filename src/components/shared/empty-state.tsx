@@ -56,9 +56,9 @@ export function EmptyState({
           {icon}
         </div>
       )}
-      <p className="text-warm-600 font-medium">{title}</p>
+      <p className="text-warm-700 font-medium">{title}</p>
       {description && (
-        <p className="text-sm text-warm-500 mt-1">{description}</p>
+        <p className="text-sm text-warm-700 mt-1">{description}</p>
       )}
       {action && <div className="mt-4">{action}</div>}
     </div>

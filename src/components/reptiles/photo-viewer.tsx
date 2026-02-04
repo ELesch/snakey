@@ -157,7 +157,7 @@ function PhotoDetails({ caption, category, takenAt, isPrimary }: PhotoDetailsPro
     <div className="space-y-2">
       {caption && <p className="text-warm-700">{caption}</p>}
 
-      <div className="flex flex-wrap gap-2 text-sm text-warm-500">
+      <div className="flex flex-wrap gap-2 text-sm text-warm-700">
         <span className="inline-flex items-center px-2 py-1 bg-warm-100 rounded">
           {category.toLowerCase()}
         </span>
