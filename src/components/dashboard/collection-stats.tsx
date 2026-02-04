@@ -85,8 +85,8 @@ export function CollectionStats() {
       color: 'text-red-600',
     },
     {
-      name: 'Recent Weights',
-      value: stats?.recentWeights ?? 0,
+      name: 'Recent Measurements',
+      value: stats?.recentMeasurements ?? 0,
       icon: Scale,
       color: 'text-blue-600',
     },

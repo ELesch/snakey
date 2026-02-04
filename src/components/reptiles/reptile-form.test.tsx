@@ -53,6 +53,34 @@ vi.mock('@/lib/species/defaults', () => ({
   ],
 }))
 
+// Mock the measurements config
+vi.mock('@/lib/species/measurements', () => ({
+  getMeasurementTypesForSpecies: (species: string) => {
+    const map: Record<string, string[]> = {
+      ball_python: ['WEIGHT', 'LENGTH'],
+      corn_snake: ['WEIGHT', 'LENGTH'],
+      leopard_gecko: ['WEIGHT', 'LENGTH', 'SNOUT_TO_VENT'],
+    }
+    return map[species] || ['WEIGHT', 'LENGTH']
+  },
+  MEASUREMENT_LABELS: {
+    WEIGHT: 'Weight',
+    LENGTH: 'Length',
+    SHELL_LENGTH: 'Shell Length',
+    SHELL_WIDTH: 'Shell Width',
+    SNOUT_TO_VENT: 'Snout-to-Vent',
+    TAIL_LENGTH: 'Tail Length',
+  },
+  MEASUREMENT_UNITS: {
+    WEIGHT: 'g',
+    LENGTH: 'cm',
+    SHELL_LENGTH: 'cm',
+    SHELL_WIDTH: 'cm',
+    SNOUT_TO_VENT: 'cm',
+    TAIL_LENGTH: 'cm',
+  },
+}))
+
 function createTestQueryClient() {
   return new QueryClient({
     defaultOptions: {
@@ -106,7 +134,7 @@ describe('ReptileForm', () => {
       expect(screen.getByRole('button', { name: /add reptile/i })).toBeInTheDocument()
     })
 
-    it('should render Update Reptile button in edit mode', () => {
+    it('should render Save button in edit mode', () => {
       renderWithProviders(
         <ReptileForm
           onSuccess={mockOnSuccess}
@@ -115,7 +143,7 @@ describe('ReptileForm', () => {
         />
       )
 
-      expect(screen.getByRole('button', { name: /update reptile/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument()
     })
 
     it('should render Cancel button', () => {
@@ -288,7 +316,7 @@ describe('ReptileForm', () => {
       await user.type(nameInput, 'Monty Updated')
 
       // Submit form
-      await user.click(screen.getByRole('button', { name: /update reptile/i }))
+      await user.click(screen.getByRole('button', { name: /save/i }))
 
       await waitFor(() => {
         expect(mockUpdateReptileMutateAsync).toHaveBeenCalledWith({
@@ -409,24 +437,99 @@ describe('ReptileForm', () => {
     })
   })
 
-  describe('weight input field', () => {
-    it('should render weight input field', () => {
+  describe('species-aware measurements section', () => {
+    it('should not show measurements section when no species is selected', () => {
       renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
 
-      expect(screen.getByLabelText(/initial weight/i)).toBeInTheDocument()
+      expect(screen.queryByText(/initial measurements/i)).not.toBeInTheDocument()
     })
 
-    it('should accept numeric weight values', async () => {
+    it('should show measurements section when species is selected', async () => {
       const user = userEvent.setup()
       renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
 
-      const weightInput = screen.getByLabelText(/initial weight/i)
+      // Select species
+      const speciesTrigger = screen.getAllByRole('combobox')[0]
+      await user.click(speciesTrigger)
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: 'Ball Python' })).toBeInTheDocument()
+      })
+      await user.click(screen.getByRole('option', { name: 'Ball Python' }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/initial measurements/i)).toBeInTheDocument()
+      })
+    })
+
+    it('should show weight and length fields for snakes', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      // Select ball python
+      const speciesTrigger = screen.getAllByRole('combobox')[0]
+      await user.click(speciesTrigger)
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: 'Ball Python' })).toBeInTheDocument()
+      })
+      await user.click(screen.getByRole('option', { name: 'Ball Python' }))
+
+      // Wait for measurements section to appear
+      await waitFor(() => {
+        expect(screen.getByText(/initial measurements/i)).toBeInTheDocument()
+      })
+
+      // Check for weight and length fields (initial)
+      expect(screen.getByLabelText(/^Weight \(g\)$/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/^Length \(cm\)$/i)).toBeInTheDocument()
+    })
+
+    it('should show snout-to-vent field for geckos', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      // Select leopard gecko
+      const speciesTrigger = screen.getAllByRole('combobox')[0]
+      await user.click(speciesTrigger)
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: 'Leopard Gecko' })).toBeInTheDocument()
+      })
+      await user.click(screen.getByRole('option', { name: 'Leopard Gecko' }))
+
+      // Wait for measurements section to appear
+      await waitFor(() => {
+        expect(screen.getByText(/initial measurements/i)).toBeInTheDocument()
+      })
+
+      // Check for gecko-specific fields (initial)
+      expect(screen.getByLabelText(/^Weight \(g\)$/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/^Length \(cm\)$/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/^Snout-to-Vent \(cm\)$/i)).toBeInTheDocument()
+    })
+
+    it('should accept numeric measurement values', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      // Select species first
+      const speciesTrigger = screen.getAllByRole('combobox')[0]
+      await user.click(speciesTrigger)
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: 'Ball Python' })).toBeInTheDocument()
+      })
+      await user.click(screen.getByRole('option', { name: 'Ball Python' }))
+
+      // Wait for measurements section to appear
+      await waitFor(() => {
+        expect(screen.getByText(/initial measurements/i)).toBeInTheDocument()
+      })
+
+      const weightInput = screen.getByLabelText(/^Weight \(g\)$/i)
       await user.type(weightInput, '150')
 
       expect(weightInput).toHaveValue(150)
     })
 
-    it('should show validation error for negative weight', async () => {
+    it('should show validation error for negative measurement value', async () => {
       const user = userEvent.setup()
       renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
 
@@ -439,44 +542,24 @@ describe('ReptileForm', () => {
       })
       await user.click(screen.getByRole('option', { name: 'Ball Python' }))
 
+      // Wait for measurements section to appear
+      await waitFor(() => {
+        expect(screen.getByText(/initial measurements/i)).toBeInTheDocument()
+      })
+
       // Enter negative weight
-      const weightInput = screen.getByLabelText(/initial weight/i)
+      const weightInput = screen.getByLabelText(/^Weight \(g\)$/i)
       await user.type(weightInput, '-50')
 
       // Submit form
       await user.click(screen.getByRole('button', { name: /add reptile/i }))
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toHaveTextContent(/weight must be a positive number/i)
+        expect(screen.getByText(/must be a positive number/i)).toBeInTheDocument()
       })
     })
 
-    it('should show validation error for zero weight', async () => {
-      const user = userEvent.setup()
-      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
-
-      // Fill required fields
-      await user.type(screen.getByRole('textbox', { name: /name/i }), 'Monty')
-      const speciesTrigger = screen.getAllByRole('combobox')[0]
-      await user.click(speciesTrigger)
-      await waitFor(() => {
-        expect(screen.getByRole('option', { name: 'Ball Python' })).toBeInTheDocument()
-      })
-      await user.click(screen.getByRole('option', { name: 'Ball Python' }))
-
-      // Enter zero weight
-      const weightInput = screen.getByLabelText(/initial weight/i)
-      await user.type(weightInput, '0')
-
-      // Submit form
-      await user.click(screen.getByRole('button', { name: /add reptile/i }))
-
-      await waitFor(() => {
-        expect(screen.getByRole('alert')).toHaveTextContent(/weight must be a positive number/i)
-      })
-    })
-
-    it('should allow empty weight field (optional)', async () => {
+    it('should allow empty measurements (optional)', async () => {
       const user = userEvent.setup()
       const mockReptile = {
         id: 'new-reptile-123',
@@ -487,7 +570,7 @@ describe('ReptileForm', () => {
 
       renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
 
-      // Fill required fields only (no weight)
+      // Fill required fields only (no measurements)
       await user.type(screen.getByRole('textbox', { name: /name/i }), 'Monty')
       const speciesTrigger = screen.getAllByRole('combobox')[0]
       await user.click(speciesTrigger)
@@ -505,11 +588,34 @@ describe('ReptileForm', () => {
       })
     })
 
-    it('should populate weight field with initial data in edit mode', () => {
+    it('should not show current measurements section when acquisition date is today', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
+
+      // Select species (acquisition date defaults to today)
+      const speciesTrigger = screen.getAllByRole('combobox')[0]
+      await user.click(speciesTrigger)
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: 'Ball Python' })).toBeInTheDocument()
+      })
+      await user.click(screen.getByRole('option', { name: 'Ball Python' }))
+
+      // Wait for initial measurements section to appear
+      await waitFor(() => {
+        expect(screen.getByText(/initial measurements/i)).toBeInTheDocument()
+      })
+
+      // Current measurements section should not be visible when acquisition date is today
+      // The form defaults acquisitionDate to today, so we should only see "Initial Measurements"
+      // and NOT "Current Measurements"
+      expect(screen.queryByText(/^current measurements/i)).not.toBeInTheDocument()
+    })
+
+    it('should show current measurements section when acquisition date is in the past', async () => {
+      const user = userEvent.setup()
       const initialData = {
         name: 'Monty',
         species: 'ball_python',
-        currentWeight: 250,
         acquisitionDate: new Date('2023-01-10'),
       }
 
@@ -521,74 +627,10 @@ describe('ReptileForm', () => {
         />
       )
 
-      expect(screen.getByLabelText(/initial weight/i)).toHaveValue(250)
-    })
-  })
-
-  describe('add to weight history checkbox', () => {
-    it('should not show checkbox when weight is empty', () => {
-      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
-
-      expect(screen.queryByLabelText(/add to weight history/i)).not.toBeInTheDocument()
-    })
-
-    it('should show checkbox when weight is entered', async () => {
-      const user = userEvent.setup()
-      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
-
-      const weightInput = screen.getByLabelText(/initial weight/i)
-      await user.type(weightInput, '150')
-
       await waitFor(() => {
-        expect(screen.getByLabelText(/add to weight history/i)).toBeInTheDocument()
+        expect(screen.getByText(/initial measurements/i)).toBeInTheDocument()
+        expect(screen.getByText(/current measurements/i)).toBeInTheDocument()
       })
-    })
-
-    it('should be checked by default when weight is entered', async () => {
-      const user = userEvent.setup()
-      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
-
-      const weightInput = screen.getByLabelText(/initial weight/i)
-      await user.type(weightInput, '150')
-
-      await waitFor(() => {
-        expect(screen.getByLabelText(/add to weight history/i)).toBeChecked()
-      })
-    })
-
-    it('should hide checkbox when weight is cleared', async () => {
-      const user = userEvent.setup()
-      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
-
-      const weightInput = screen.getByLabelText(/initial weight/i)
-      await user.type(weightInput, '150')
-
-      await waitFor(() => {
-        expect(screen.getByLabelText(/add to weight history/i)).toBeInTheDocument()
-      })
-
-      await user.clear(weightInput)
-
-      await waitFor(() => {
-        expect(screen.queryByLabelText(/add to weight history/i)).not.toBeInTheDocument()
-      })
-    })
-
-    it('should allow unchecking the checkbox', async () => {
-      const user = userEvent.setup()
-      renderWithProviders(<ReptileForm onSuccess={mockOnSuccess} />)
-
-      const weightInput = screen.getByLabelText(/initial weight/i)
-      await user.type(weightInput, '150')
-
-      await waitFor(() => {
-        expect(screen.getByLabelText(/add to weight history/i)).toBeInTheDocument()
-      })
-
-      const checkbox = screen.getByLabelText(/add to weight history/i)
-      await user.click(checkbox)
-
-      expect(checkbox).not.toBeChecked()
     })
   })
 

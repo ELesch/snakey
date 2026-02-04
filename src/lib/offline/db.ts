@@ -20,7 +20,6 @@ export interface OfflineReptile extends SyncedEntity {
   sex: 'MALE' | 'FEMALE' | 'UNKNOWN'
   birthDate?: number // Store as timestamp
   acquisitionDate: number
-  currentWeight?: number
   notes?: string
   isPublic: boolean
   shareId?: string
@@ -55,10 +54,12 @@ export interface OfflineShed extends SyncedEntity {
   updatedAt: number
 }
 
-export interface OfflineWeight extends SyncedEntity {
+export interface OfflineMeasurement extends SyncedEntity {
   reptileId: string
   date: number
-  weight: number
+  type: 'WEIGHT' | 'LENGTH' | 'SHELL_LENGTH' | 'SHELL_WIDTH' | 'SNOUT_TO_VENT' | 'TAIL_LENGTH'
+  value: number
+  unit: string
   notes?: string
   createdAt: number
   updatedAt: number
@@ -110,7 +111,7 @@ export class SnakeyDB extends Dexie {
   reptiles!: Table<OfflineReptile>
   feedings!: Table<OfflineFeeding>
   sheds!: Table<OfflineShed>
-  weights!: Table<OfflineWeight>
+  measurements!: Table<OfflineMeasurement>
   environmentLogs!: Table<OfflineEnvironmentLog>
   photos!: Table<OfflinePhoto>
   syncQueue!: Table<SyncQueueItem>
@@ -123,7 +124,7 @@ export class SnakeyDB extends Dexie {
       reptiles: 'id, userId, species, _syncStatus',
       feedings: 'id, reptileId, date, _syncStatus',
       sheds: 'id, reptileId, completedDate, _syncStatus',
-      weights: 'id, reptileId, date, _syncStatus',
+      measurements: 'id, reptileId, date, type, _syncStatus',
       environmentLogs: 'id, reptileId, date, _syncStatus',
       photos: 'id, reptileId, takenAt, _syncStatus',
       syncQueue: '++id, table, status, createdAt',

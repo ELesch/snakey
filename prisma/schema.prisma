@@ -24,7 +24,6 @@ model Reptile {
   sex             Sex       @default(UNKNOWN)
   birthDate       DateTime?
   acquisitionDate DateTime
-  currentWeight   Decimal?
   notes           String?
   isPublic        Boolean   @default(false)
   shareId         String?   @unique
@@ -35,7 +34,7 @@ model Reptile {
   // Relations
   feedings        Feeding[]
   sheds           Shed[]
-  weights         Weight[]
+  measurements    Measurement[]
   environmentLogs EnvironmentLog[]
   vetVisits       VetVisit[]
   medications     Medication[]
@@ -121,18 +120,33 @@ enum ShedQuality {
   @@schema("snakey")
 }
 
-model Weight {
-  id        String   @id @default(cuid())
+// Unified measurement model for all body measurements (weight, length, etc.)
+enum MeasurementType {
+  WEIGHT
+  LENGTH
+  SHELL_LENGTH
+  SHELL_WIDTH
+  SNOUT_TO_VENT
+  TAIL_LENGTH
+
+  @@schema("snakey")
+}
+
+model Measurement {
+  id        String          @id @default(cuid())
   reptileId String
   date      DateTime
-  weight    Decimal
+  type      MeasurementType
+  value     Decimal
+  unit      String          // "g", "cm", "in", "mm"
   notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 
   reptile Reptile @relation(fields: [reptileId], references: [id])
 
   @@index([reptileId, date])
+  @@index([reptileId, type, date])
   @@schema("snakey")
 }
 

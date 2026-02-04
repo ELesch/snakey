@@ -17,7 +17,7 @@ vi.mock('@/lib/db/client', () => ({
       findMany: vi.fn(),
       count: vi.fn(),
     },
-    weight: {
+    measurement: {
       findMany: vi.fn(),
       count: vi.fn(),
     },
@@ -41,7 +41,7 @@ interface MockedPrismaWithCount {
     findMany: ReturnType<typeof vi.fn>
     count: ReturnType<typeof vi.fn>
   }
-  weight: {
+  measurement: {
     findMany: ReturnType<typeof vi.fn>
     count: ReturnType<typeof vi.fn>
   }
@@ -68,7 +68,7 @@ describe('ReportsService', () => {
       const now = new Date()
       const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-      mockedPrisma.weight.findMany.mockResolvedValue([
+      mockedPrisma.measurement.findMany.mockResolvedValue([
         {
           id: 'weight-1',
           date: now,
@@ -96,7 +96,7 @@ describe('ReportsService', () => {
     })
 
     it('should filter by reptileId when provided', async () => {
-      mockedPrisma.weight.findMany.mockResolvedValue([
+      mockedPrisma.measurement.findMany.mockResolvedValue([
         {
           id: 'weight-1',
           date: new Date(),
@@ -108,7 +108,7 @@ describe('ReportsService', () => {
 
       await service.getGrowthData(userId, { reptileId: 'reptile-1' })
 
-      expect(mockedPrisma.weight.findMany).toHaveBeenCalledWith(
+      expect(mockedPrisma.measurement.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
             reptileId: 'reptile-1',
@@ -121,11 +121,11 @@ describe('ReportsService', () => {
       const startDate = '2024-01-01'
       const endDate = '2024-12-31'
 
-      mockedPrisma.weight.findMany.mockResolvedValue([])
+      mockedPrisma.measurement.findMany.mockResolvedValue([])
 
       await service.getGrowthData(userId, { startDate, endDate })
 
-      expect(mockedPrisma.weight.findMany).toHaveBeenCalledWith(
+      expect(mockedPrisma.measurement.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
             date: expect.objectContaining({
@@ -138,7 +138,7 @@ describe('ReportsService', () => {
     })
 
     it('should return empty array when no data exists', async () => {
-      mockedPrisma.weight.findMany.mockResolvedValue([])
+      mockedPrisma.measurement.findMany.mockResolvedValue([])
 
       const result = await service.getGrowthData(userId, {})
 
@@ -529,7 +529,7 @@ describe('ReportsService', () => {
   describe('pagination', () => {
     describe('getGrowthData with pagination', () => {
       it('should accept pagination options and return meta', async () => {
-        mockedPrisma.weight.findMany.mockResolvedValue([
+        mockedPrisma.measurement.findMany.mockResolvedValue([
           {
             id: 'weight-1',
             date: new Date(),
@@ -538,7 +538,7 @@ describe('ReportsService', () => {
             reptile: { id: 'reptile-1', name: 'Slither', userId },
           },
         ] as never)
-        mockedPrisma.weight.count.mockResolvedValue(50)
+        mockedPrisma.measurement.count.mockResolvedValue(50)
 
         const result = await service.getGrowthData(userId, {}, { limit: 10, offset: 0 })
 
@@ -551,12 +551,12 @@ describe('ReportsService', () => {
       })
 
       it('should enforce maximum limit of 1000', async () => {
-        mockedPrisma.weight.findMany.mockResolvedValue([])
-        mockedPrisma.weight.count.mockResolvedValue(0)
+        mockedPrisma.measurement.findMany.mockResolvedValue([])
+        mockedPrisma.measurement.count.mockResolvedValue(0)
 
         await service.getGrowthData(userId, {}, { limit: 5000, offset: 0 })
 
-        expect(mockedPrisma.weight.findMany).toHaveBeenCalledWith(
+        expect(mockedPrisma.measurement.findMany).toHaveBeenCalledWith(
           expect.objectContaining({
             take: 1000,
           })
@@ -564,12 +564,12 @@ describe('ReportsService', () => {
       })
 
       it('should use default limit of 100 when not provided', async () => {
-        mockedPrisma.weight.findMany.mockResolvedValue([])
-        mockedPrisma.weight.count.mockResolvedValue(0)
+        mockedPrisma.measurement.findMany.mockResolvedValue([])
+        mockedPrisma.measurement.count.mockResolvedValue(0)
 
         await service.getGrowthData(userId, {})
 
-        expect(mockedPrisma.weight.findMany).toHaveBeenCalledWith(
+        expect(mockedPrisma.measurement.findMany).toHaveBeenCalledWith(
           expect.objectContaining({
             take: 100,
           })
@@ -577,12 +577,12 @@ describe('ReportsService', () => {
       })
 
       it('should apply offset correctly', async () => {
-        mockedPrisma.weight.findMany.mockResolvedValue([])
-        mockedPrisma.weight.count.mockResolvedValue(0)
+        mockedPrisma.measurement.findMany.mockResolvedValue([])
+        mockedPrisma.measurement.count.mockResolvedValue(0)
 
         await service.getGrowthData(userId, {}, { limit: 10, offset: 20 })
 
-        expect(mockedPrisma.weight.findMany).toHaveBeenCalledWith(
+        expect(mockedPrisma.measurement.findMany).toHaveBeenCalledWith(
           expect.objectContaining({
             take: 10,
             skip: 20,

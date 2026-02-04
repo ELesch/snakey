@@ -38,15 +38,6 @@ export {
   deleteFeeding,
 } from './feeding.api'
 
-// Weight API
-export {
-  fetchWeights,
-  fetchWeight,
-  createWeight,
-  updateWeight,
-  deleteWeight,
-} from './weight.api'
-
 // Shed API
 export {
   fetchSheds,

@@ -1,12 +1,13 @@
-// Weight Repository - Database Operations Only
+// Measurement Repository - Database Operations Only
 import { prisma } from '@/lib/db/client'
-import type { Weight, Prisma } from '@/generated/prisma/client'
+import type { Measurement, MeasurementType, Prisma } from '@/generated/prisma/client'
 
 export interface FindManyOptions {
   reptileId: string
   skip?: number
   take?: number
   orderBy?: { [key: string]: 'asc' | 'desc' }
+  type?: MeasurementType
   startDate?: Date
   endDate?: Date
 }
@@ -15,19 +16,21 @@ export interface FindByIdOptions {
   includeReptile?: boolean
 }
 
-export class WeightRepository {
-  async findMany(options: FindManyOptions): Promise<Weight[]> {
+export class MeasurementRepository {
+  async findMany(options: FindManyOptions): Promise<Measurement[]> {
     const {
       reptileId,
       skip = 0,
       take = 20,
       orderBy = { date: 'desc' },
+      type,
       startDate,
       endDate,
     } = options
 
-    const where: Prisma.WeightWhereInput = {
+    const where: Prisma.MeasurementWhereInput = {
       reptileId,
+      ...(type && { type }),
       ...(startDate || endDate
         ? {
             date: {
@@ -38,7 +41,7 @@ export class WeightRepository {
         : {}),
     }
 
-    return prisma.weight.findMany({
+    return prisma.measurement.findMany({
       where,
       skip,
       take,
@@ -47,10 +50,11 @@ export class WeightRepository {
   }
 
   async count(options: Omit<FindManyOptions, 'skip' | 'take' | 'orderBy'>): Promise<number> {
-    const { reptileId, startDate, endDate } = options
+    const { reptileId, type, startDate, endDate } = options
 
-    const where: Prisma.WeightWhereInput = {
+    const where: Prisma.MeasurementWhereInput = {
       reptileId,
+      ...(type && { type }),
       ...(startDate || endDate
         ? {
             date: {
@@ -61,14 +65,14 @@ export class WeightRepository {
         : {}),
     }
 
-    return prisma.weight.count({ where })
+    return prisma.measurement.count({ where })
   }
 
   async findById(
     id: string,
     options?: FindByIdOptions
-  ): Promise<(Weight & { reptile?: { id: string; userId: string; deletedAt: Date | null } }) | null> {
-    return prisma.weight.findUnique({
+  ): Promise<(Measurement & { reptile?: { id: string; userId: string; deletedAt: Date | null } }) | null> {
+    return prisma.measurement.findUnique({
       where: { id },
       include: options?.includeReptile
         ? {
@@ -84,25 +88,25 @@ export class WeightRepository {
     })
   }
 
-  async create(data: Prisma.WeightUncheckedCreateInput): Promise<Weight> {
-    return prisma.weight.create({
+  async create(data: Prisma.MeasurementUncheckedCreateInput): Promise<Measurement> {
+    return prisma.measurement.create({
       data,
     })
   }
 
-  async update(id: string, data: Prisma.WeightUpdateInput): Promise<Weight> {
-    return prisma.weight.update({
+  async update(id: string, data: Prisma.MeasurementUpdateInput): Promise<Measurement> {
+    return prisma.measurement.update({
       where: { id },
       data,
     })
   }
 
-  async delete(id: string): Promise<Weight> {
-    return prisma.weight.delete({
+  async delete(id: string): Promise<Measurement> {
+    return prisma.measurement.delete({
       where: { id },
     })
   }
 }
 
 // Singleton instance for use across the application
-export const weightRepository = new WeightRepository()
+export const measurementRepository = new MeasurementRepository()

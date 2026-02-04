@@ -6,7 +6,7 @@ import {
   toOfflineReptile,
   toOfflineFeeding,
   toOfflineShed,
-  toOfflineWeight,
+  toOfflineMeasurement,
   toOfflineEnvironmentLog,
 } from './converters'
 
@@ -20,7 +20,7 @@ interface PullResponse {
   reptiles: SyncRecord[]
   feedings: SyncRecord[]
   sheds: SyncRecord[]
-  weights: SyncRecord[]
+  measurements: SyncRecord[]
   environmentLogs: SyncRecord[]
   serverTimestamp: number
 }
@@ -99,14 +99,14 @@ async function applyServerChanges(data: PullResponse): Promise<void> {
     await offlineDb.sheds.bulkDelete(shedIdsToDelete)
   }
 
-  // Process weights
-  const weightsToUpsert = data.weights.filter(r => !r.deletedAt).map(toOfflineWeight)
-  const weightIdsToDelete = data.weights.filter(r => r.deletedAt).map(r => r.id)
-  if (weightsToUpsert.length > 0) {
-    await offlineDb.weights.bulkPut(weightsToUpsert)
+  // Process measurements
+  const measurementsToUpsert = data.measurements.filter(r => !r.deletedAt).map(toOfflineMeasurement)
+  const measurementIdsToDelete = data.measurements.filter(r => r.deletedAt).map(r => r.id)
+  if (measurementsToUpsert.length > 0) {
+    await offlineDb.measurements.bulkPut(measurementsToUpsert)
   }
-  if (weightIdsToDelete.length > 0) {
-    await offlineDb.weights.bulkDelete(weightIdsToDelete)
+  if (measurementIdsToDelete.length > 0) {
+    await offlineDb.measurements.bulkDelete(measurementIdsToDelete)
   }
 
   // Process environmentLogs

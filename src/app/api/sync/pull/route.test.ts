@@ -55,7 +55,7 @@ describe('GET /api/sync/pull', () => {
       reptiles: [{ id: 'r1', name: 'Monty' }],
       feedings: [{ id: 'f1', reptileId: 'r1' }],
       sheds: [],
-      weights: [{ id: 'w1', weight: 500 }],
+      measurements: [{ id: 'm1', value: 500, type: 'WEIGHT' }],
       environmentLogs: [],
       photos: [],
       serverTimestamp: Date.now(),
@@ -68,7 +68,7 @@ describe('GET /api/sync/pull', () => {
     expect(response.status).toBe(200)
     expect(body.data.reptiles).toHaveLength(1)
     expect(body.data.feedings).toHaveLength(1)
-    expect(body.data.weights).toHaveLength(1)
+    expect(body.data.measurements).toHaveLength(1)
     expect(body.data.summary.reptiles).toBe(1)
     expect(body.data.summary.feedings).toBe(1)
     expect(body.data.summary.total).toBe(3)
@@ -82,7 +82,7 @@ describe('GET /api/sync/pull', () => {
       reptiles: [],
       feedings: [],
       sheds: [],
-      weights: [],
+      measurements: [],
       environmentLogs: [],
       photos: [],
       serverTimestamp: Date.now(),
@@ -102,7 +102,7 @@ describe('GET /api/sync/pull', () => {
       reptiles: [],
       feedings: [],
       sheds: [],
-      weights: [],
+      measurements: [],
       environmentLogs: [],
       photos: [],
       serverTimestamp: Date.now(),
@@ -128,7 +128,7 @@ describe('GET /api/sync/pull', () => {
       reptiles: [],
       feedings: [],
       sheds: [],
-      weights: [],
+      measurements: [],
       environmentLogs: [],
       photos: [],
       serverTimestamp: Date.now(),
@@ -161,7 +161,7 @@ describe('GET /api/sync/pull', () => {
       reptiles: [{ id: 'r1' }, { id: 'r2' }],
       feedings: [{ id: 'f1' }, { id: 'f2' }, { id: 'f3' }],
       sheds: [{ id: 's1' }],
-      weights: [{ id: 'w1' }, { id: 'w2' }],
+      measurements: [{ id: 'm1' }, { id: 'm2' }],
       environmentLogs: [{ id: 'e1' }],
       photos: [{ id: 'p1' }, { id: 'p2' }],
       serverTimestamp: Date.now(),
@@ -176,7 +176,7 @@ describe('GET /api/sync/pull', () => {
       reptiles: 2,
       feedings: 3,
       sheds: 1,
-      weights: 2,
+      measurements: 2,
       environmentLogs: 1,
       photos: 2,
       total: 11,
@@ -189,7 +189,7 @@ describe('GET /api/sync/pull', () => {
       reptiles: [],
       feedings: [],
       sheds: [],
-      weights: [],
+      measurements: [],
       environmentLogs: [],
       photos: [],
       serverTimestamp: Date.now(),
@@ -225,7 +225,7 @@ describe('GET /api/sync/pull', () => {
       reptiles: [],
       feedings: [],
       sheds: [],
-      weights: [],
+      measurements: [],
       environmentLogs: [],
       photos: [],
       serverTimestamp: serverTime,

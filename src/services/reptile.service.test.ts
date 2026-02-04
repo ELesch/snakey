@@ -30,7 +30,7 @@ vi.mock('@/lib/logger', () => ({
   }),
 }))
 
-// Mock reptile type for testing (currentWeight as number since Decimal is internal)
+// Mock reptile type for testing
 interface MockReptile {
   id: string
   userId: string
@@ -40,7 +40,6 @@ interface MockReptile {
   sex: Sex
   birthDate: Date | null
   acquisitionDate: Date
-  currentWeight: number | null
   notes: string | null
   isPublic: boolean
   shareId: string | null
@@ -58,7 +57,6 @@ const mockReptile: MockReptile = {
   sex: 'FEMALE' as Sex,
   birthDate: new Date('2022-06-15'),
   acquisitionDate: new Date('2022-09-01'),
-  currentWeight: 1250.5,
   notes: 'Great eater',
   isPublic: false,
   shareId: null,
@@ -276,7 +274,6 @@ describe('ReptileService', () => {
         isPublic: false,
         morph: null,
         birthDate: null,
-        currentWeight: null,
         notes: null,
       })
     })
@@ -342,7 +339,6 @@ describe('ReptileService', () => {
         sex: 'MALE' as const,
         birthDate: new Date('2023-07-20'),
         acquisitionDate: new Date('2023-10-15'),
-        currentWeight: 85.5,
         notes: 'Purchased from breeder',
         isPublic: true,
       }
@@ -395,11 +391,11 @@ describe('ReptileService', () => {
 
     it('should allow partial updates', async () => {
       mockRepository.findById.mockResolvedValue(mockReptile)
-      mockRepository.update.mockResolvedValue({ ...mockReptile, currentWeight: 1300 })
+      mockRepository.update.mockResolvedValue({ ...mockReptile, morph: 'Albino' })
 
-      await service.update('user-123', 'cltest123456789', { currentWeight: 1300 })
+      await service.update('user-123', 'cltest123456789', { morph: 'Albino' })
 
-      expect(mockRepository.update).toHaveBeenCalledWith('cltest123456789', { currentWeight: 1300 })
+      expect(mockRepository.update).toHaveBeenCalledWith('cltest123456789', { morph: 'Albino' })
     })
 
     it('should allow setting nullable fields to null', async () => {

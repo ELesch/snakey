@@ -5,7 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { FeedingForm } from './feeding-form'
 import { ShedForm } from './shed-form'
-import { WeightForm } from './weight-form'
 import { EnvironmentForm } from './environment-form'
 import { VetForm, MedicationForm } from '@/components/forms'
 import { PhotoAttachment } from './photo-attachment'
@@ -18,7 +17,6 @@ interface TrackerTabsProps {
 type EventType =
   | 'feeding'
   | 'shed'
-  | 'weight'
   | 'environment'
   | 'vet'
   | 'medication'
@@ -26,7 +24,6 @@ type EventType =
 const EVENT_TABS: { value: EventType; label: string; photoCategory?: string }[] = [
   { value: 'feeding', label: 'Feeding' },
   { value: 'shed', label: 'Shed', photoCategory: 'SHED' },
-  { value: 'weight', label: 'Weight' },
   { value: 'environment', label: 'Environment', photoCategory: 'ENCLOSURE' },
   { value: 'vet', label: 'Vet Visit', photoCategory: 'VET' },
   { value: 'medication', label: 'Medication' },
@@ -49,7 +46,7 @@ export function TrackerTabs({ reptileId }: TrackerTabsProps) {
         value={activeTab}
         onValueChange={(val) => setActiveTab(val as EventType)}
       >
-        <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full">
+        <TabsList className="grid grid-cols-3 md:grid-cols-5 w-full">
           {EVENT_TABS.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="text-xs md:text-sm">
               {tab.label}
@@ -79,13 +76,6 @@ export function TrackerTabs({ reptileId }: TrackerTabsProps) {
                 onSuccess={() => handleSuccess('Shed')}
               />
               <PhotoAttachment reptileId={reptileId} category="SHED" />
-            </TabsContent>
-
-            <TabsContent value="weight" className="mt-0">
-              <WeightForm
-                reptileId={reptileId}
-                onSuccess={() => handleSuccess('Weight')}
-              />
             </TabsContent>
 
             <TabsContent value="environment" className="mt-0 space-y-6">

@@ -18,7 +18,7 @@ import type { ActivityType } from '@/services/dashboard.service'
 const activityIcons: Record<ActivityType, typeof UtensilsCrossed> = {
   feeding: UtensilsCrossed,
   shed: Layers,
-  weight: Scale,
+  measurement: Scale,
   environment: Thermometer,
   photo: Camera,
 }
@@ -26,7 +26,7 @@ const activityIcons: Record<ActivityType, typeof UtensilsCrossed> = {
 const activityColors: Record<ActivityType, string> = {
   feeding: 'bg-green-100 text-green-900',
   shed: 'bg-purple-100 text-purple-900',
-  weight: 'bg-blue-100 text-blue-900',
+  measurement: 'bg-blue-100 text-blue-900',
   environment: 'bg-amber-100 text-amber-900',
   photo: 'bg-pink-100 text-pink-900',
 }

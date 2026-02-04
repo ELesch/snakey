@@ -3,7 +3,7 @@ import type {
   OfflineReptile,
   OfflineFeeding,
   OfflineShed,
-  OfflineWeight,
+  OfflineMeasurement,
   OfflineEnvironmentLog,
 } from './db'
 
@@ -25,7 +25,6 @@ export function toOfflineReptile(record: SyncRecord): OfflineReptile {
     sex: record.sex as 'MALE' | 'FEMALE' | 'UNKNOWN',
     birthDate: record.birthDate ? new Date(record.birthDate as string).getTime() : undefined,
     acquisitionDate: new Date(record.acquisitionDate as string).getTime(),
-    currentWeight: record.currentWeight as number | undefined,
     notes: record.notes as string | undefined,
     isPublic: record.isPublic as boolean,
     shareId: record.shareId as string | undefined,
@@ -73,12 +72,14 @@ export function toOfflineShed(record: SyncRecord): OfflineShed {
   }
 }
 
-export function toOfflineWeight(record: SyncRecord): OfflineWeight {
+export function toOfflineMeasurement(record: SyncRecord): OfflineMeasurement {
   return {
     id: record.id,
     reptileId: record.reptileId as string,
     date: new Date(record.date as string).getTime(),
-    weight: record.weight as number,
+    type: record.type as OfflineMeasurement['type'],
+    value: record.value as number,
+    unit: record.unit as string,
     notes: record.notes as string | undefined,
     createdAt: new Date(record.createdAt as string).getTime(),
     updatedAt: new Date(record.updatedAt).getTime(),

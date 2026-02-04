@@ -38,7 +38,6 @@ describe('ShedService', () => {
     sex: 'UNKNOWN',
     birthDate: null,
     acquisitionDate: new Date(),
-    currentWeight: null,
     notes: null,
     isPublic: false,
     shareId: null,

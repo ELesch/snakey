@@ -33,11 +33,6 @@ export const ReptileCreateSchema = z
         (date) => date <= new Date(),
         'Acquisition date cannot be in the future'
       ),
-    currentWeight: z
-      .number()
-      .positive('Weight must be positive')
-      .optional()
-      .nullable(),
     notes: z
       .string()
       .max(2000, 'Notes must be 2000 characters or less')
@@ -91,11 +86,6 @@ export const ReptileUpdateSchema = z.object({
       (date) => !date || date <= new Date(),
       'Acquisition date cannot be in the future'
     ),
-  currentWeight: z
-    .number()
-    .positive('Weight must be positive')
-    .optional()
-    .nullable(),
   notes: z
     .string()
     .max(2000, 'Notes must be 2000 characters or less')
@@ -131,7 +121,7 @@ export const ReptileIncludeSchema = z.object({
         z.enum([
           'feedings',
           'sheds',
-          'weights',
+          'measurements',
           'photos',
           'vetVisits',
           'medications',
@@ -142,7 +132,7 @@ export const ReptileIncludeSchema = z.object({
     .optional(),
   feedingsLimit: z.coerce.number().int().positive().max(100).default(10),
   shedsLimit: z.coerce.number().int().positive().max(100).default(10),
-  weightsLimit: z.coerce.number().int().positive().max(100).default(30),
+  measurementsLimit: z.coerce.number().int().positive().max(100).default(30),
   photosLimit: z.coerce.number().int().positive().max(100).default(20),
 })
 

@@ -17,13 +17,6 @@ export {
   feedingKeys,
 } from './use-feedings'
 export {
-  useWeights,
-  useCreateWeight,
-  useUpdateWeight,
-  useDeleteWeight,
-  weightKeys,
-} from './use-weights'
-export {
   useSheds,
   useCreateShed,
   useUpdateShed,

@@ -6,7 +6,7 @@ export type {
   OfflineReptile,
   OfflineFeeding,
   OfflineShed,
-  OfflineWeight,
+  OfflineMeasurement,
   OfflineEnvironmentLog,
   OfflinePhoto,
   SyncQueueItem,
@@ -46,6 +46,6 @@ export {
   toOfflineReptile,
   toOfflineFeeding,
   toOfflineShed,
-  toOfflineWeight,
+  toOfflineMeasurement,
   toOfflineEnvironmentLog,
 } from './converters'

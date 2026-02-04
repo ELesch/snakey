@@ -5,7 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ReptileOverview } from '@/components/reptiles/reptile-overview'
 import { FeedingHistory } from '@/components/reptiles/feeding-history'
 import { ShedHistory } from '@/components/reptiles/shed-history'
-import { WeightHistory } from '@/components/reptiles/weight-history'
 import { EnvironmentHistory } from '@/components/reptiles/environment-history'
 import { PhotoGallery } from '@/components/reptiles/photo-gallery'
 import { VetHistory } from '@/components/reptiles/vet-history'
@@ -16,7 +15,6 @@ const VALID_TABS = [
   'overview',
   'feedings',
   'sheds',
-  'weights',
   'environment',
   'photos',
   'vet',
@@ -59,7 +57,6 @@ export function ReptileTabs({ reptileId, reptile }: ReptileTabsProps) {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="feedings">Feedings</TabsTrigger>
           <TabsTrigger value="sheds">Sheds</TabsTrigger>
-          <TabsTrigger value="weights">Weights</TabsTrigger>
           <TabsTrigger value="environment">Environment</TabsTrigger>
           <TabsTrigger value="photos">Photos</TabsTrigger>
           <TabsTrigger value="vet">Vet</TabsTrigger>
@@ -77,10 +74,6 @@ export function ReptileTabs({ reptileId, reptile }: ReptileTabsProps) {
 
       <TabsContent value="sheds">
         <ShedHistory reptileId={reptileId} />
-      </TabsContent>
-
-      <TabsContent value="weights">
-        <WeightHistory reptileId={reptileId} />
       </TabsContent>
 
       <TabsContent value="environment">

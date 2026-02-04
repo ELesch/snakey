@@ -13,7 +13,7 @@ export async function updateLocalSyncStatus(
     reptiles: offlineDb.reptiles,
     feedings: offlineDb.feedings,
     sheds: offlineDb.sheds,
-    weights: offlineDb.weights,
+    measurements: offlineDb.measurements,
     environmentLogs: offlineDb.environmentLogs,
     photos: offlineDb.photos,
   }

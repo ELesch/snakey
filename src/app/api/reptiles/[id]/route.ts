@@ -107,10 +107,10 @@ function buildIncludeOptions(params: {
   include?: string[]
   feedingsLimit: number
   shedsLimit: number
-  weightsLimit: number
+  measurementsLimit: number
   photosLimit: number
 }) {
-  const { include = [], feedingsLimit, shedsLimit, weightsLimit, photosLimit } = params
+  const { include = [], feedingsLimit, shedsLimit, measurementsLimit, photosLimit } = params
 
   const includeOptions: Record<string, boolean | object> = {}
 
@@ -128,9 +128,9 @@ function buildIncludeOptions(params: {
     }
   }
 
-  if (include.includes('weights')) {
-    includeOptions.weights = {
-      take: weightsLimit,
+  if (include.includes('measurements')) {
+    includeOptions.measurements = {
+      take: measurementsLimit,
       orderBy: { date: 'desc' as const },
     }
   }

@@ -27,7 +27,6 @@ const mockReptile: Reptile = {
   sex: 'FEMALE' as Sex,
   birthDate: new Date('2022-06-15'),
   acquisitionDate: new Date('2022-09-01'),
-  currentWeight: null,
   notes: 'Great eater',
   isPublic: false,
   shareId: null,
@@ -266,7 +265,7 @@ describe('ReptileRepository', () => {
       await repository.findById('cltest123456789', {
         include: {
           feedings: { take: 5, orderBy: { date: 'desc' } },
-          weights: true,
+          measurements: true,
         },
       })
 
@@ -274,7 +273,7 @@ describe('ReptileRepository', () => {
         where: { id: 'cltest123456789' },
         include: {
           feedings: { take: 5, orderBy: { date: 'desc' } },
-          weights: true,
+          measurements: true,
         },
       })
     })

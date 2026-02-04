@@ -1,16 +1,22 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useFormState } from '@/hooks/use-form-state'
 import { Button } from '@/components/ui/button'
 import { FormField, FormTextarea, FormCheckbox, FormSelect, FormError } from '@/components/ui/form-field'
 import { ImagePicker } from '@/components/ui/image-picker'
 import { getSpeciesOptions } from '@/lib/species/defaults'
+import {
+  getMeasurementTypesForSpecies,
+  MEASUREMENT_LABELS,
+  MEASUREMENT_UNITS,
+} from '@/lib/species/measurements'
 import { useCreateReptile, useUpdateReptile } from '@/hooks'
 import { Loader2 } from 'lucide-react'
 import { logger } from '@/lib/logger'
 import { processImage } from '@/lib/image-utils'
 import type { Reptile } from '@/generated/prisma/client'
+import type { MeasurementType } from '@/generated/prisma/client'
 
 /**
  * ReptileForm component for creating and editing reptile profiles.
@@ -50,8 +56,8 @@ interface ReptileFormValues extends Record<string, unknown> {
   sex: string
   birthDate: string
   acquisitionDate: string
-  currentWeight: string
-  addToWeightHistory: boolean
+  initialMeasurements: Record<string, string>
+  currentMeasurements: Record<string, string>
   notes: string
   isPublic: boolean
 }
@@ -62,9 +68,101 @@ const SEX_OPTIONS = [
   { value: 'UNKNOWN', label: 'Unknown' },
 ]
 
+/**
+ * MeasurementsSection - Renders species-aware measurement fields
+ */
+interface MeasurementsSectionProps {
+  species: string
+  acquisitionDate: string
+  initialMeasurements: Record<string, string>
+  currentMeasurements: Record<string, string>
+  onInitialChange: (type: string, value: string) => void
+  onCurrentChange: (type: string, value: string) => void
+  disabled: boolean
+  errors?: { initial?: string; current?: string }
+}
+
+function MeasurementsSection({
+  species,
+  acquisitionDate,
+  initialMeasurements,
+  currentMeasurements,
+  onInitialChange,
+  onCurrentChange,
+  disabled,
+  errors,
+}: MeasurementsSectionProps) {
+  const measurementTypes = useMemo(
+    () => getMeasurementTypesForSpecies(species),
+    [species]
+  )
+
+  // Determine if acquisition date is today
+  // Compare just the date strings to avoid timezone issues
+  const todayStr = new Date().toISOString().split('T')[0]
+  const showCurrentSection = acquisitionDate !== todayStr
+
+  if (measurementTypes.length === 0) return null
+
+  return (
+    <div className="space-y-4">
+      {/* Initial Measurements Section */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-warm-700 dark:text-warm-200">
+          Initial Measurements (at acquisition)
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {measurementTypes.map((type) => (
+            <FormField
+              key={`initial-${type}`}
+              id={`initial-${type}`}
+              name={`initial-${type}`}
+              label={`${MEASUREMENT_LABELS[type]} (${MEASUREMENT_UNITS[type]})`}
+              type="number"
+              placeholder={`Enter ${MEASUREMENT_LABELS[type].toLowerCase()}`}
+              value={initialMeasurements[type] || ''}
+              onChange={(e) => onInitialChange(type, e.target.value)}
+              disabled={disabled}
+            />
+          ))}
+        </div>
+        {errors?.initial && (
+          <p className="text-sm text-destructive">{errors.initial}</p>
+        )}
+      </div>
+
+      {/* Current Measurements Section (only if acquisition date is not today) */}
+      {showCurrentSection && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-warm-700 dark:text-warm-200">
+            Current Measurements (optional)
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {measurementTypes.map((type) => (
+              <FormField
+                key={`current-${type}`}
+                id={`current-${type}`}
+                name={`current-${type}`}
+                label={`${MEASUREMENT_LABELS[type]} (${MEASUREMENT_UNITS[type]})`}
+                type="number"
+                placeholder={`Enter current ${MEASUREMENT_LABELS[type].toLowerCase()}`}
+                value={currentMeasurements[type] || ''}
+                onChange={(e) => onCurrentChange(type, e.target.value)}
+                disabled={disabled}
+              />
+            ))}
+          </div>
+          {errors?.current && (
+            <p className="text-sm text-destructive">{errors.current}</p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function getInitialValues(initialData?: Partial<Reptile>): ReptileFormValues {
   const today = new Date().toISOString().split('T')[0]
-  const currentWeight = initialData?.currentWeight
   return {
     name: initialData?.name || '',
     species: initialData?.species || '',
@@ -74,8 +172,8 @@ function getInitialValues(initialData?: Partial<Reptile>): ReptileFormValues {
       ? new Date(initialData.birthDate).toISOString().split('T')[0] : '',
     acquisitionDate: initialData?.acquisitionDate
       ? new Date(initialData.acquisitionDate).toISOString().split('T')[0] : today,
-    currentWeight: currentWeight != null ? String(currentWeight) : '',
-    addToWeightHistory: true,
+    initialMeasurements: {},
+    currentMeasurements: {},
     notes: initialData?.notes || '',
     isPublic: initialData?.isPublic || false,
   }
@@ -88,12 +186,29 @@ function validateReptileForm(
   if (!values.name.trim()) errors.name = 'Name is required'
   if (!values.species) errors.species = 'Species is required'
   if (!values.acquisitionDate) errors.acquisitionDate = 'Acquisition date is required'
-  if (values.currentWeight) {
-    const weight = parseFloat(values.currentWeight)
-    if (isNaN(weight) || weight <= 0) {
-      errors.currentWeight = 'Weight must be a positive number'
+
+  // Validate initial measurements (all must be positive if provided)
+  for (const [type, value] of Object.entries(values.initialMeasurements)) {
+    if (value) {
+      const num = parseFloat(value)
+      if (isNaN(num) || num <= 0) {
+        errors.initialMeasurements = `Initial ${type.toLowerCase().replace('_', ' ')} must be a positive number`
+        break
+      }
     }
   }
+
+  // Validate current measurements (all must be positive if provided)
+  for (const [type, value] of Object.entries(values.currentMeasurements)) {
+    if (value) {
+      const num = parseFloat(value)
+      if (isNaN(num) || num <= 0) {
+        errors.currentMeasurements = `Current ${type.toLowerCase().replace('_', ' ')} must be a positive number`
+        break
+      }
+    }
+  }
+
   return errors
 }
 
@@ -175,19 +290,73 @@ export function ReptileForm({
           }
         }
 
-        // Step 3: Create weight record if requested
-        const weightValue = parseFloat(formValues.currentWeight)
-        if (formValues.addToWeightHistory && weightValue > 0) {
-          setSavingStatus('Recording weight...')
-          try {
-            await createWeightRecord(savedReptile.id, weightValue)
-          } catch (weightErr) {
-            // Weight record failed but reptile was created successfully
-            // Log error but don't fail the entire operation
-            logger.error(
-              { err: weightErr, reptileId: savedReptile.id },
-              'Failed to create weight record'
-            )
+        // Step 3: Create measurement records
+        const acquisitionDate = new Date(formValues.acquisitionDate)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const isAcquisitionToday = acquisitionDate.toDateString() === today.toDateString()
+
+        // Get measurement types for species
+        const measurementTypes = getMeasurementTypesForSpecies(formValues.species)
+
+        // Create initial measurements (at acquisition date)
+        const initialMeasurements = Object.entries(formValues.initialMeasurements)
+          .filter(([type, value]) => value && measurementTypes.includes(type as MeasurementType))
+
+        if (initialMeasurements.length > 0) {
+          setSavingStatus('Recording initial measurements...')
+          for (const [type, value] of initialMeasurements) {
+            const numValue = parseFloat(value)
+            if (numValue > 0) {
+              try {
+                await createMeasurement(
+                  savedReptile.id,
+                  type as MeasurementType,
+                  numValue,
+                  MEASUREMENT_UNITS[type as MeasurementType],
+                  acquisitionDate
+                )
+              } catch (measureErr) {
+                logger.error(
+                  { err: measureErr, reptileId: savedReptile.id, type },
+                  'Failed to create initial measurement'
+                )
+              }
+            }
+          }
+        }
+
+        // Create current measurements (only if acquisition date is not today and value differs)
+        if (!isAcquisitionToday) {
+          const currentMeasurements = Object.entries(formValues.currentMeasurements)
+            .filter(([type, value]) => {
+              if (!value || !measurementTypes.includes(type as MeasurementType)) return false
+              // Only create if value differs from initial or no initial value
+              const initialValue = formValues.initialMeasurements[type]
+              return !initialValue || value !== initialValue
+            })
+
+          if (currentMeasurements.length > 0) {
+            setSavingStatus('Recording current measurements...')
+            for (const [type, value] of currentMeasurements) {
+              const numValue = parseFloat(value)
+              if (numValue > 0) {
+                try {
+                  await createMeasurement(
+                    savedReptile.id,
+                    type as MeasurementType,
+                    numValue,
+                    MEASUREMENT_UNITS[type as MeasurementType],
+                    today
+                  )
+                } catch (measureErr) {
+                  logger.error(
+                    { err: measureErr, reptileId: savedReptile.id, type },
+                    'Failed to create current measurement'
+                  )
+                }
+              }
+            }
           }
         }
 
@@ -223,19 +392,21 @@ export function ReptileForm({
     }
   }
 
-  // Create weight record
-  async function createWeightRecord(targetReptileId: string, weight: number): Promise<void> {
-    const res = await fetch(`/api/reptiles/${targetReptileId}/weights`, {
+  // Create measurement record
+  async function createMeasurement(
+    targetReptileId: string,
+    type: MeasurementType,
+    value: number,
+    unit: string,
+    date: Date
+  ): Promise<void> {
+    const res = await fetch(`/api/reptiles/${targetReptileId}/measurements`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        weight,
-        date: new Date().toISOString(),
-      }),
+      body: JSON.stringify({ type, value, unit, date: date.toISOString() }),
     })
-
     if (!res.ok) {
-      throw new Error('Failed to create weight record')
+      throw new Error(`Failed to create ${type} measurement`)
     }
   }
 
@@ -278,14 +449,31 @@ export function ReptileForm({
           disabled={isPending} error={errors.acquisitionDate} />
       </div>
 
-      <FormField id="currentWeight" name="currentWeight" label="Initial Weight (g)" type="number"
-        placeholder="Enter weight in grams" value={values.currentWeight} onChange={handleChange}
-        disabled={isPending} error={errors.currentWeight} />
-
-      {parseFloat(values.currentWeight) > 0 && (
-        <FormCheckbox id="addToWeightHistory" name="addToWeightHistory"
-          label="Add to weight history"
-          checked={values.addToWeightHistory as boolean} onChange={handleChange} disabled={isPending} />
+      {/* Species-aware Measurements Section */}
+      {values.species && (
+        <MeasurementsSection
+          species={values.species}
+          acquisitionDate={values.acquisitionDate}
+          initialMeasurements={values.initialMeasurements as Record<string, string>}
+          currentMeasurements={values.currentMeasurements as Record<string, string>}
+          onInitialChange={(type, value) => {
+            setFieldValue('initialMeasurements', {
+              ...values.initialMeasurements,
+              [type]: value,
+            })
+          }}
+          onCurrentChange={(type, value) => {
+            setFieldValue('currentMeasurements', {
+              ...values.currentMeasurements,
+              [type]: value,
+            })
+          }}
+          disabled={isPending}
+          errors={{
+            initial: errors.initialMeasurements as string | undefined,
+            current: errors.currentMeasurements as string | undefined,
+          }}
+        />
       )}
 
       <FormTextarea id="notes" name="notes" label="Notes" rows={3}

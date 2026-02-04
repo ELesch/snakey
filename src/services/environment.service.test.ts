@@ -69,7 +69,6 @@ interface MockReptile {
   sex: Sex
   birthDate: Date | null
   acquisitionDate: Date
-  currentWeight: number | null
   notes: string | null
   isPublic: boolean
   shareId: string | null
@@ -87,7 +86,6 @@ const mockReptile: MockReptile = {
   sex: 'FEMALE' as Sex,
   birthDate: new Date('2022-06-15'),
   acquisitionDate: new Date('2022-09-01'),
-  currentWeight: 1250.5,
   notes: 'Great eater',
   isPublic: false,
   shareId: null,

@@ -10,7 +10,7 @@ import { prisma } from '@/lib/db/client'
 import { ReptileService } from './reptile.service'
 import { FeedingService } from './feeding.service'
 import { ShedService } from './shed.service'
-import { WeightService } from './weight.service'
+import { MeasurementService } from './measurement.service'
 import { EnvironmentService } from './environment.service'
 import { PhotoService } from './photo.service'
 
@@ -24,7 +24,7 @@ type SyncTable =
   | 'reptiles'
   | 'feedings'
   | 'sheds'
-  | 'weights'
+  | 'measurements'
   | 'environmentLogs'
   | 'photos'
 
@@ -55,7 +55,7 @@ export interface ChangesSinceResult {
   reptiles: unknown[]
   feedings: unknown[]
   sheds: unknown[]
-  weights: unknown[]
+  measurements: unknown[]
   environmentLogs: unknown[]
   photos: unknown[]
   serverTimestamp: number
@@ -65,7 +65,7 @@ export class SyncService {
   private reptileService: ReptileService
   private feedingService: FeedingService
   private shedService: ShedService
-  private weightService: WeightService
+  private measurementService: MeasurementService
   private environmentService: EnvironmentService
   private photoService: PhotoService
 
@@ -73,7 +73,7 @@ export class SyncService {
     this.reptileService = new ReptileService()
     this.feedingService = new FeedingService()
     this.shedService = new ShedService()
-    this.weightService = new WeightService()
+    this.measurementService = new MeasurementService()
     this.environmentService = new EnvironmentService()
     this.photoService = new PhotoService()
   }
@@ -160,7 +160,7 @@ export class SyncService {
   ): Promise<ChangesSinceResult> {
     log.info({ userId, since }, 'Getting changes since timestamp')
 
-    const [reptiles, feedings, sheds, weights, environmentLogs, photos] =
+    const [reptiles, feedings, sheds, measurements, environmentLogs, photos] =
       await Promise.all([
         prisma.reptile.findMany({
           where: {
@@ -180,7 +180,7 @@ export class SyncService {
             updatedAt: { gte: since },
           },
         }),
-        prisma.weight.findMany({
+        prisma.measurement.findMany({
           where: {
             reptile: { userId },
             updatedAt: { gte: since },
@@ -204,7 +204,7 @@ export class SyncService {
       reptiles,
       feedings,
       sheds,
-      weights,
+      measurements,
       environmentLogs,
       photos,
       serverTimestamp: Date.now(),
@@ -219,7 +219,7 @@ export class SyncService {
       'reptiles',
       'feedings',
       'sheds',
-      'weights',
+      'measurements',
       'environmentLogs',
       'photos',
     ].includes(table)
@@ -285,8 +285,8 @@ export class SyncService {
         return this.feedingService.getById(userId, recordId)
       case 'sheds':
         return this.shedService.getById(userId, recordId)
-      case 'weights':
-        return this.weightService.getById(userId, recordId)
+      case 'measurements':
+        return this.measurementService.getById(userId, recordId)
       case 'environmentLogs':
         return this.environmentService.getById(userId, recordId)
       case 'photos':
@@ -313,8 +313,8 @@ export class SyncService {
         return this.handleFeedingOperation(userId, op, recordId, payload)
       case 'sheds':
         return this.handleShedOperation(userId, op, recordId, payload)
-      case 'weights':
-        return this.handleWeightOperation(userId, op, recordId, payload)
+      case 'measurements':
+        return this.handleMeasurementOperation(userId, op, recordId, payload)
       case 'environmentLogs':
         return this.handleEnvironmentOperation(userId, op, recordId, payload)
       case 'photos':
@@ -412,9 +412,9 @@ export class SyncService {
   }
 
   /**
-   * Handle weight CRUD operations
+   * Handle measurement CRUD operations
    */
-  private async handleWeightOperation(
+  private async handleMeasurementOperation(
     userId: string,
     op: 'CREATE' | 'UPDATE' | 'DELETE',
     recordId: string,
@@ -428,15 +428,15 @@ export class SyncService {
         if (!reptileId) {
           throw new SyncValidationError('reptileId is required')
         }
-        const record = await this.weightService.create(userId, reptileId, payload)
+        const record = await this.measurementService.create(userId, reptileId, payload)
         return { success: true, recordId: record.id, record }
       }
       case 'UPDATE': {
-        const record = await this.weightService.update(userId, recordId, payload)
+        const record = await this.measurementService.update(userId, recordId, payload)
         return { success: true, recordId, record }
       }
       case 'DELETE': {
-        await this.weightService.delete(userId, recordId)
+        await this.measurementService.delete(userId, recordId)
         return { success: true, recordId }
       }
     }

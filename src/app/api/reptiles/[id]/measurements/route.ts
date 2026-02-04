@@ -1,8 +1,8 @@
-// API Route: /api/reptiles/[id]/weights - GET (list), POST (create)
+// API Route: /api/reptiles/[id]/measurements - GET (list), POST (create)
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserId } from '@/lib/supabase/server'
-import { WeightService } from '@/services/weight.service'
-import { WeightQuerySchema } from '@/validations/weight'
+import { MeasurementService } from '@/services/measurement.service'
+import { MeasurementQuerySchema } from '@/validations/measurement'
 import { withErrorHandler } from '@/lib/api/error-handler'
 import {
   successResponse,
@@ -10,14 +10,23 @@ import {
   invalidQueryParamsResponse,
 } from '@/lib/api/response'
 
-const weightService = new WeightService()
+const measurementService = new MeasurementService()
 
 interface RouteParams {
   params: Promise<{ id: string }>
 }
 
 /**
- * GET /api/reptiles/[id]/weights - List all weights for a reptile
+ * GET /api/reptiles/[id]/measurements - List all measurements for a reptile
+ *
+ * Query params:
+ * - type: Optional MeasurementType to filter by (WEIGHT, LENGTH, SHELL_LENGTH, etc.)
+ * - page: Page number (default: 1)
+ * - limit: Items per page (default: 20, max: 100)
+ * - sort: Sort field (date, value, type, createdAt)
+ * - order: Sort order (asc, desc)
+ * - startDate: Filter measurements on or after this date
+ * - endDate: Filter measurements on or before this date
  */
 export const GET = withErrorHandler(
   async (request: NextRequest, { params }: RouteParams) => {
@@ -34,7 +43,7 @@ export const GET = withErrorHandler(
     for (const [key, value] of searchParams.entries()) {
       if (value) rawParams[key] = value
     }
-    const queryResult = WeightQuerySchema.safeParse(rawParams)
+    const queryResult = MeasurementQuerySchema.safeParse(rawParams)
 
     if (!queryResult.success) {
       const issues = queryResult.error.issues || []
@@ -44,15 +53,22 @@ export const GET = withErrorHandler(
       )
     }
 
-    const result = await weightService.list(userId, reptileId, queryResult.data)
+    const result = await measurementService.list(userId, reptileId, queryResult.data)
 
     return NextResponse.json(result)
   },
-  'WeightAPI'
+  'MeasurementAPI'
 )
 
 /**
- * POST /api/reptiles/[id]/weights - Create a new weight record
+ * POST /api/reptiles/[id]/measurements - Create a new measurement record
+ *
+ * Request body:
+ * - type: MeasurementType (WEIGHT, LENGTH, SHELL_LENGTH, SHELL_WIDTH, SNOUT_TO_VENT, TAIL_LENGTH)
+ * - value: number (positive)
+ * - unit: string (e.g., "g", "cm", "in")
+ * - date: ISO date string
+ * - notes: Optional string (max 2000 chars)
  */
 export const POST = withErrorHandler(
   async (request: NextRequest, { params }: RouteParams) => {
@@ -64,9 +80,9 @@ export const POST = withErrorHandler(
     }
 
     const body = await request.json()
-    const weight = await weightService.create(userId, reptileId, body)
+    const measurement = await measurementService.create(userId, reptileId, body)
 
-    return successResponse(weight, undefined, 201)
+    return successResponse(measurement, undefined, 201)
   },
-  'WeightAPI'
+  'MeasurementAPI'
 )

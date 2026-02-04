@@ -18,7 +18,7 @@ export interface FindByIdOptions {
   include?: {
     feedings?: boolean | { take: number; orderBy: { date: 'desc' } }
     sheds?: boolean | { take: number; orderBy: { completedDate: 'desc' } }
-    weights?: boolean | { take: number; orderBy: { date: 'desc' } }
+    measurements?: boolean | { take: number; orderBy: { date: 'desc' } }
     photos?: boolean | { take: number; orderBy: { takenAt: 'desc' } }
     vetVisits?: boolean | { take: number; orderBy: { date: 'desc' } }
     medications?: boolean

@@ -12,7 +12,7 @@ import {
 import { ReptileService } from './reptile.service'
 import { FeedingService } from './feeding.service'
 import { ShedService } from './shed.service'
-import { WeightService } from './weight.service'
+import { MeasurementService } from './measurement.service'
 import { EnvironmentService } from './environment.service'
 import { PhotoService } from './photo.service'
 import { ReptileRepository } from '@/repositories/reptile.repository'
@@ -21,7 +21,7 @@ import { ReptileRepository } from '@/repositories/reptile.repository'
 vi.mock('./reptile.service')
 vi.mock('./feeding.service')
 vi.mock('./shed.service')
-vi.mock('./weight.service')
+vi.mock('./measurement.service')
 vi.mock('./environment.service')
 vi.mock('./photo.service')
 vi.mock('@/repositories/reptile.repository')
@@ -43,7 +43,7 @@ vi.mock('@/lib/db/client', () => ({
     reptile: { findMany: vi.fn(), findUnique: vi.fn() },
     feeding: { findMany: vi.fn() },
     shed: { findMany: vi.fn() },
-    weight: { findMany: vi.fn() },
+    measurement: { findMany: vi.fn() },
     environmentLog: { findMany: vi.fn() },
     photo: { findMany: vi.fn() },
   },
@@ -69,7 +69,7 @@ describe('SyncService', () => {
     delete: Mock
     getById: Mock
   }
-  let mockWeightService: {
+  let mockMeasurementService: {
     create: Mock
     update: Mock
     delete: Mock
@@ -117,7 +117,7 @@ describe('SyncService', () => {
       delete: vi.fn(),
       getById: vi.fn(),
     }
-    mockWeightService = {
+    mockMeasurementService = {
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
@@ -148,8 +148,8 @@ describe('SyncService', () => {
     vi.mocked(ShedService).mockImplementation(
       () => mockShedService as unknown as ShedService
     )
-    vi.mocked(WeightService).mockImplementation(
-      () => mockWeightService as unknown as WeightService
+    vi.mocked(MeasurementService).mockImplementation(
+      () => mockMeasurementService as unknown as MeasurementService
     )
     vi.mocked(EnvironmentService).mockImplementation(
       () => mockEnvironmentService as unknown as EnvironmentService
@@ -548,14 +548,16 @@ describe('SyncService', () => {
         )
       })
 
-      it('should process CREATE operation for weights', async () => {
+      it('should process CREATE operation for measurements', async () => {
         const payload = {
           id: mockRecordId,
           reptileId: mockReptileId,
           date: new Date('2023-06-15'),
-          weight: 250.5,
+          type: 'WEIGHT',
+          value: 250.5,
+          unit: 'g',
         }
-        mockWeightService.create.mockResolvedValue({ ...payload })
+        mockMeasurementService.create.mockResolvedValue({ ...payload })
 
         const operation: SyncOperation = {
           operation: 'CREATE',
@@ -566,12 +568,12 @@ describe('SyncService', () => {
 
         const result = await service.processSyncOperation(
           mockUserId,
-          'weights',
+          'measurements',
           operation
         )
 
         expect(result.success).toBe(true)
-        expect(mockWeightService.create).toHaveBeenCalledWith(
+        expect(mockMeasurementService.create).toHaveBeenCalledWith(
           mockUserId,
           mockReptileId,
           payload
@@ -776,7 +778,7 @@ describe('SyncService', () => {
         reptile: { findMany: Mock }
         feeding: { findMany: Mock }
         shed: { findMany: Mock }
-        weight: { findMany: Mock }
+        measurement: { findMany: Mock }
         environmentLog: { findMany: Mock }
         photo: { findMany: Mock }
       }
@@ -791,7 +793,7 @@ describe('SyncService', () => {
       prisma.reptile.findMany.mockResolvedValue(mockReptiles)
       prisma.feeding.findMany.mockResolvedValue(mockFeedings)
       prisma.shed.findMany.mockResolvedValue([])
-      prisma.weight.findMany.mockResolvedValue([])
+      prisma.measurement.findMany.mockResolvedValue([])
       prisma.environmentLog.findMany.mockResolvedValue([])
       prisma.photo.findMany.mockResolvedValue([])
 
@@ -800,7 +802,7 @@ describe('SyncService', () => {
       expect(changes.reptiles).toEqual(mockReptiles)
       expect(changes.feedings).toEqual(mockFeedings)
       expect(changes.sheds).toEqual([])
-      expect(changes.weights).toEqual([])
+      expect(changes.measurements).toEqual([])
       expect(changes.environmentLogs).toEqual([])
       expect(changes.photos).toEqual([])
       expect(changes.serverTimestamp).toBeDefined()

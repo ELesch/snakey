@@ -124,7 +124,6 @@ export class ReptileService {
       sex: validated.sex,
       birthDate: validated.birthDate ?? null,
       acquisitionDate: validated.acquisitionDate,
-      currentWeight: validated.currentWeight ?? null,
       notes: validated.notes ?? null,
       isPublic: validated.isPublic,
     })

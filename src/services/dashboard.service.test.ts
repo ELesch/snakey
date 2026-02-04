@@ -16,7 +16,7 @@ vi.mock('@/lib/db/client', () => ({
     shed: {
       findMany: vi.fn(),
     },
-    weight: {
+    measurement: {
       findMany: vi.fn(),
       count: vi.fn(),
     },
@@ -51,7 +51,7 @@ describe('DashboardService', () => {
       mockedPrisma.$queryRawUnsafe.mockResolvedValue([{ count: BigInt(1) }])
 
       // Mock for weight count
-      mockedPrisma.weight.count.mockResolvedValue(2)
+      mockedPrisma.measurement.count.mockResolvedValue(2)
 
       // Mock for environment alerts count
       mockedPrisma.environmentLog.count.mockResolvedValue(1)
@@ -61,7 +61,7 @@ describe('DashboardService', () => {
       expect(stats).toEqual({
         totalReptiles: 5,
         feedingsDue: 1,
-        recentWeights: 2,
+        recentMeasurements: 2,
         environmentAlerts: 1,
       })
       expect(mockedPrisma.reptile.count).toHaveBeenCalledWith({
@@ -76,7 +76,7 @@ describe('DashboardService', () => {
       // The service should use a single aggregation query instead of N+1
       mockedPrisma.$queryRawUnsafe.mockResolvedValue([{ count: BigInt(2) }])
 
-      mockedPrisma.weight.count.mockResolvedValue(0)
+      mockedPrisma.measurement.count.mockResolvedValue(0)
       mockedPrisma.environmentLog.count.mockResolvedValue(0)
 
       const stats = await service.getStats(userId)
@@ -92,7 +92,7 @@ describe('DashboardService', () => {
       // Mock the optimized query result
       mockedPrisma.$queryRawUnsafe.mockResolvedValue([{ count: BigInt(42) }])
 
-      mockedPrisma.weight.count.mockResolvedValue(0)
+      mockedPrisma.measurement.count.mockResolvedValue(0)
       mockedPrisma.environmentLog.count.mockResolvedValue(0)
 
       const stats = await service.getStats(userId)
@@ -155,7 +155,7 @@ describe('DashboardService', () => {
         },
       ] as never)
       mockedPrisma.shed.findMany.mockResolvedValue([])
-      mockedPrisma.weight.findMany.mockResolvedValue([])
+      mockedPrisma.measurement.findMany.mockResolvedValue([])
 
       const activity = await service.getRecentActivity(userId, 10)
 
@@ -189,7 +189,7 @@ describe('DashboardService', () => {
           reptile: { id: 'r2', name: 'Scales' },
         },
       ] as never)
-      mockedPrisma.weight.findMany.mockResolvedValue([])
+      mockedPrisma.measurement.findMany.mockResolvedValue([])
 
       const activity = await service.getRecentActivity(userId, 10)
 

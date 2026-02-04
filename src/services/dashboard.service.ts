@@ -13,7 +13,7 @@ const log = createLogger('DashboardService')
 export interface DashboardStats {
   totalReptiles: number
   feedingsDue: number
-  recentWeights: number
+  recentMeasurements: number
   environmentAlerts: number
 }
 
@@ -38,7 +38,7 @@ export interface EnvironmentAlert {
   date: Date
 }
 
-export type ActivityType = 'feeding' | 'shed' | 'weight' | 'environment' | 'photo'
+export type ActivityType = 'feeding' | 'shed' | 'measurement' | 'environment' | 'photo'
 
 export interface Activity {
   id: string
@@ -60,7 +60,7 @@ export class DashboardService {
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-    const [totalReptiles, feedingsDue, recentWeights, environmentAlerts] =
+    const [totalReptiles, feedingsDue, recentMeasurements, environmentAlerts] =
       await Promise.all([
         // Count non-deleted reptiles
         prisma.reptile.count({
@@ -70,8 +70,8 @@ export class DashboardService {
         // Count feedings due (reptiles that need feeding in next 7 days)
         this.countFeedingsDue(userId),
 
-        // Count weight records in last 30 days
-        prisma.weight.count({
+        // Count measurement records in last 30 days
+        prisma.measurement.count({
           where: {
             reptile: { userId, deletedAt: null },
             date: { gte: thirtyDaysAgo },
@@ -91,7 +91,7 @@ export class DashboardService {
     return {
       totalReptiles,
       feedingsDue,
-      recentWeights,
+      recentMeasurements,
       environmentAlerts,
     }
   }
@@ -218,7 +218,7 @@ export class DashboardService {
 
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
-    const [feedings, sheds, weights] = await Promise.all([
+    const [feedings, sheds, measurements] = await Promise.all([
       prisma.feeding.findMany({
         where: {
           reptile: { userId, deletedAt: null },
@@ -239,7 +239,7 @@ export class DashboardService {
         take: limit,
       }),
 
-      prisma.weight.findMany({
+      prisma.measurement.findMany({
         where: {
           reptile: { userId, deletedAt: null },
           date: { gte: thirtyDaysAgo },
@@ -281,15 +281,15 @@ export class DashboardService {
       })
     }
 
-    // Convert weights to activities
-    for (const weight of weights) {
+    // Convert measurements to activities
+    for (const measurement of measurements) {
       activities.push({
-        id: weight.id,
-        type: 'weight',
-        reptileId: weight.reptile.id,
-        reptileName: weight.reptile.name,
-        description: `Weighed ${formatWeight(weight.weight)}g`,
-        timestamp: weight.date,
+        id: measurement.id,
+        type: 'measurement',
+        reptileId: measurement.reptile.id,
+        reptileName: measurement.reptile.name,
+        description: `Recorded ${measurement.type.toLowerCase()}: ${formatMeasurement(measurement.value)}${measurement.unit}`,
+        timestamp: measurement.date,
       })
     }
 
@@ -357,9 +357,9 @@ export class DashboardService {
   }
 }
 
-// Helper to format weight (handles Prisma Decimal type)
-function formatWeight(weight: unknown): string {
-  return Number(weight).toFixed(1)
+// Helper to format measurement value (handles Prisma Decimal type)
+function formatMeasurement(value: unknown): string {
+  return Number(value).toFixed(1)
 }
 
 // Singleton instance

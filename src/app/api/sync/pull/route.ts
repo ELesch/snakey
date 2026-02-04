@@ -56,7 +56,7 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     changes.reptiles.length +
     changes.feedings.length +
     changes.sheds.length +
-    changes.weights.length +
+    changes.measurements.length +
     changes.environmentLogs.length +
     changes.photos.length
 
@@ -66,7 +66,7 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
       reptiles: changes.reptiles.length,
       feedings: changes.feedings.length,
       sheds: changes.sheds.length,
-      weights: changes.weights.length,
+      measurements: changes.measurements.length,
       environmentLogs: changes.environmentLogs.length,
       photos: changes.photos.length,
       total: totalChanges,

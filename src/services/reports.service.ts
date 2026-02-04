@@ -123,13 +123,13 @@ export class ReportsService {
   ): Promise<GrowthDataResponse> {
     log.info({ userId, filters }, 'Fetching growth data')
 
-    const where = this.buildWeightWhere(userId, filters)
+    const where = this.buildMeasurementWhere(userId, filters)
     const limit = Math.min(pagination?.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
     const offset = pagination?.offset ?? 0
 
-    const [weights, total] = await Promise.all([
-      prisma.weight.findMany({
-        where,
+    const [measurements, total] = await Promise.all([
+      prisma.measurement.findMany({
+        where: { ...where, type: 'WEIGHT' },
         include: {
           reptile: {
             select: { id: true, name: true, userId: true },
@@ -139,14 +139,14 @@ export class ReportsService {
         take: limit,
         skip: offset,
       }),
-      prisma.weight.count({ where }),
+      prisma.measurement.count({ where: { ...where, type: 'WEIGHT' } }),
     ])
 
-    const data: GrowthDataPoint[] = weights.map((w) => ({
-      date: w.date.toISOString(),
-      weight: Number(w.weight),
-      reptileId: w.reptileId,
-      reptileName: w.reptile.name,
+    const data: GrowthDataPoint[] = measurements.map((m) => ({
+      date: m.date.toISOString(),
+      weight: Number(m.value),
+      reptileId: m.reptileId,
+      reptileName: m.reptile.name,
     }))
 
     return {
@@ -439,8 +439,8 @@ export class ReportsService {
   // Private helper methods
   // ============================================================================
 
-  private buildWeightWhere(userId: string, filters: ReportFilters): Prisma.WeightWhereInput {
-    const where: Prisma.WeightWhereInput = {
+  private buildMeasurementWhere(userId: string, filters: ReportFilters): Prisma.MeasurementWhereInput {
+    const where: Prisma.MeasurementWhereInput = {
       reptile: { userId, deletedAt: null },
     }
 
