@@ -105,9 +105,9 @@ export function PhotoAttachment({
         className="border-2 border-dashed border-warm-300 rounded-lg p-4 text-center hover:border-primary transition-colors"
       >
         <ImageIcon className="h-8 w-8 mx-auto mb-2 text-warm-400" />
-        <p className="text-sm text-warm-800 mb-2">Attach a photo (optional)</p>
+        <p className="text-sm text-warm-800 dark:text-warm-200 mb-2">Attach a photo (optional)</p>
         <label>
-          <span className="cursor-pointer inline-flex items-center px-3 py-1.5 bg-warm-100 text-warm-900 rounded-md hover:bg-warm-200 transition-colors text-sm">
+          <span className="cursor-pointer inline-flex items-center px-3 py-1.5 bg-warm-100 dark:bg-warm-800 text-warm-900 dark:text-warm-100 rounded-md hover:bg-warm-200 dark:hover:bg-warm-700 transition-colors text-sm">
             Choose File
           </span>
           <input
@@ -128,7 +128,7 @@ export function PhotoAttachment({
         <img
           src={preview!}
           alt="Preview"
-          className="w-24 h-24 object-cover rounded-lg bg-warm-100"
+          className="w-24 h-24 object-cover rounded-lg bg-warm-100 dark:bg-warm-800"
         />
         <button
           type="button"
@@ -151,7 +151,7 @@ export function PhotoAttachment({
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-xs text-warm-700 text-right">{progress}%</p>
+          <p className="text-xs text-warm-700 dark:text-warm-300 text-right">{progress}%</p>
         </div>
       )}
 

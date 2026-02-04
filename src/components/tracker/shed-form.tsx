@@ -82,7 +82,7 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
         <div>
           <label
             htmlFor="startDate"
-            className="block text-sm font-medium text-warm-800 mb-1"
+            className="block text-sm font-medium text-warm-800 dark:text-warm-200 mb-1"
           >
             Started (Blue Phase)
           </label>
@@ -105,7 +105,7 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
         <div>
           <label
             htmlFor="completedDate"
-            className="block text-sm font-medium text-warm-800 mb-1"
+            className="block text-sm font-medium text-warm-800 dark:text-warm-200 mb-1"
           >
             Completed <span className="text-red-500">*</span>
           </label>
@@ -129,7 +129,7 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
       <div>
         <label
           htmlFor="quality"
-          className="block text-sm font-medium text-warm-800 mb-1"
+          className="block text-sm font-medium text-warm-800 dark:text-warm-200 mb-1"
         >
           Shed Quality
         </label>
@@ -160,14 +160,14 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
           onChange={handleChange}
           className="h-4 w-4 rounded border-warm-300 text-primary focus:ring-primary"
         />
-        <span className="text-sm text-warm-800">Shed is complete</span>
+        <span className="text-sm text-warm-800 dark:text-warm-200">Shed is complete</span>
       </label>
 
       {values.quality === 'PROBLEMATIC' && (
         <div>
           <label
             htmlFor="issues"
-            className="block text-sm font-medium text-warm-800 mb-1"
+            className="block text-sm font-medium text-warm-800 dark:text-warm-200 mb-1"
           >
             Issues
           </label>
@@ -186,7 +186,7 @@ export function ShedForm({ reptileId, onSuccess }: ShedFormProps) {
       <div>
         <label
           htmlFor="shed-notes"
-          className="block text-sm font-medium text-warm-800 mb-1"
+          className="block text-sm font-medium text-warm-800 dark:text-warm-200 mb-1"
         >
           Notes
         </label>

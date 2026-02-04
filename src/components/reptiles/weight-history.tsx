@@ -66,8 +66,8 @@ export function WeightHistory({ reptileId }: WeightHistoryProps) {
       <Card>
         <CardContent className="py-12 text-center">
           <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-400" aria-hidden="true" />
-          <p className="text-warm-700">Failed to load weight history</p>
-          <p className="text-sm text-warm-700">{error?.message}</p>
+          <p className="text-warm-700 dark:text-warm-300">Failed to load weight history</p>
+          <p className="text-sm text-warm-700 dark:text-warm-300">{error?.message}</p>
         </CardContent>
       </Card>
     )
@@ -115,9 +115,9 @@ export function WeightHistory({ reptileId }: WeightHistoryProps) {
       {weights.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <Scale className="h-12 w-12 mx-auto mb-4 text-warm-300" aria-hidden="true" />
-            <p className="text-warm-700">No weight records yet</p>
-            <p className="text-sm text-warm-700">Click &quot;Log Weight&quot; to add one</p>
+            <Scale className="h-12 w-12 mx-auto mb-4 text-warm-300 dark:text-warm-600" aria-hidden="true" />
+            <p className="text-warm-700 dark:text-warm-300">No weight records yet</p>
+            <p className="text-sm text-warm-700 dark:text-warm-300">Click &quot;Log Weight&quot; to add one</p>
           </CardContent>
         </Card>
       ) : (

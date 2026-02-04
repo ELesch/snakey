@@ -59,7 +59,7 @@ const HatchlingItem = memo(function HatchlingItem({
             #{index + 1}
             {hatchling.morph && ` - ${hatchling.morph}`}
           </p>
-          <div className="flex items-center gap-2 text-xs text-warm-700">
+          <div className="flex items-center gap-2 text-xs text-warm-700 dark:text-warm-300">
             <span
               className={`px-1.5 py-0.5 rounded text-xs ${statusColors[hatchling.status]}`}
             >
@@ -132,8 +132,8 @@ export function HatchlingList({ clutchId }: HatchlingListProps) {
     return (
       <div className="space-y-2">
         {[1, 2].map((i) => (
-          <div key={i} className="animate-pulse bg-warm-100 rounded p-2">
-            <div className="h-2 bg-warm-200 rounded w-1/4" />
+          <div key={i} className="animate-pulse bg-warm-100 dark:bg-warm-800 rounded p-2">
+            <div className="h-2 bg-warm-200 dark:bg-warm-700 rounded w-1/4" />
           </div>
         ))}
       </div>
@@ -154,7 +154,7 @@ export function HatchlingList({ clutchId }: HatchlingListProps) {
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
-        <h5 className="text-xs font-medium text-warm-800">Hatchlings</h5>
+        <h5 className="text-xs font-medium text-warm-800 dark:text-warm-200">Hatchlings</h5>
         <Button onClick={handleShowForm} size="sm" variant="ghost" className="h-6 text-xs">
           <Plus className="h-3 w-3 mr-1" />
           Add
@@ -190,9 +190,9 @@ export function HatchlingList({ clutchId }: HatchlingListProps) {
       </Dialog>
 
       {hatchlings.length === 0 ? (
-        <div className="text-center py-4 bg-warm-100/50 rounded">
-          <Baby className="h-6 w-6 mx-auto mb-1 text-warm-300" />
-          <p className="text-xs text-warm-700">No hatchlings recorded</p>
+        <div className="text-center py-4 bg-warm-100/50 dark:bg-warm-800/50 rounded">
+          <Baby className="h-6 w-6 mx-auto mb-1 text-warm-300 dark:text-warm-600" />
+          <p className="text-xs text-warm-700 dark:text-warm-300">No hatchlings recorded</p>
         </div>
       ) : (
         <div className="space-y-1">

@@ -65,8 +65,8 @@ export function PairingList({ onPairingSelect }: PairingListProps) {
         {[1, 2, 3].map((i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="py-6">
-              <div className="h-4 bg-warm-200 rounded w-1/3 mb-2" />
-              <div className="h-3 bg-warm-100 rounded w-1/2" />
+              <div className="h-4 bg-warm-200 dark:bg-warm-700 rounded w-1/3 mb-2" />
+              <div className="h-3 bg-warm-100 dark:bg-warm-800 rounded w-1/2" />
             </CardContent>
           </Card>
         ))}
@@ -127,9 +127,9 @@ export function PairingList({ onPairingSelect }: PairingListProps) {
       {pairings.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <Heart className="h-12 w-12 mx-auto mb-4 text-warm-300" />
-            <p className="text-warm-700">No pairings yet</p>
-            <p className="text-sm text-warm-700">
+            <Heart className="h-12 w-12 mx-auto mb-4 text-warm-300 dark:text-warm-600" />
+            <p className="text-warm-700 dark:text-warm-300">No pairings yet</p>
+            <p className="text-sm text-warm-700 dark:text-warm-300">
               Click &quot;New Pairing&quot; to record a breeding pair
             </p>
           </CardContent>

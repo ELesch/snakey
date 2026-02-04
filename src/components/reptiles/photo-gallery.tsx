@@ -58,7 +58,7 @@ export function PhotoGallery({ reptileId }: PhotoGalleryProps) {
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">Photos</h3>
           {isOfflineData && (
-            <span className="flex items-center gap-1 text-xs text-warm-700">
+            <span className="flex items-center gap-1 text-xs text-warm-700 dark:text-warm-300">
               <WifiOff className="h-3 w-3" />
               Offline
             </span>
@@ -73,9 +73,9 @@ export function PhotoGallery({ reptileId }: PhotoGalleryProps) {
       {photos.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <ImageIcon className="h-12 w-12 mx-auto mb-4 text-warm-300" />
-            <p className="text-warm-700">No photos yet</p>
-            <p className="text-sm text-warm-700">
+            <ImageIcon className="h-12 w-12 mx-auto mb-4 text-warm-300 dark:text-warm-600" />
+            <p className="text-warm-700 dark:text-warm-300">No photos yet</p>
+            <p className="text-sm text-warm-700 dark:text-warm-300">
               Click &quot;Add Photo&quot; to upload one
             </p>
           </CardContent>
@@ -121,7 +121,7 @@ function PhotoThumbnail({ photo, photoUrl, onClick }: PhotoThumbnailProps) {
   return (
     <button
       onClick={onClick}
-      className="relative aspect-square rounded-lg overflow-hidden bg-warm-100 hover:ring-2 hover:ring-primary focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+      className="relative aspect-square rounded-lg overflow-hidden bg-warm-100 dark:bg-warm-800 hover:ring-2 hover:ring-primary focus:outline-none focus:ring-2 focus:ring-primary transition-all"
       aria-label={photo.caption || 'View photo'}
     >
       <Image

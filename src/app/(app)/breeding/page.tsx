@@ -8,8 +8,8 @@ function PairingListSkeleton() {
       {[1, 2, 3].map((i) => (
         <Card key={i} className="animate-pulse">
           <CardContent className="py-6">
-            <div className="h-4 bg-warm-200 rounded w-1/3 mb-2" />
-            <div className="h-3 bg-warm-100 rounded w-1/2" />
+            <div className="h-4 bg-warm-200 dark:bg-warm-700 rounded w-1/3 mb-2" />
+            <div className="h-3 bg-warm-100 dark:bg-warm-800 rounded w-1/2" />
           </CardContent>
         </Card>
       ))}
@@ -21,8 +21,8 @@ export default function BreedingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-warm-900">Breeding Records</h1>
-        <p className="text-warm-700">Track pairings, clutches, and hatchlings</p>
+        <h1 className="text-2xl font-bold text-warm-900 dark:text-warm-100">Breeding Records</h1>
+        <p className="text-warm-700 dark:text-warm-300">Track pairings, clutches, and hatchlings</p>
       </div>
 
       <Suspense fallback={<PairingListSkeleton />}>

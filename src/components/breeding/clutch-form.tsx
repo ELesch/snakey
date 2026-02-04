@@ -66,7 +66,7 @@ export function ClutchForm({ pairingId, clutch, onSuccess, onCancel }: ClutchFor
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-warm-700 mb-1">
+          <label className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
             Lay Date
           </label>
           <Input
@@ -78,7 +78,7 @@ export function ClutchForm({ pairingId, clutch, onSuccess, onCancel }: ClutchFor
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-warm-700 mb-1">
+          <label className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
             Due Date
           </label>
           <Input
@@ -91,7 +91,7 @@ export function ClutchForm({ pairingId, clutch, onSuccess, onCancel }: ClutchFor
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-warm-700 mb-1">
+          <label className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
             Total Eggs
           </label>
           <Input
@@ -105,7 +105,7 @@ export function ClutchForm({ pairingId, clutch, onSuccess, onCancel }: ClutchFor
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-warm-700 mb-1">
+          <label className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
             Fertile Eggs
           </label>
           <Input
@@ -119,7 +119,7 @@ export function ClutchForm({ pairingId, clutch, onSuccess, onCancel }: ClutchFor
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-warm-700 mb-1">
+        <label className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
           Incubation Temperature (F)
         </label>
         <Input
@@ -132,7 +132,7 @@ export function ClutchForm({ pairingId, clutch, onSuccess, onCancel }: ClutchFor
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-warm-700 mb-1">
+        <label className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
           Notes
         </label>
         <textarea

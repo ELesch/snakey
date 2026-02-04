@@ -78,7 +78,7 @@ export function PairingForm({ pairing, onSuccess, onCancel }: PairingFormProps) 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="male" className="block text-sm font-medium text-warm-700 mb-1">
+        <label htmlFor="male" className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
           Male <span className="text-red-500" aria-hidden="true">*</span>
         </label>
         <Select value={maleId} onValueChange={setMaleId} required>
@@ -102,7 +102,7 @@ export function PairingForm({ pairing, onSuccess, onCancel }: PairingFormProps) 
       </div>
 
       <div>
-        <label htmlFor="female" className="block text-sm font-medium text-warm-700 mb-1">
+        <label htmlFor="female" className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
           Female <span className="text-red-500" aria-hidden="true">*</span>
         </label>
         <Select value={femaleId} onValueChange={setFemaleId} required>
@@ -127,7 +127,7 @@ export function PairingForm({ pairing, onSuccess, onCancel }: PairingFormProps) 
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="startDate" className="block text-sm font-medium text-warm-700 mb-1">
+          <label htmlFor="startDate" className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
             Start Date <span className="text-red-500" aria-hidden="true">*</span>
           </label>
           <Input
@@ -141,7 +141,7 @@ export function PairingForm({ pairing, onSuccess, onCancel }: PairingFormProps) 
         </div>
 
         <div>
-          <label htmlFor="endDate" className="block text-sm font-medium text-warm-700 mb-1">
+          <label htmlFor="endDate" className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
             End Date
           </label>
           <Input
@@ -154,7 +154,7 @@ export function PairingForm({ pairing, onSuccess, onCancel }: PairingFormProps) 
       </div>
 
       <div>
-        <label htmlFor="outcome" className="block text-sm font-medium text-warm-700 mb-1">
+        <label htmlFor="outcome" className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
           Outcome
         </label>
         <Select value={successful} onValueChange={setSuccessful}>
@@ -170,7 +170,7 @@ export function PairingForm({ pairing, onSuccess, onCancel }: PairingFormProps) 
       </div>
 
       <div>
-        <label htmlFor="pairing-notes" className="block text-sm font-medium text-warm-700 mb-1">
+        <label htmlFor="pairing-notes" className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
           Notes
         </label>
         <textarea

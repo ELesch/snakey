@@ -7,8 +7,8 @@ export function DashboardSkeleton() {
         {[...Array(4)].map((_, i) => (
           <Card key={i}>
             <CardContent className="p-6">
-              <div className="h-4 w-24 bg-warm-200 rounded animate-pulse mb-2" />
-              <div className="h-8 w-16 bg-warm-200 rounded animate-pulse" />
+              <div className="h-4 w-24 bg-warm-200 dark:bg-warm-700 rounded animate-pulse mb-2" />
+              <div className="h-8 w-16 bg-warm-200 dark:bg-warm-700 rounded animate-pulse" />
             </CardContent>
           </Card>
         ))}
@@ -18,12 +18,12 @@ export function DashboardSkeleton() {
         {[...Array(2)].map((_, i) => (
           <Card key={i}>
             <CardHeader>
-              <div className="h-5 w-32 bg-warm-200 rounded animate-pulse" />
+              <div className="h-5 w-32 bg-warm-200 dark:bg-warm-700 rounded animate-pulse" />
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {[...Array(3)].map((_, j) => (
-                  <div key={j} className="h-12 bg-warm-100 rounded animate-pulse" />
+                  <div key={j} className="h-12 bg-warm-100 dark:bg-warm-800 rounded animate-pulse" />
                 ))}
               </div>
             </CardContent>

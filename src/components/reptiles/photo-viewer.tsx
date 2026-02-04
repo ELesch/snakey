@@ -87,7 +87,7 @@ export function PhotoViewer({ photo, open, onClose, getPhotoUrl }: PhotoViewerPr
           </DialogDescription>
         </DialogHeader>
 
-        <div className="relative aspect-video bg-warm-100 rounded-lg overflow-hidden">
+        <div className="relative aspect-video bg-warm-100 dark:bg-warm-800 rounded-lg overflow-hidden">
           <Image
             src={fullUrl}
             alt={photo.caption || 'Reptile photo'}
@@ -155,10 +155,10 @@ interface PhotoDetailsProps {
 function PhotoDetails({ caption, category, takenAt, isPrimary }: PhotoDetailsProps) {
   return (
     <div className="space-y-2">
-      {caption && <p className="text-warm-700">{caption}</p>}
+      {caption && <p className="text-warm-700 dark:text-warm-300">{caption}</p>}
 
-      <div className="flex flex-wrap gap-2 text-sm text-warm-700">
-        <span className="inline-flex items-center px-2 py-1 bg-warm-100 rounded">
+      <div className="flex flex-wrap gap-2 text-sm text-warm-700 dark:text-warm-300">
+        <span className="inline-flex items-center px-2 py-1 bg-warm-100 dark:bg-warm-800 rounded">
           {category.toLowerCase()}
         </span>
         <span>{formatDate(takenAt)}</span>

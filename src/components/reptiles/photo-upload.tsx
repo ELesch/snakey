@@ -262,9 +262,9 @@ function DropZone({ onDrop, onInputChange }: DropZoneProps) {
       aria-label="Upload image. Press Enter or Space to select a file, or drag and drop an image."
       className="border-2 border-dashed border-warm-300 rounded-lg p-8 text-center hover:border-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors cursor-pointer"
     >
-      <ImageIcon className="h-12 w-12 mx-auto mb-4 text-warm-400" aria-hidden="true" />
-      <p className="text-warm-700 mb-2">Drag and drop an image here</p>
-      <p className="text-sm text-warm-700 mb-4">or</p>
+      <ImageIcon className="h-12 w-12 mx-auto mb-4 text-warm-400 dark:text-warm-500" aria-hidden="true" />
+      <p className="text-warm-700 dark:text-warm-300 mb-2">Drag and drop an image here</p>
+      <p className="text-sm text-warm-700 dark:text-warm-300 mb-4">or</p>
       <span className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-md pointer-events-none">
         Choose File
       </span>
@@ -276,7 +276,7 @@ function DropZone({ onDrop, onInputChange }: DropZoneProps) {
         className="sr-only"
         aria-hidden="true"
       />
-      <p className="text-xs text-warm-700 mt-4">
+      <p className="text-xs text-warm-700 dark:text-warm-300 mt-4">
         JPEG, PNG, WebP, or HEIC up to 10MB
       </p>
     </div>
@@ -294,7 +294,7 @@ function PreviewArea({ preview, onRemove }: PreviewAreaProps) {
       <img
         src={preview}
         alt="Preview"
-        className="w-full max-h-64 object-contain rounded-lg bg-warm-100"
+        className="w-full max-h-64 object-contain rounded-lg bg-warm-100 dark:bg-warm-800"
       />
       <button
         type="button"
@@ -321,7 +321,7 @@ function ProgressBar({ progress }: ProgressBarProps) {
           style={{ width: `${progress}%` }}
         />
       </div>
-      <p className="text-xs text-warm-700 text-right">{progress}%</p>
+      <p className="text-xs text-warm-700 dark:text-warm-300 text-right">{progress}%</p>
     </div>
   )
 }

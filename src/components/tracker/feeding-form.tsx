@@ -105,7 +105,7 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
       <div>
         <label
           htmlFor="feeding-date"
-          className="block text-sm font-medium text-warm-800 mb-1"
+          className="block text-sm font-medium text-warm-800 dark:text-warm-200 mb-1"
         >
           Date <span className="text-red-500">*</span>
         </label>
@@ -129,7 +129,7 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
         <div>
           <label
             htmlFor="preyType"
-            className="block text-sm font-medium text-warm-800 mb-1"
+            className="block text-sm font-medium text-warm-800 dark:text-warm-200 mb-1"
           >
             Prey Type <span className="text-red-500">*</span>
           </label>
@@ -162,7 +162,7 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
         <div>
           <label
             htmlFor="preySize"
-            className="block text-sm font-medium text-warm-800 mb-1"
+            className="block text-sm font-medium text-warm-800 dark:text-warm-200 mb-1"
           >
             Prey Size <span className="text-red-500">*</span>
           </label>
@@ -196,7 +196,7 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
       <div>
         <label
           htmlFor="preySource"
-          className="block text-sm font-medium text-warm-800 mb-1"
+          className="block text-sm font-medium text-warm-800 dark:text-warm-200 mb-1"
         >
           Prey Source
         </label>
@@ -228,7 +228,7 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
             onChange={handleChange}
             className="h-4 w-4 rounded border-warm-300 text-primary focus:ring-primary"
           />
-          <span className="text-sm text-warm-800">Accepted</span>
+          <span className="text-sm text-warm-800 dark:text-warm-200">Accepted</span>
         </label>
 
         <label className="flex items-center gap-2">
@@ -239,7 +239,7 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
             onChange={handleChange}
             className="h-4 w-4 rounded border-warm-300 text-primary focus:ring-primary"
           />
-          <span className="text-sm text-warm-800">Refused</span>
+          <span className="text-sm text-warm-800 dark:text-warm-200">Refused</span>
         </label>
 
         <label className="flex items-center gap-2">
@@ -250,14 +250,14 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
             onChange={handleChange}
             className="h-4 w-4 rounded border-warm-300 text-primary focus:ring-primary"
           />
-          <span className="text-sm text-warm-800">Regurgitated</span>
+          <span className="text-sm text-warm-800 dark:text-warm-200">Regurgitated</span>
         </label>
       </div>
 
       <div>
         <label
           htmlFor="feeding-notes"
-          className="block text-sm font-medium text-warm-800 mb-1"
+          className="block text-sm font-medium text-warm-800 dark:text-warm-200 mb-1"
         >
           Notes
         </label>

@@ -38,9 +38,9 @@ export function ShedCard({ shed, onEdit, onDelete, isDeleting }: ShedCardProps) 
               <Icon className="h-4 w-4 inline mr-1" aria-hidden="true" />
               {qualityInfo.label}
             </div>
-            <p className="text-warm-800">{formatDate(shedDate)}</p>
+            <p className="text-warm-800 dark:text-warm-200">{formatDate(shedDate)}</p>
             {shed.notes && (
-              <p className="text-sm text-warm-700 max-w-xs truncate hidden sm:block">{shed.notes}</p>
+              <p className="text-sm text-warm-700 dark:text-warm-300 max-w-xs truncate hidden sm:block">{shed.notes}</p>
             )}
           </div>
           <div className="flex items-center gap-1">

@@ -40,7 +40,7 @@ const ClutchItem = memo(function ClutchItem({
   )
 
   return (
-    <Card className="bg-warm-50">
+    <Card className="bg-warm-50 dark:bg-warm-900">
       <CardContent className="py-3 px-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
@@ -51,7 +51,7 @@ const ClutchItem = memo(function ClutchItem({
                 {clutch.fertileCount !== null &&
                   ` (${clutch.fertileCount} fertile)`}
               </p>
-              <p className="text-xs text-warm-700">
+              <p className="text-xs text-warm-700 dark:text-warm-300">
                 Laid: {formatDate(clutch.layDate)}
               </p>
             </div>
@@ -83,12 +83,12 @@ const ClutchItem = memo(function ClutchItem({
           </div>
         </div>
         {clutch.incubationTemp && (
-          <p className="text-xs text-warm-700 mt-1">
+          <p className="text-xs text-warm-700 dark:text-warm-300 mt-1">
             Incubation: {Number(clutch.incubationTemp).toFixed(1)}F
           </p>
         )}
         {clutch.notes && (
-          <p className="text-xs text-warm-700 mt-1">{clutch.notes}</p>
+          <p className="text-xs text-warm-700 dark:text-warm-300 mt-1">{clutch.notes}</p>
         )}
         <Button
           variant="ghost"
@@ -160,9 +160,9 @@ export function ClutchList({ pairingId }: ClutchListProps) {
     return (
       <div className="space-y-2">
         {[1, 2].map((i) => (
-          <div key={i} className="animate-pulse bg-warm-100 rounded p-4">
-            <div className="h-3 bg-warm-200 rounded w-1/4 mb-2" />
-            <div className="h-2 bg-warm-200 rounded w-1/3" />
+          <div key={i} className="animate-pulse bg-warm-100 dark:bg-warm-800 rounded p-4">
+            <div className="h-3 bg-warm-200 dark:bg-warm-700 rounded w-1/4 mb-2" />
+            <div className="h-2 bg-warm-200 dark:bg-warm-700 rounded w-1/3" />
           </div>
         ))}
       </div>
@@ -183,7 +183,7 @@ export function ClutchList({ pairingId }: ClutchListProps) {
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <h4 className="text-sm font-medium text-warm-800">Clutches</h4>
+        <h4 className="text-sm font-medium text-warm-800 dark:text-warm-200">Clutches</h4>
         <Button onClick={handleShowForm} size="sm" variant="outline">
           <Plus className="h-3 w-3 mr-1" />
           Add Clutch
@@ -219,9 +219,9 @@ export function ClutchList({ pairingId }: ClutchListProps) {
       </Dialog>
 
       {clutches.length === 0 ? (
-        <div className="text-center py-6 bg-warm-50 rounded-lg">
-          <Egg className="h-8 w-8 mx-auto mb-2 text-warm-300" />
-          <p className="text-sm text-warm-700">No clutches recorded</p>
+        <div className="text-center py-6 bg-warm-50 dark:bg-warm-900 rounded-lg">
+          <Egg className="h-8 w-8 mx-auto mb-2 text-warm-300 dark:text-warm-600" />
+          <p className="text-sm text-warm-700 dark:text-warm-300">No clutches recorded</p>
         </div>
       ) : (
         <div className="space-y-2">

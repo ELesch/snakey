@@ -95,7 +95,7 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
       <div>
         <label
           htmlFor="env-date"
-          className="block text-sm font-medium text-warm-700 mb-1"
+          className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1"
         >
           Date <span className="text-red-500">*</span>
         </label>
@@ -119,7 +119,7 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
         <div>
           <label
             htmlFor="temperature"
-            className="block text-sm font-medium text-warm-700 mb-1"
+            className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1"
           >
             Temperature (F)
           </label>
@@ -144,7 +144,7 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
         <div>
           <label
             htmlFor="humidity"
-            className="block text-sm font-medium text-warm-700 mb-1"
+            className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1"
           >
             Humidity (%)
           </label>
@@ -172,7 +172,7 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
       <div>
         <label
           htmlFor="location"
-          className="block text-sm font-medium text-warm-700 mb-1"
+          className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1"
         >
           Location
         </label>
@@ -196,7 +196,7 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
       <div>
         <label
           htmlFor="env-notes"
-          className="block text-sm font-medium text-warm-700 mb-1"
+          className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1"
         >
           Notes
         </label>

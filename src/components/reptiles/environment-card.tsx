@@ -27,19 +27,19 @@ export function EnvironmentCard({ log, species, onEdit, onDelete, isDeleting }: 
       <CardContent className="py-3 px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <p className="text-sm text-warm-700">{formatDateTime(logDate)}</p>
+            <p className="text-sm text-warm-700 dark:text-warm-300">{formatDateTime(logDate)}</p>
             <div className="flex items-center gap-3">
               {temp !== null && (
-                <span className={cn('text-sm', isTemperatureSafe(species, temp, 'hot') ? 'text-warm-700' : 'text-red-600 font-medium')}>
+                <span className={cn('text-sm', isTemperatureSafe(species, temp, 'hot') ? 'text-warm-700 dark:text-warm-300' : 'text-red-600 font-medium')}>
                   {temp}F
                 </span>
               )}
               {humid !== null && (
-                <span className={cn('text-sm', isHumiditySafe(species, humid) ? 'text-warm-700' : 'text-red-600 font-medium')}>
+                <span className={cn('text-sm', isHumiditySafe(species, humid) ? 'text-warm-700 dark:text-warm-300' : 'text-red-600 font-medium')}>
                   {humid}%
                 </span>
               )}
-              {log.location && <span className="text-sm text-warm-700">({log.location})</span>}
+              {log.location && <span className="text-sm text-warm-700 dark:text-warm-300">({log.location})</span>}
             </div>
           </div>
           <div className="flex items-center gap-1">

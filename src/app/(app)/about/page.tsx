@@ -21,8 +21,8 @@ export default function AboutPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-warm-900">About</h1>
-        <p className="text-warm-700">Application information</p>
+        <h1 className="text-2xl font-bold text-warm-900 dark:text-warm-100">About</h1>
+        <p className="text-warm-700 dark:text-warm-300">Application information</p>
       </div>
 
       <Card>
@@ -30,7 +30,7 @@ export default function AboutPage() {
           <CardTitle>Snakey</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-warm-700">
+          <p className="text-warm-700 dark:text-warm-300">
             A Progressive Web App for reptile care tracking. Track feedings,
             sheds, weights, breeding events, and more for your reptile
             collection.
@@ -38,13 +38,13 @@ export default function AboutPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <dt className="text-sm font-medium text-warm-700">Version</dt>
-              <dd className="text-warm-900">{version}</dd>
+              <dt className="text-sm font-medium text-warm-700 dark:text-warm-400">Version</dt>
+              <dd className="text-warm-900 dark:text-warm-100">{version}</dd>
             </div>
 
             <div>
-              <dt className="text-sm font-medium text-warm-700">Git Commit</dt>
-              <dd className="text-warm-900">
+              <dt className="text-sm font-medium text-warm-700 dark:text-warm-400">Git Commit</dt>
+              <dd className="text-warm-900 dark:text-warm-100">
                 {githubCommitUrl ? (
                   <a
                     href={githubCommitUrl}
@@ -63,8 +63,8 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <dt className="text-sm font-medium text-warm-700">Build Date</dt>
-              <dd className="text-warm-900">{formattedBuildDate}</dd>
+              <dt className="text-sm font-medium text-warm-700 dark:text-warm-400">Build Date</dt>
+              <dd className="text-warm-900 dark:text-warm-100">{formattedBuildDate}</dd>
             </div>
           </div>
         </CardContent>

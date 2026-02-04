@@ -12,8 +12,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-warm-900">Dashboard</h1>
-        <p className="text-warm-700">Overview of your reptile collection</p>
+        <h1 className="text-2xl font-bold text-warm-900 dark:text-warm-100">Dashboard</h1>
+        <p className="text-warm-700 dark:text-warm-300">Overview of your reptile collection</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">

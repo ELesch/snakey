@@ -81,14 +81,14 @@ export const PairingCard = memo(function PairingCard({
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="text-sm text-warm-800 mb-3">
+        <div className="text-sm text-warm-800 dark:text-warm-200 mb-3">
           <span>Started: {formatDate(pairing.startDate)}</span>
           {pairing.endDate && (
             <span className="ml-4">Ended: {formatDate(pairing.endDate)}</span>
           )}
         </div>
         {pairing.notes && (
-          <p className="text-sm text-warm-700 mb-3">{pairing.notes}</p>
+          <p className="text-sm text-warm-700 dark:text-warm-300 mb-3">{pairing.notes}</p>
         )}
         <Button
           variant="ghost"

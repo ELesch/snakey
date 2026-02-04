@@ -68,7 +68,7 @@ export function HatchlingForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-warm-700 mb-1">
+          <label className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
             Status
           </label>
           <Select value={status} onValueChange={setStatus}>
@@ -86,7 +86,7 @@ export function HatchlingForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-warm-700 mb-1">
+          <label className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
             Hatch Date
           </label>
           <Input
@@ -99,7 +99,7 @@ export function HatchlingForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-warm-700 mb-1">
+          <label className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
             Sex
           </label>
           <Select value={sex} onValueChange={setSex}>
@@ -115,7 +115,7 @@ export function HatchlingForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-warm-700 mb-1">
+          <label className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
             Morph
           </label>
           <Input
@@ -128,7 +128,7 @@ export function HatchlingForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-warm-700 mb-1">
+        <label className="block text-sm font-medium text-warm-700 dark:text-warm-300 mb-1">
           Notes
         </label>
         <textarea
