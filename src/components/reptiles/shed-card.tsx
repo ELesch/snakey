@@ -16,9 +16,9 @@ interface ShedCardProps {
 }
 
 const qualityLabels = {
-  COMPLETE: { label: 'Complete', color: 'bg-green-100 text-green-700', icon: Check },
-  PARTIAL: { label: 'Partial', color: 'bg-amber-100 text-amber-700', icon: AlertTriangle },
-  PROBLEMATIC: { label: 'Stuck Shed', color: 'bg-red-100 text-red-700', icon: AlertTriangle },
+  COMPLETE: { label: 'Complete', color: 'bg-green-100 text-green-900', icon: Check },
+  PARTIAL: { label: 'Partial', color: 'bg-amber-100 text-amber-900', icon: AlertTriangle },
+  PROBLEMATIC: { label: 'Stuck Shed', color: 'bg-red-100 text-red-900', icon: AlertTriangle },
 }
 
 export function ShedCard({ shed, onEdit, onDelete, isDeleting }: ShedCardProps) {
@@ -38,9 +38,9 @@ export function ShedCard({ shed, onEdit, onDelete, isDeleting }: ShedCardProps) 
               <Icon className="h-4 w-4 inline mr-1" aria-hidden="true" />
               {qualityInfo.label}
             </div>
-            <p className="text-warm-600">{formatDate(shedDate)}</p>
+            <p className="text-warm-800">{formatDate(shedDate)}</p>
             {shed.notes && (
-              <p className="text-sm text-warm-600 max-w-xs truncate hidden sm:block">{shed.notes}</p>
+              <p className="text-sm text-warm-700 max-w-xs truncate hidden sm:block">{shed.notes}</p>
             )}
           </div>
           <div className="flex items-center gap-1">

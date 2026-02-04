@@ -59,10 +59,10 @@ export function OfflineIndicator() {
         'fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-auto z-50',
         'flex items-center gap-3 rounded-lg px-4 py-2 shadow-lg',
         !isOnline
-          ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+          ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-100'
           : failedCount > 0
-            ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'
-            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+            ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-100'
+            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-100'
       )}
     >
       {!isOnline ? (
@@ -71,7 +71,7 @@ export function OfflineIndicator() {
           <div className="flex flex-col">
             <span className="text-sm font-medium">You are offline</span>
             {pendingCount > 0 && (
-              <span className="text-xs opacity-80">
+              <span className="text-xs">
                 {pendingCount} change{pendingCount !== 1 ? 's' : ''} waiting to sync
               </span>
             )}
@@ -84,7 +84,7 @@ export function OfflineIndicator() {
             <span className="text-sm font-medium">
               {failedCount} sync failure{failedCount !== 1 ? 's' : ''}
             </span>
-            <span className="text-xs opacity-80">
+            <span className="text-xs">
               Some changes could not be synced
             </span>
           </div>

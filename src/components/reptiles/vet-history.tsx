@@ -65,8 +65,8 @@ export function VetHistory({ reptileId }: VetHistoryProps) {
       <Card>
         <CardContent className="py-12 text-center">
           <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-400" />
-          <p className="text-warm-600">Failed to load vet visits</p>
-          <p className="text-sm text-warm-500">{error?.message}</p>
+          <p className="text-warm-800">Failed to load vet visits</p>
+          <p className="text-sm text-warm-700">{error?.message}</p>
         </CardContent>
       </Card>
     )
@@ -103,8 +103,8 @@ export function VetHistory({ reptileId }: VetHistoryProps) {
         <Card>
           <CardContent className="py-12 text-center">
             <Stethoscope className="h-12 w-12 mx-auto mb-4 text-warm-300" />
-            <p className="text-warm-600">No vet visits recorded</p>
-            <p className="text-sm text-warm-500">Click &quot;Add Visit&quot; to add one</p>
+            <p className="text-warm-800">No vet visits recorded</p>
+            <p className="text-sm text-warm-700">Click &quot;Add Visit&quot; to add one</p>
           </CardContent>
         </Card>
       ) : (
@@ -148,7 +148,7 @@ function VetVisitCard({ visit, onEdit, onDelete, isDeleting }: VetVisitCardProps
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-warm-500">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-warm-700">
               <span className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" />
                 {formatDate(visit.date)}
@@ -168,19 +168,19 @@ function VetVisitCard({ visit, onEdit, onDelete, isDeleting }: VetVisitCardProps
             </div>
 
             {visit.diagnosis && (
-              <p className="mt-2 text-sm text-warm-600">
+              <p className="mt-2 text-sm text-warm-800">
                 <span className="font-medium">Diagnosis:</span> {visit.diagnosis}
               </p>
             )}
 
             {visit.treatment && (
-              <p className="mt-1 text-sm text-warm-600">
+              <p className="mt-1 text-sm text-warm-800">
                 <span className="font-medium">Treatment:</span> {visit.treatment}
               </p>
             )}
 
             {visit.notes && (
-              <p className="mt-1 text-sm text-warm-500 italic">{visit.notes}</p>
+              <p className="mt-1 text-sm text-warm-700 italic">{visit.notes}</p>
             )}
           </div>
 

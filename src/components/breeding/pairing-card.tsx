@@ -48,8 +48,8 @@ export const PairingCard = memo(function PairingCard({
               <span
                 className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
                   pairing.successful
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-red-100 text-red-700'
+                    ? 'bg-green-100 text-green-900'
+                    : 'bg-red-100 text-red-900'
                 }`}
               >
                 {pairing.successful ? (
@@ -81,14 +81,14 @@ export const PairingCard = memo(function PairingCard({
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="text-sm text-warm-600 mb-3">
+        <div className="text-sm text-warm-800 mb-3">
           <span>Started: {formatDate(pairing.startDate)}</span>
           {pairing.endDate && (
             <span className="ml-4">Ended: {formatDate(pairing.endDate)}</span>
           )}
         </div>
         {pairing.notes && (
-          <p className="text-sm text-warm-500 mb-3">{pairing.notes}</p>
+          <p className="text-sm text-warm-700 mb-3">{pairing.notes}</p>
         )}
         <Button
           variant="ghost"

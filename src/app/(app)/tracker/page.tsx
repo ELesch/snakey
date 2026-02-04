@@ -40,8 +40,8 @@ export default function TrackerPage() {
           {selectedReptileId ? (
             <TrackerTabs reptileId={selectedReptileId} />
           ) : (
-            <div className="text-center py-8 text-warm-500">
-              <ClipboardList className="h-12 w-12 mx-auto mb-3 opacity-50" />
+            <div className="text-center py-8 text-warm-700">
+              <ClipboardList className="h-12 w-12 mx-auto mb-3 text-warm-400" />
               <p>Select a reptile to start logging events</p>
             </div>
           )}

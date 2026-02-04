@@ -51,14 +51,14 @@ const ClutchItem = memo(function ClutchItem({
                 {clutch.fertileCount !== null &&
                   ` (${clutch.fertileCount} fertile)`}
               </p>
-              <p className="text-xs text-warm-500">
+              <p className="text-xs text-warm-700">
                 Laid: {formatDate(clutch.layDate)}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-1">
             {dueDays !== null && dueDays > 0 && (
-              <span className="flex items-center gap-1 text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full">
+              <span className="flex items-center gap-1 text-xs px-2 py-1 bg-amber-100 text-amber-900 rounded-full">
                 <Calendar className="h-3 w-3" />
                 {dueDays} days
               </span>
@@ -83,12 +83,12 @@ const ClutchItem = memo(function ClutchItem({
           </div>
         </div>
         {clutch.incubationTemp && (
-          <p className="text-xs text-warm-500 mt-1">
+          <p className="text-xs text-warm-700 mt-1">
             Incubation: {Number(clutch.incubationTemp).toFixed(1)}F
           </p>
         )}
         {clutch.notes && (
-          <p className="text-xs text-warm-500 mt-1">{clutch.notes}</p>
+          <p className="text-xs text-warm-700 mt-1">{clutch.notes}</p>
         )}
         <Button
           variant="ghost"
@@ -183,7 +183,7 @@ export function ClutchList({ pairingId }: ClutchListProps) {
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <h4 className="text-sm font-medium text-warm-700">Clutches</h4>
+        <h4 className="text-sm font-medium text-warm-800">Clutches</h4>
         <Button onClick={handleShowForm} size="sm" variant="outline">
           <Plus className="h-3 w-3 mr-1" />
           Add Clutch
@@ -221,7 +221,7 @@ export function ClutchList({ pairingId }: ClutchListProps) {
       {clutches.length === 0 ? (
         <div className="text-center py-6 bg-warm-50 rounded-lg">
           <Egg className="h-8 w-8 mx-auto mb-2 text-warm-300" />
-          <p className="text-sm text-warm-500">No clutches recorded</p>
+          <p className="text-sm text-warm-700">No clutches recorded</p>
         </div>
       ) : (
         <div className="space-y-2">

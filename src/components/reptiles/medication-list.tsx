@@ -75,8 +75,8 @@ export function MedicationList({ reptileId }: MedicationListProps) {
       <Card>
         <CardContent className="py-12 text-center">
           <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-400" />
-          <p className="text-warm-600">Failed to load medications</p>
-          <p className="text-sm text-warm-500">{error?.message}</p>
+          <p className="text-warm-800">Failed to load medications</p>
+          <p className="text-sm text-warm-700">{error?.message}</p>
         </CardContent>
       </Card>
     )
@@ -117,15 +117,15 @@ export function MedicationList({ reptileId }: MedicationListProps) {
         <Card>
           <CardContent className="py-12 text-center">
             <Pill className="h-12 w-12 mx-auto mb-4 text-warm-300" />
-            <p className="text-warm-600">No medications recorded</p>
-            <p className="text-sm text-warm-500">Click &quot;Add Medication&quot; to add one</p>
+            <p className="text-warm-800">No medications recorded</p>
+            <p className="text-sm text-warm-700">Click &quot;Add Medication&quot; to add one</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-6">
           {activeMedications.length > 0 && (
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-warm-600 uppercase tracking-wide">
+              <h4 className="text-sm font-medium text-warm-800 uppercase tracking-wide">
                 Active Medications
               </h4>
               {activeMedications.map((medication) => (
@@ -143,7 +143,7 @@ export function MedicationList({ reptileId }: MedicationListProps) {
 
           {completedMedications.length > 0 && (
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-warm-500 uppercase tracking-wide">
+              <h4 className="text-sm font-medium text-warm-700 uppercase tracking-wide">
                 Completed
               </h4>
               {completedMedications.map((medication) => (
@@ -174,7 +174,7 @@ interface MedicationCardProps {
 
 function MedicationCard({ medication, onEdit, onDelete, isDeleting, isActive }: MedicationCardProps) {
   return (
-    <Card className={`hover:shadow-sm transition-shadow ${!isActive ? 'opacity-60' : ''}`}>
+    <Card className={`hover:shadow-sm transition-shadow ${!isActive ? 'opacity-75' : ''}`}>
       <CardContent className="py-4 px-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
@@ -193,15 +193,15 @@ function MedicationCard({ medication, onEdit, onDelete, isDeleting, isActive }: 
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-warm-500 mt-1">
-              <span className="font-medium text-warm-700">{medication.dosage}</span>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-warm-700 mt-1">
+              <span className="font-medium text-warm-800">{medication.dosage}</span>
               <span className="flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5" />
                 {medication.frequency}
               </span>
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-warm-500 mt-2">
+            <div className="flex items-center gap-2 text-sm text-warm-700 mt-2">
               <Calendar className="h-3.5 w-3.5" />
               <span>
                 {formatDate(medication.startDate)}
@@ -210,7 +210,7 @@ function MedicationCard({ medication, onEdit, onDelete, isDeleting, isActive }: 
             </div>
 
             {medication.notes && (
-              <p className="mt-2 text-sm text-warm-500 italic">{medication.notes}</p>
+              <p className="mt-2 text-sm text-warm-700 italic">{medication.notes}</p>
             )}
           </div>
 

@@ -24,11 +24,11 @@ const activityIcons: Record<ActivityType, typeof UtensilsCrossed> = {
 }
 
 const activityColors: Record<ActivityType, string> = {
-  feeding: 'bg-green-100 text-green-700',
-  shed: 'bg-purple-100 text-purple-700',
-  weight: 'bg-blue-100 text-blue-700',
-  environment: 'bg-amber-100 text-amber-700',
-  photo: 'bg-pink-100 text-pink-700',
+  feeding: 'bg-green-100 text-green-900',
+  shed: 'bg-purple-100 text-purple-900',
+  weight: 'bg-blue-100 text-blue-900',
+  environment: 'bg-amber-100 text-amber-900',
+  photo: 'bg-pink-100 text-pink-900',
 }
 
 export function RecentActivity() {

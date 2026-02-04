@@ -20,11 +20,11 @@ interface HatchlingListProps {
 }
 
 const statusColors: Record<string, string> = {
-  DEVELOPING: 'bg-blue-100 text-blue-700',
-  HATCHED: 'bg-green-100 text-green-700',
-  FAILED: 'bg-red-100 text-red-700',
-  SOLD: 'bg-purple-100 text-purple-700',
-  KEPT: 'bg-amber-100 text-amber-700',
+  DEVELOPING: 'bg-blue-100 text-blue-900',
+  HATCHED: 'bg-green-100 text-green-900',
+  FAILED: 'bg-red-100 text-red-900',
+  SOLD: 'bg-purple-100 text-purple-900',
+  KEPT: 'bg-amber-100 text-amber-900',
 }
 
 const statusLabels: Record<string, string> = {
@@ -59,7 +59,7 @@ const HatchlingItem = memo(function HatchlingItem({
             #{index + 1}
             {hatchling.morph && ` - ${hatchling.morph}`}
           </p>
-          <div className="flex items-center gap-2 text-xs text-warm-500">
+          <div className="flex items-center gap-2 text-xs text-warm-700">
             <span
               className={`px-1.5 py-0.5 rounded text-xs ${statusColors[hatchling.status]}`}
             >
@@ -154,7 +154,7 @@ export function HatchlingList({ clutchId }: HatchlingListProps) {
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
-        <h5 className="text-xs font-medium text-warm-600">Hatchlings</h5>
+        <h5 className="text-xs font-medium text-warm-800">Hatchlings</h5>
         <Button onClick={handleShowForm} size="sm" variant="ghost" className="h-6 text-xs">
           <Plus className="h-3 w-3 mr-1" />
           Add
@@ -192,7 +192,7 @@ export function HatchlingList({ clutchId }: HatchlingListProps) {
       {hatchlings.length === 0 ? (
         <div className="text-center py-4 bg-warm-100/50 rounded">
           <Baby className="h-6 w-6 mx-auto mb-1 text-warm-300" />
-          <p className="text-xs text-warm-500">No hatchlings recorded</p>
+          <p className="text-xs text-warm-700">No hatchlings recorded</p>
         </div>
       ) : (
         <div className="space-y-1">

@@ -120,7 +120,7 @@ export const ReptileContextSection = memo(function ReptileContextSection({
         <Link
           href={`/reptiles/${reptileId}/delete`}
           onClick={onNavigate}
-          className="group flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-red-300 hover:bg-red-900/50 hover:text-red-200 transition-colors"
+          className="group flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-red-100 hover:bg-red-900/50 hover:text-white transition-colors"
         >
           <Trash2 className="mr-2 h-4 w-4 flex-shrink-0" />
           Delete

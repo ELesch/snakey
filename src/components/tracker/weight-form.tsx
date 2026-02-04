@@ -58,7 +58,7 @@ export function WeightForm({ reptileId, onSuccess }: WeightFormProps) {
       <div>
         <label
           htmlFor="weight-date"
-          className="block text-sm font-medium text-warm-700 mb-1"
+          className="block text-sm font-medium text-warm-800 mb-1"
         >
           Date <span className="text-red-500">*</span>
         </label>
@@ -81,7 +81,7 @@ export function WeightForm({ reptileId, onSuccess }: WeightFormProps) {
       <div>
         <label
           htmlFor="weight"
-          className="block text-sm font-medium text-warm-700 mb-1"
+          className="block text-sm font-medium text-warm-800 mb-1"
         >
           Weight (grams) <span className="text-red-500">*</span>
         </label>
@@ -107,7 +107,7 @@ export function WeightForm({ reptileId, onSuccess }: WeightFormProps) {
       <div>
         <label
           htmlFor="weight-notes"
-          className="block text-sm font-medium text-warm-700 mb-1"
+          className="block text-sm font-medium text-warm-800 mb-1"
         >
           Notes
         </label>
