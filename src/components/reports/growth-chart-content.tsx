@@ -12,15 +12,22 @@ import {
 } from 'recharts'
 
 // Custom cursor that renders a rectangle highlight like bar charts
-function CustomCursor(props: { x?: number; y?: number; width?: number; height?: number }) {
-  const { x, y, width, height } = props
-  if (x == null || y == null) return null
+// Line/Area charts pass offset with chart dimensions, not height directly
+interface CursorProps {
+  x?: number
+  width?: number
+  offset?: { top: number; height: number }
+}
+
+function CustomCursor(props: CursorProps) {
+  const { x, width, offset } = props
+  if (x == null || !offset) return null
   return (
     <Rectangle
       x={x}
-      y={y}
+      y={offset.top}
       width={width || 20}
-      height={height || 0}
+      height={offset.height}
       fill="var(--color-muted)"
       fillOpacity={0.3}
     />
