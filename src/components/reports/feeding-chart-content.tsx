@@ -53,6 +53,7 @@ export function FeedingChartContent({ data }: FeedingChartContentProps) {
           }}
           labelStyle={{ color: 'var(--color-foreground)' }}
           itemStyle={{ color: 'var(--color-foreground)' }}
+          cursor={{ fill: 'var(--color-muted)', fillOpacity: 0.3 }}
         />
         <Legend />
         <Bar

@@ -59,6 +59,7 @@ export function ShedChartContent({ data }: ShedChartContentProps) {
           }}
           labelStyle={{ color: 'var(--color-foreground)' }}
           itemStyle={{ color: 'var(--color-foreground)' }}
+          cursor={{ fill: 'var(--color-muted)', fillOpacity: 0.3 }}
           formatter={(value, name, props) => [
             `${value} days`,
             `Quality: ${(props.payload as { quality?: string })?.quality || 'Unknown'}`,
