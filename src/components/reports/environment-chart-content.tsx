@@ -9,7 +9,24 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  Rectangle,
 } from 'recharts'
+
+// Custom cursor that renders a rectangle highlight like bar charts
+function CustomCursor(props: { x?: number; y?: number; width?: number; height?: number }) {
+  const { x, y, width, height } = props
+  if (x == null || y == null) return null
+  return (
+    <Rectangle
+      x={x}
+      y={y}
+      width={width || 20}
+      height={height || 0}
+      fill="var(--color-muted)"
+      fillOpacity={0.3}
+    />
+  )
+}
 
 export interface EnvironmentChartDataPoint {
   date: string
@@ -64,7 +81,7 @@ export function EnvironmentChartContent({ data }: EnvironmentChartContentProps) 
           }}
           labelStyle={{ color: 'var(--color-foreground)' }}
           itemStyle={{ color: 'var(--color-foreground)' }}
-          cursor={{ fill: 'var(--color-muted)', fillOpacity: 0.3 }}
+          cursor={<CustomCursor />}
           formatter={(value, name) => {
             if (typeof value !== 'number') return [String(value), name]
             if (name === 'Temperature') return [`${value}F`, name]

@@ -8,7 +8,24 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Rectangle,
 } from 'recharts'
+
+// Custom cursor that renders a rectangle highlight like bar charts
+function CustomCursor(props: { x?: number; y?: number; width?: number; height?: number }) {
+  const { x, y, width, height } = props
+  if (x == null || y == null) return null
+  return (
+    <Rectangle
+      x={x}
+      y={y}
+      width={width || 20}
+      height={height || 0}
+      fill="var(--color-muted)"
+      fillOpacity={0.3}
+    />
+  )
+}
 
 export interface GrowthChartDataPoint {
   date: string
@@ -57,7 +74,7 @@ export function GrowthChartContent({ data }: GrowthChartContentProps) {
           }}
           labelStyle={{ color: 'var(--color-foreground)' }}
           itemStyle={{ color: 'var(--color-foreground)' }}
-          cursor={{ fill: 'var(--color-muted)', fillOpacity: 0.3 }}
+          cursor={<CustomCursor />}
           formatter={(value, name, props) => [
             `${value}g`,
             (props.payload as { reptileName?: string })?.reptileName || 'Weight',
