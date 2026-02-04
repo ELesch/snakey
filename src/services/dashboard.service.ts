@@ -108,6 +108,12 @@ export class DashboardService {
     // 4. Counts reptiles that are due (interval - 1 days or more since last feeding, or never fed)
     // Note: Using explicit schema prefix 'snakey' for raw queries
     // Note: Using $queryRawUnsafe to allow dynamic SQL CASE from centralized feeding intervals
+    //
+    // SECURITY NOTE: buildFeedingIntervalSqlCase() is SQL-injection safe because it
+    // generates the CASE statement entirely from hardcoded SPECIES_DEFAULTS values
+    // defined in src/lib/species/defaults.ts. No user input is interpolated into
+    // the SQL. The column name parameter ('r.species') is also hardcoded at the
+    // call site. See src/lib/species/feeding.ts for implementation.
     const feedingIntervalCase = buildFeedingIntervalSqlCase('r.species')
     const result = await prisma.$queryRawUnsafe<[{ count: bigint }]>(
       `

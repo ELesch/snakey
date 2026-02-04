@@ -4,6 +4,12 @@ import { EditReptileForm } from '@/components/reptiles/edit-reptile-form'
 import { getUserId } from '@/lib/supabase/server'
 import { ReptileService } from '@/services/reptile.service'
 import { NotFoundError, ForbiddenError } from '@/lib/errors'
+import type { Reptile, Photo } from '@/generated/prisma/client'
+
+/** Reptile with photos relation included */
+type ReptileWithPhotos = Reptile & {
+  photos: Photo[]
+}
 
 interface EditReptilePageProps {
   params: Promise<{ id: string }>
@@ -33,7 +39,8 @@ export default async function EditReptilePage({ params }: EditReptilePageProps) 
 
   // Extract primary photo URL for display in the form
   // Prefer imageData (stored in database), fall back to Supabase storage URL
-  const primaryPhoto = (reptile as any).photos?.find((p: any) => p.isPrimary)
+  const reptileWithPhotos = reptile as ReptileWithPhotos
+  const primaryPhoto = reptileWithPhotos.photos?.find((p) => p.isPrimary)
   let profilePhotoUrl: string | undefined
   if (primaryPhoto) {
     if (primaryPhoto.imageData) {

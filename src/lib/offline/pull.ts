@@ -65,47 +65,61 @@ export async function pullServerData(lastSyncTimestamp: number): Promise<void> {
 }
 
 /**
- * Apply server changes to local IndexedDB (server wins)
+ * Apply server changes to local IndexedDB (server wins).
+ * Uses bulk operations for better performance.
  */
 async function applyServerChanges(data: PullResponse): Promise<void> {
-  for (const record of data.reptiles) {
-    await upsertOrDeleteRecord('reptiles', record, toOfflineReptile)
+  // Process reptiles
+  const reptilesToUpsert = data.reptiles.filter(r => !r.deletedAt).map(toOfflineReptile)
+  const reptileIdsToDelete = data.reptiles.filter(r => r.deletedAt).map(r => r.id)
+  if (reptilesToUpsert.length > 0) {
+    await offlineDb.reptiles.bulkPut(reptilesToUpsert)
+  }
+  if (reptileIdsToDelete.length > 0) {
+    await offlineDb.reptiles.bulkDelete(reptileIdsToDelete)
   }
 
-  for (const record of data.feedings) {
-    await upsertOrDeleteRecord('feedings', record, toOfflineFeeding)
+  // Process feedings
+  const feedingsToUpsert = data.feedings.filter(r => !r.deletedAt).map(toOfflineFeeding)
+  const feedingIdsToDelete = data.feedings.filter(r => r.deletedAt).map(r => r.id)
+  if (feedingsToUpsert.length > 0) {
+    await offlineDb.feedings.bulkPut(feedingsToUpsert)
+  }
+  if (feedingIdsToDelete.length > 0) {
+    await offlineDb.feedings.bulkDelete(feedingIdsToDelete)
   }
 
-  for (const record of data.sheds) {
-    await upsertOrDeleteRecord('sheds', record, toOfflineShed)
+  // Process sheds
+  const shedsToUpsert = data.sheds.filter(r => !r.deletedAt).map(toOfflineShed)
+  const shedIdsToDelete = data.sheds.filter(r => r.deletedAt).map(r => r.id)
+  if (shedsToUpsert.length > 0) {
+    await offlineDb.sheds.bulkPut(shedsToUpsert)
+  }
+  if (shedIdsToDelete.length > 0) {
+    await offlineDb.sheds.bulkDelete(shedIdsToDelete)
   }
 
-  for (const record of data.weights) {
-    await upsertOrDeleteRecord('weights', record, toOfflineWeight)
+  // Process weights
+  const weightsToUpsert = data.weights.filter(r => !r.deletedAt).map(toOfflineWeight)
+  const weightIdsToDelete = data.weights.filter(r => r.deletedAt).map(r => r.id)
+  if (weightsToUpsert.length > 0) {
+    await offlineDb.weights.bulkPut(weightsToUpsert)
+  }
+  if (weightIdsToDelete.length > 0) {
+    await offlineDb.weights.bulkDelete(weightIdsToDelete)
   }
 
-  for (const record of data.environmentLogs) {
-    await upsertOrDeleteRecord('environmentLogs', record, toOfflineEnvironmentLog)
+  // Process environmentLogs
+  const envLogsToUpsert = data.environmentLogs.filter(r => !r.deletedAt).map(toOfflineEnvironmentLog)
+  const envLogIdsToDelete = data.environmentLogs.filter(r => r.deletedAt).map(r => r.id)
+  if (envLogsToUpsert.length > 0) {
+    await offlineDb.environmentLogs.bulkPut(envLogsToUpsert)
+  }
+  if (envLogIdsToDelete.length > 0) {
+    await offlineDb.environmentLogs.bulkDelete(envLogIdsToDelete)
   }
 }
 
-/**
- * Upsert or delete a record based on server data
- */
-async function upsertOrDeleteRecord<T extends { id: string }>(
-  table: keyof typeof offlineDb,
-  record: SyncRecord,
-  converter: (record: SyncRecord) => T
-): Promise<void> {
-  const dbTable = offlineDb[table] as import('dexie').Table<T, string>
-
-  if (record.deletedAt) {
-    await dbTable.delete(record.id)
-  } else {
-    const converted = converter(record)
-    await dbTable.put(converted)
-  }
-}
 
 /**
  * Perform initial sync - full data pull on first load or login

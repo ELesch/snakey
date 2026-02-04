@@ -75,8 +75,9 @@ export function InstallPrompt() {
           <button
             onClick={handleDismiss}
             className="text-warm-400 hover:text-warm-600"
+            aria-label="Dismiss install prompt"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       </CardContent>

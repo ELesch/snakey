@@ -48,7 +48,7 @@ export function HeroSection() {
 
           {/* App name with snake-inspired styling */}
           <h1 className="mb-4 text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-            <span className="bg-gradient-to-r from-primary via-green-500 to-primary bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-success to-primary bg-clip-text text-transparent">
               Snakey
             </span>
           </h1>

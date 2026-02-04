@@ -1,5 +1,0 @@
-export * from './reptile'
-export * from './feeding'
-export * from './shed'
-export * from './weight'
-export * from './environment'

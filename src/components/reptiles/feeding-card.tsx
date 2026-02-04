@@ -43,7 +43,7 @@ export function FeedingCard({ feeding, onEdit, onDelete, isDeleting }: FeedingCa
               <p className="text-sm text-warm-700 dark:text-warm-300 max-w-xs truncate hidden sm:block">{feeding.notes}</p>
             )}
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2 md:gap-1">
             <Button variant="ghost" size="sm" onClick={onEdit} aria-label="Edit feeding">
               <Pencil className="h-4 w-4" />
             </Button>

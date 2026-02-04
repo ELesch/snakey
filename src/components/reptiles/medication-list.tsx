@@ -182,7 +182,7 @@ function MedicationCard({ medication, onEdit, onDelete, isDeleting, isActive }: 
               {isActive ? (
                 <Pill className="h-4 w-4 text-blue-500" />
               ) : (
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <CheckCircle2 className="h-4 w-4 text-success" />
               )}
               <h4 className="font-medium text-warm-900 dark:text-warm-100">{medication.name}</h4>
               {medication.reminders && isActive && (

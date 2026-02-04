@@ -65,7 +65,12 @@ export function FormField({
         className="block text-sm font-medium text-foreground mb-1"
       >
         {label}
-        {required && <span className="text-destructive ml-1">*</span>}
+        {required && (
+          <>
+            <span className="text-destructive ml-1" aria-hidden="true">*</span>
+            <span className="sr-only">(required)</span>
+          </>
+        )}
       </label>
       <Input
         id={id}
@@ -135,7 +140,12 @@ export function FormTextarea({
         className="block text-sm font-medium text-foreground mb-1"
       >
         {label}
-        {required && <span className="text-destructive ml-1">*</span>}
+        {required && (
+          <>
+            <span className="text-destructive ml-1" aria-hidden="true">*</span>
+            <span className="sr-only">(required)</span>
+          </>
+        )}
       </label>
       <textarea
         id={id}
@@ -193,7 +203,7 @@ export function FormCheckbox({
         checked={checked}
         onChange={onChange}
         disabled={disabled}
-        className="h-4 w-4 rounded border-border text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+        className="h-5 w-5 rounded border-border text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
       />
       <span className="text-sm text-foreground">{label}</span>
     </label>
@@ -246,7 +256,12 @@ export function FormSelect({
     <div className={cn('space-y-1', className)}>
       <label htmlFor={id} className="block text-sm font-medium text-foreground mb-1">
         {label}
-        {required && <span className="text-destructive ml-1">*</span>}
+        {required && (
+          <>
+            <span className="text-destructive ml-1" aria-hidden="true">*</span>
+            <span className="sr-only">(required)</span>
+          </>
+        )}
       </label>
       <Select value={value} onValueChange={onValueChange} disabled={disabled}>
         <SelectTrigger id={id} aria-invalid={!!error} aria-describedby={error ? errorId : undefined}>

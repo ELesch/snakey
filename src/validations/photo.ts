@@ -30,6 +30,10 @@ export const PhotoCreateSchema = z.object({
     .refine(
       (val) => !val || val.startsWith('data:image/'),
       { message: 'Image data must be a valid data URL' }
+    )
+    .refine(
+      (val) => !val || val.length <= 13_500_000, // ~10MB base64
+      { message: 'Image data must be less than 10MB' }
     ),
   caption: z
     .string()

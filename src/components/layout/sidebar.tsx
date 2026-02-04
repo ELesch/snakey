@@ -42,7 +42,7 @@ export function Sidebar() {
           <div className="flex flex-shrink-0 items-center px-4">
             <span className="text-2xl font-bold text-white">Snakey</span>
           </div>
-          <nav className="mt-8 flex-1 space-y-1 px-2">
+          <nav className="mt-8 flex-1 space-y-1 px-2" aria-label="Main navigation">
             {navigation.map((item) => {
               const isActive = pathname.startsWith(item.href)
               return (

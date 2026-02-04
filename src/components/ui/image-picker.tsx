@@ -219,14 +219,14 @@ export function ImagePicker({
                 type="button"
                 onClick={handleRemove}
                 className={cn(
-                  'absolute top-2 right-2 p-1.5 rounded-full',
+                  'absolute top-2 right-2 p-2 min-w-10 min-h-10 flex items-center justify-center rounded-full',
                   'bg-black/60 text-white',
                   'hover:bg-black/80 transition-colors',
                   'focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black/60'
                 )}
                 aria-label="Remove image"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             )}
           </div>

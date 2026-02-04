@@ -5,7 +5,14 @@ import { SnakeMascot } from '@/components/landing/snake-mascot'
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen">
+    <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded"
+      >
+        Skip to main content
+      </a>
+      <main id="main-content" className="min-h-screen">
       {/* Hero Section */}
       <HeroSection />
 
@@ -84,5 +91,6 @@ export default function HomePage() {
         </div>
       </footer>
     </main>
+    </>
   )
 }

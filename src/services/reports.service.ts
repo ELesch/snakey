@@ -1,6 +1,7 @@
 // Reports Service - Aggregates data for analytics and reporting
 import { prisma } from '@/lib/db/client'
 import { createLogger } from '@/lib/logger'
+import type { Prisma } from '@/generated/prisma/client'
 
 const log = createLogger('ReportsService')
 
@@ -438,9 +439,8 @@ export class ReportsService {
   // Private helper methods
   // ============================================================================
 
-  private buildWeightWhere(userId: string, filters: ReportFilters) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {
+  private buildWeightWhere(userId: string, filters: ReportFilters): Prisma.WeightWhereInput {
+    const where: Prisma.WeightWhereInput = {
       reptile: { userId, deletedAt: null },
     }
 
@@ -461,9 +461,8 @@ export class ReportsService {
     return where
   }
 
-  private buildFeedingWhere(userId: string, filters: ReportFilters) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {
+  private buildFeedingWhere(userId: string, filters: ReportFilters): Prisma.FeedingWhereInput {
+    const where: Prisma.FeedingWhereInput = {
       reptile: { userId, deletedAt: null },
     }
 
@@ -484,9 +483,8 @@ export class ReportsService {
     return where
   }
 
-  private buildShedWhere(userId: string, filters: ReportFilters) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {
+  private buildShedWhere(userId: string, filters: ReportFilters): Prisma.ShedWhereInput {
+    const where: Prisma.ShedWhereInput = {
       reptile: { userId, deletedAt: null },
     }
 
@@ -507,9 +505,8 @@ export class ReportsService {
     return where
   }
 
-  private buildEnvironmentWhere(userId: string, filters: ReportFilters) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {
+  private buildEnvironmentWhere(userId: string, filters: ReportFilters): Prisma.EnvironmentLogWhereInput {
+    const where: Prisma.EnvironmentLogWhereInput = {
       reptile: { userId, deletedAt: null },
     }
 

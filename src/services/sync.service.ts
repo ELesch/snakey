@@ -119,7 +119,8 @@ export class SyncService {
   }
 
   /**
-   * Process multiple sync operations in batch
+   * Process multiple sync operations in batch with concurrency limit.
+   * Processes operations in batches of BATCH_SIZE to prevent overwhelming the database.
    */
   async processBatchSync(
     userId: string,
@@ -134,11 +135,17 @@ export class SyncService {
       'Processing batch sync'
     )
 
+    const BATCH_SIZE = 5
     const results: SyncResult[] = []
 
-    for (const { table, operation } of operations) {
-      const result = await this.processSyncOperation(userId, table, operation)
-      results.push(result)
+    for (let i = 0; i < operations.length; i += BATCH_SIZE) {
+      const batch = operations.slice(i, i + BATCH_SIZE)
+      const batchResults = await Promise.all(
+        batch.map(({ table, operation }) =>
+          this.processSyncOperation(userId, table, operation)
+        )
+      )
+      results.push(...batchResults)
     }
 
     return results
