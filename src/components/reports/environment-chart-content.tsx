@@ -63,6 +63,7 @@ export function EnvironmentChartContent({ data }: EnvironmentChartContentProps) 
             borderRadius: '8px',
           }}
           labelStyle={{ color: 'var(--color-foreground)' }}
+          itemStyle={{ color: 'var(--color-foreground)' }}
           formatter={(value, name) => {
             if (typeof value !== 'number') return [String(value), name]
             if (name === 'Temperature') return [`${value}F`, name]

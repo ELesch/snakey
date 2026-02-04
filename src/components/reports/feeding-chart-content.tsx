@@ -52,6 +52,7 @@ export function FeedingChartContent({ data }: FeedingChartContentProps) {
             borderRadius: '8px',
           }}
           labelStyle={{ color: 'var(--color-foreground)' }}
+          itemStyle={{ color: 'var(--color-foreground)' }}
         />
         <Legend />
         <Bar

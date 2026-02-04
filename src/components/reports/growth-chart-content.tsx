@@ -56,6 +56,7 @@ export function GrowthChartContent({ data }: GrowthChartContentProps) {
             borderRadius: '8px',
           }}
           labelStyle={{ color: 'var(--color-foreground)' }}
+          itemStyle={{ color: 'var(--color-foreground)' }}
           formatter={(value, name, props) => [
             `${value}g`,
             (props.payload as { reptileName?: string })?.reptileName || 'Weight',

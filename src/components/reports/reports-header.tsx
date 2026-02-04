@@ -45,25 +45,26 @@ export function ReportsHeader({
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-2">
-              <label htmlFor="reptile-filter" className="sr-only">
-                Select Reptile
-              </label>
-              <Select value={reptileId} onValueChange={onReptileChange}>
-                <SelectTrigger id="reptile-filter" className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="All Reptiles" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Reptiles</SelectItem>
-                  {!isPending &&
-                    reptiles.map((reptile) => (
+            {!isPending && reptiles.length > 1 && (
+              <div className="flex items-center gap-2">
+                <label htmlFor="reptile-filter" className="sr-only">
+                  Select Reptile
+                </label>
+                <Select value={reptileId} onValueChange={onReptileChange}>
+                  <SelectTrigger id="reptile-filter" className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="All Reptiles" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Reptiles</SelectItem>
+                    {reptiles.map((reptile) => (
                       <SelectItem key={reptile.id} value={reptile.id}>
                         {reptile.name}
                       </SelectItem>
                     ))}
-                </SelectContent>
-              </Select>
-            </div>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <Calendar className="hidden sm:block h-4 w-4 text-[var(--color-muted-foreground)]" />
