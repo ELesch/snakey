@@ -6,7 +6,6 @@ import { useTransition } from 'react'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
-  Egg,
   LogOut,
   ClipboardList,
   BarChart3,
@@ -20,7 +19,6 @@ const navigation = [
   { name: 'My Reptiles', href: '/reptiles', icon: ReptileIcon },
   { name: 'Event Log', href: '/tracker', icon: ClipboardList },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
-  { name: 'Breeding', href: '/breeding', icon: Egg },
   { name: 'About', href: '/about', icon: Info },
 ]
 

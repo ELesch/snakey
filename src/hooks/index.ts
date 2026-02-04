@@ -52,24 +52,6 @@ export {
   vetKeys,
 } from './use-vet'
 export {
-  usePairings,
-  usePairing,
-  useCreatePairing,
-  useUpdatePairing,
-  useDeletePairing,
-  useClutches,
-  useClutch,
-  useCreateClutch,
-  useUpdateClutch,
-  useDeleteClutch,
-  useHatchlings,
-  useHatchling,
-  useCreateHatchling,
-  useUpdateHatchling,
-  useDeleteHatchling,
-  breedingKeys,
-} from './use-breeding'
-export {
   useGrowthData,
   useFeedingStats,
   useShedStats,

@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
-  Egg,
   ClipboardList,
   BarChart3,
   Info,
@@ -17,7 +16,6 @@ const navigation = [
   { name: 'My Reptiles', href: '/reptiles', icon: ReptileIcon },
   { name: 'Event Log', href: '/tracker', icon: ClipboardList },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
-  { name: 'Breeding', href: '/breeding', icon: Egg },
   { name: 'About', href: '/about', icon: Info },
 ]
 

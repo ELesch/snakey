@@ -82,25 +82,6 @@ export {
   deleteMedication,
 } from './vet.api'
 
-// Breeding API
-export {
-  fetchPairings,
-  fetchPairing,
-  createPairing,
-  updatePairing,
-  deletePairing,
-  fetchClutches,
-  fetchClutch,
-  createClutch,
-  updateClutch,
-  deleteClutch,
-  fetchHatchlings,
-  fetchHatchling,
-  createHatchling,
-  updateHatchling,
-  deleteHatchling,
-} from './breeding.api'
-
 // Dashboard API
 export {
   fetchDashboardStats,

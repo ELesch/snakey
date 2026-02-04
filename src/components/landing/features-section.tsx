@@ -5,7 +5,6 @@ import {
   EnvironmentIcon,
   GalleryIcon,
   VetIcon,
-  BreedingIcon,
 } from './feature-icons'
 
 const features = [
@@ -38,12 +37,6 @@ const features = [
     title: 'Vet Records',
     description:
       'Maintain complete health histories including vet visits, medications, treatments, and vaccination records all in one place.',
-  },
-  {
-    icon: <BreedingIcon />,
-    title: 'Breeding Tracking',
-    description:
-      'Manage pairings, track clutches, monitor incubation temperatures, and record hatchling data for your breeding projects.',
   },
 ]
 
