@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -261,14 +262,13 @@ export function FeedingForm({ reptileId, onSuccess }: FeedingFormProps) {
         >
           Notes
         </label>
-        <textarea
+        <Textarea
           id="feeding-notes"
           name="notes"
           rows={3}
           placeholder="Additional notes..."
           value={values.notes}
           onChange={handleChange}
-          className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm text-[var(--color-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2"
         />
       </div>
 

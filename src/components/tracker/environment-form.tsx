@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -200,14 +201,13 @@ export function EnvironmentForm({ reptileId, onSuccess }: EnvironmentFormProps) 
         >
           Notes
         </label>
-        <textarea
+        <Textarea
           id="env-notes"
           name="notes"
           rows={3}
           placeholder="Any environmental observations..."
           value={values.notes}
           onChange={handleChange}
-          className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)]"
         />
       </div>
 
