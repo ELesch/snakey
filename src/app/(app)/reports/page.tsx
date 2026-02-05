@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useReptiles } from '@/hooks/use-reptiles'
+import { getChartsForSpecies } from '@/lib/species/charts'
 import { ReportsHeader } from '@/components/reports/reports-header'
 import { SummaryStats } from '@/components/reports/summary-stats'
 import { GrowthChart } from '@/components/reports/growth-chart'
@@ -24,11 +26,35 @@ export default function ReportsPage() {
   const [startDate, setStartDate] = useState<Date>(defaultRange.startDate)
   const [endDate, setEndDate] = useState<Date>(defaultRange.endDate)
 
-  const filters: ReportFilters = useMemo(() => ({
-    reptileId: reptileId !== 'all' ? reptileId : undefined,
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-  }), [reptileId, startDate, endDate])
+  const { reptiles } = useReptiles()
+
+  // Get the selected reptile's species (if a specific reptile is selected)
+  const selectedSpecies = useMemo(() => {
+    if (reptileId === 'all') {
+      return undefined
+    }
+    const selectedReptile = reptiles.find((r) => r.id === reptileId)
+    return selectedReptile?.species
+  }, [reptileId, reptiles])
+
+  // Determine which charts to show based on species
+  const visibleCharts = useMemo(
+    () => getChartsForSpecies(selectedSpecies),
+    [selectedSpecies]
+  )
+
+  const filters: ReportFilters = useMemo(
+    () => ({
+      reptileId: reptileId !== 'all' ? reptileId : undefined,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    }),
+    [reptileId, startDate, endDate]
+  )
+
+  // Helper to check if a chart type should be shown
+  const showChart = (chartType: 'feeding' | 'growth' | 'shedding' | 'environment') =>
+    visibleCharts.includes(chartType)
 
   return (
     <div className="space-y-6">
@@ -50,14 +76,15 @@ export default function ReportsPage() {
 
       <SummaryStats />
 
+      {/* Charts rendered in order: Feeding, Growth, Shedding (if applicable), Environment */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <GrowthChart filters={filters} />
-        <FeedingChart filters={filters} />
+        {showChart('feeding') && <FeedingChart filters={filters} />}
+        {showChart('growth') && <GrowthChart filters={filters} />}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <ShedChart filters={filters} />
-        <EnvironmentChart filters={filters} />
+        {showChart('shedding') && <ShedChart filters={filters} />}
+        {showChart('environment') && <EnvironmentChart filters={filters} />}
       </div>
     </div>
   )
