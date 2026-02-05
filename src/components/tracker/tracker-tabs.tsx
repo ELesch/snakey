@@ -8,6 +8,7 @@ import { ShedForm } from './shed-form'
 import { EnvironmentForm } from './environment-form'
 import { VetForm, MedicationForm } from '@/components/forms'
 import { PhotoAttachment } from './photo-attachment'
+import { RecentEvents } from './recent-events'
 import { CheckCircle2 } from 'lucide-react'
 
 interface TrackerTabsProps {
@@ -35,7 +36,7 @@ export function TrackerTabs({ reptileId }: TrackerTabsProps) {
 
   const handleSuccess = (eventType: string) => {
     setSuccessMessage(`${eventType} logged successfully!`)
-    setTimeout(() => setSuccessMessage(null), 3000)
+    setTimeout(() => setSuccessMessage(null), 5000)
   }
 
   const currentTab = EVENT_TABS.find((tab) => tab.value === activeTab)
@@ -57,8 +58,12 @@ export function TrackerTabs({ reptileId }: TrackerTabsProps) {
         <Card className="mt-4">
           <CardContent className="p-4 md:p-6">
             {successMessage && (
-              <div className="mb-4 flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md text-green-700">
-                <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
+              <div
+                role="status"
+                aria-live="polite"
+                className="mb-4 flex items-center gap-2 p-3 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-md text-green-800 dark:text-green-200"
+              >
+                <CheckCircle2 className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
                 <span className="text-sm">{successMessage}</span>
               </div>
             )}
@@ -105,6 +110,10 @@ export function TrackerTabs({ reptileId }: TrackerTabsProps) {
           </CardContent>
         </Card>
       </Tabs>
+
+      <div className="mt-6 pt-6 border-t border-[var(--color-border)]">
+        <RecentEvents reptileId={reptileId} />
+      </div>
     </div>
   )
 }

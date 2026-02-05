@@ -59,3 +59,4 @@ export {
   useReportsSummary,
   reportsKeys,
 } from './use-reports'
+export { useReptileActivity, type ActivityEvent } from './use-reptile-activity'
