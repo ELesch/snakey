@@ -307,6 +307,7 @@ describe('PhotoRepository', () => {
           isPrimary: false,
           shedId: null,
           vetVisitId: null,
+          imageData: null,
         },
       })
     })
@@ -338,6 +339,7 @@ describe('PhotoRepository', () => {
           isPrimary: false,
           shedId: 'clshed123456789',
           vetVisitId: null,
+          imageData: null,
         },
       })
     })
