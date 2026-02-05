@@ -32,7 +32,8 @@ const MAX_LIMIT = 1000
 // Growth/Weight response types
 export interface GrowthDataPoint {
   date: string
-  weight: number
+  weight: number | null
+  length?: number | null  // Optional length in cm
   reptileId: string
   reptileName: string
 }
@@ -115,6 +116,7 @@ export interface SummaryResponse {
 export class ReportsService {
   /**
    * Get weight/growth data points for charting
+   * Fetches both WEIGHT and LENGTH measurements, merging by date
    */
   async getGrowthData(
     userId: string,
@@ -127,31 +129,54 @@ export class ReportsService {
     const limit = Math.min(pagination?.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
     const offset = pagination?.offset ?? 0
 
-    const [measurements, total] = await Promise.all([
+    // Fetch both WEIGHT and LENGTH measurements
+    const [measurements, totalWeight] = await Promise.all([
       prisma.measurement.findMany({
-        where: { ...where, type: 'WEIGHT' },
+        where: { ...where, type: { in: ['WEIGHT', 'LENGTH'] } },
         include: {
           reptile: {
             select: { id: true, name: true, userId: true },
           },
         },
         orderBy: { date: 'asc' },
-        take: limit,
-        skip: offset,
       }),
+      // Total count based on weight for pagination consistency
       prisma.measurement.count({ where: { ...where, type: 'WEIGHT' } }),
     ])
 
-    const data: GrowthDataPoint[] = measurements.map((m) => ({
-      date: m.date.toISOString(),
-      weight: Number(m.value),
-      reptileId: m.reptileId,
-      reptileName: m.reptile.name,
-    }))
+    // Group by date and reptile, combining weight + length
+    const dataMap = new Map<string, GrowthDataPoint>()
+    for (const m of measurements) {
+      // Use date without time for grouping
+      const dateKey = m.date.toISOString().split('T')[0]
+      const key = `${dateKey}-${m.reptileId}`
+      const existing = dataMap.get(key)
+
+      if (existing) {
+        if (m.type === 'WEIGHT') {
+          existing.weight = Number(m.value)
+        } else if (m.type === 'LENGTH') {
+          existing.length = Number(m.value)
+        }
+      } else {
+        dataMap.set(key, {
+          date: m.date.toISOString(),
+          weight: m.type === 'WEIGHT' ? Number(m.value) : null,
+          length: m.type === 'LENGTH' ? Number(m.value) : undefined,
+          reptileId: m.reptileId,
+          reptileName: m.reptile.name,
+        })
+      }
+    }
+
+    // Convert to array and sort by date
+    const data = Array.from(dataMap.values())
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(offset, offset + limit)
 
     return {
       data,
-      meta: { total, limit, offset },
+      meta: { total: totalWeight, limit, offset },
     }
   }
 

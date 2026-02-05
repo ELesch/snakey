@@ -47,12 +47,15 @@ export function GrowthChart({ filters }: GrowthChartProps) {
     dateFormatted: formatChartDate(point.date),
   }))
 
+  // Check if we have any length data
+  const hasLengthData = chartData?.some((point) => point.length != null)
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Scale className="h-5 w-5" />
-          Weight Growth
+          {hasLengthData ? 'Growth (Weight & Length)' : 'Weight Growth'}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -67,8 +70,8 @@ export function GrowthChart({ filters }: GrowthChartProps) {
         {!isPending && !isError && (!chartData || chartData.length === 0) && (
           <EmptyState
             icon={<Scale className="h-12 w-12" />}
-            title="No weight data recorded"
-            description="Add weight measurements to track growth"
+            title="No growth data recorded"
+            description="Add weight or length measurements to track growth"
             withCard={false}
           />
         )}
@@ -77,18 +80,20 @@ export function GrowthChart({ filters }: GrowthChartProps) {
           <>
             {/* Screen reader accessible data table - always rendered immediately */}
             <table className="sr-only">
-              <caption>Weight growth data over time</caption>
+              <caption>Growth data over time{hasLengthData ? ' (weight and length)' : ' (weight)'}</caption>
               <thead>
                 <tr>
                   <th scope="col">Date</th>
                   <th scope="col">Weight</th>
+                  {hasLengthData && <th scope="col">Length</th>}
                 </tr>
               </thead>
               <tbody>
                 {chartData.map((point, index) => (
                   <tr key={index}>
                     <td>{point.dateFormatted}</td>
-                    <td>{point.weight}g</td>
+                    <td>{point.weight != null ? `${point.weight}g` : '-'}</td>
+                    {hasLengthData && <td>{point.length != null ? `${point.length}cm` : '-'}</td>}
                   </tr>
                 ))}
               </tbody>

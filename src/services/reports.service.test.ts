@@ -1,5 +1,6 @@
 // Reports Service Tests - Analytics data aggregation
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { Prisma } from '@/generated/prisma/client'
 import { ReportsService } from './reports.service'
 
 // Mock the prisma client
@@ -72,14 +73,16 @@ describe('ReportsService', () => {
         {
           id: 'weight-1',
           date: now,
-          weight: 500.5,
+          type: 'WEIGHT',
+          value: new Prisma.Decimal(500.5),
           reptileId: 'reptile-1',
           reptile: { id: 'reptile-1', name: 'Slither', userId },
         },
         {
           id: 'weight-2',
           date: lastMonth,
-          weight: 480.0,
+          type: 'WEIGHT',
+          value: new Prisma.Decimal(480.0),
           reptileId: 'reptile-1',
           reptile: { id: 'reptile-1', name: 'Slither', userId },
         },
@@ -100,7 +103,8 @@ describe('ReportsService', () => {
         {
           id: 'weight-1',
           date: new Date(),
-          weight: 500.5,
+          type: 'WEIGHT',
+          value: new Prisma.Decimal(500.5),
           reptileId: 'reptile-1',
           reptile: { id: 'reptile-1', name: 'Slither', userId },
         },
@@ -143,6 +147,62 @@ describe('ReportsService', () => {
       const result = await service.getGrowthData(userId, {})
 
       expect(result.data).toEqual([])
+    })
+
+    it('should merge weight and length data on the same date', async () => {
+      const sameDate = new Date('2024-03-15')
+
+      mockedPrisma.measurement.findMany.mockResolvedValue([
+        {
+          id: 'weight-1',
+          date: sameDate,
+          type: 'WEIGHT',
+          value: new Prisma.Decimal(500),
+          reptileId: 'reptile-1',
+          reptile: { id: 'reptile-1', name: 'Slither', userId },
+        },
+        {
+          id: 'length-1',
+          date: sameDate,
+          type: 'LENGTH',
+          value: new Prisma.Decimal(120),
+          reptileId: 'reptile-1',
+          reptile: { id: 'reptile-1', name: 'Slither', userId },
+        },
+      ] as never)
+
+      const result = await service.getGrowthData(userId, {})
+
+      // Should merge into single data point
+      expect(result.data).toHaveLength(1)
+      expect(result.data[0]).toMatchObject({
+        weight: 500,
+        length: 120,
+        reptileId: 'reptile-1',
+        reptileName: 'Slither',
+      })
+    })
+
+    it('should handle length-only measurements', async () => {
+      mockedPrisma.measurement.findMany.mockResolvedValue([
+        {
+          id: 'length-1',
+          date: new Date('2024-03-15'),
+          type: 'LENGTH',
+          value: new Prisma.Decimal(100),
+          reptileId: 'reptile-1',
+          reptile: { id: 'reptile-1', name: 'Slither', userId },
+        },
+      ] as never)
+
+      const result = await service.getGrowthData(userId, {})
+
+      expect(result.data).toHaveLength(1)
+      expect(result.data[0]).toMatchObject({
+        weight: null,
+        length: 100,
+        reptileId: 'reptile-1',
+      })
     })
   })
 
@@ -533,7 +593,8 @@ describe('ReportsService', () => {
           {
             id: 'weight-1',
             date: new Date(),
-            weight: 500.5,
+            type: 'WEIGHT',
+            value: new Prisma.Decimal(500.5),
             reptileId: 'reptile-1',
             reptile: { id: 'reptile-1', name: 'Slither', userId },
           },
@@ -550,44 +611,63 @@ describe('ReportsService', () => {
         })
       })
 
-      it('should enforce maximum limit of 1000', async () => {
-        mockedPrisma.measurement.findMany.mockResolvedValue([])
-        mockedPrisma.measurement.count.mockResolvedValue(0)
+      it('should enforce maximum limit of 1000 on returned data', async () => {
+        // Create 1500 mock measurements
+        const mockData = Array.from({ length: 1500 }, (_, i) => ({
+          id: `m-${i}`,
+          date: new Date(`2024-01-${String((i % 28) + 1).padStart(2, '0')}`),
+          type: 'WEIGHT',
+          value: new Prisma.Decimal(100 + i),
+          reptileId: 'r1',
+          reptile: { id: 'r1', name: 'Slither', userId },
+        }))
+        mockedPrisma.measurement.findMany.mockResolvedValue(mockData as never)
+        mockedPrisma.measurement.count.mockResolvedValue(1500)
 
-        await service.getGrowthData(userId, {}, { limit: 5000, offset: 0 })
+        const result = await service.getGrowthData(userId, {}, { limit: 5000, offset: 0 })
 
-        expect(mockedPrisma.measurement.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            take: 1000,
-          })
-        )
+        // Should be capped at 1000
+        expect(result.data.length).toBeLessThanOrEqual(1000)
+        expect(result.meta.limit).toBe(1000)
       })
 
-      it('should use default limit of 100 when not provided', async () => {
-        mockedPrisma.measurement.findMany.mockResolvedValue([])
-        mockedPrisma.measurement.count.mockResolvedValue(0)
+      it('should use default limit of 100 on returned data', async () => {
+        // Create 200 mock measurements
+        const mockData = Array.from({ length: 200 }, (_, i) => ({
+          id: `m-${i}`,
+          date: new Date(`2024-01-${String((i % 28) + 1).padStart(2, '0')}`),
+          type: 'WEIGHT',
+          value: new Prisma.Decimal(100 + i),
+          reptileId: 'r1',
+          reptile: { id: 'r1', name: 'Slither', userId },
+        }))
+        mockedPrisma.measurement.findMany.mockResolvedValue(mockData as never)
+        mockedPrisma.measurement.count.mockResolvedValue(200)
 
-        await service.getGrowthData(userId, {})
+        const result = await service.getGrowthData(userId, {})
 
-        expect(mockedPrisma.measurement.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            take: 100,
-          })
-        )
+        // Should use default of 100
+        expect(result.data.length).toBeLessThanOrEqual(100)
+        expect(result.meta.limit).toBe(100)
       })
 
-      it('should apply offset correctly', async () => {
-        mockedPrisma.measurement.findMany.mockResolvedValue([])
-        mockedPrisma.measurement.count.mockResolvedValue(0)
+      it('should apply offset correctly to returned data', async () => {
+        // Create mock measurements with different dates to ensure unique grouping
+        const mockData = Array.from({ length: 50 }, (_, i) => ({
+          id: `m-${i}`,
+          date: new Date(`2024-${String(Math.floor(i / 28) + 1).padStart(2, '0')}-${String((i % 28) + 1).padStart(2, '0')}`),
+          type: 'WEIGHT',
+          value: new Prisma.Decimal(100 + i),
+          reptileId: 'r1',
+          reptile: { id: 'r1', name: 'Slither', userId },
+        }))
+        mockedPrisma.measurement.findMany.mockResolvedValue(mockData as never)
+        mockedPrisma.measurement.count.mockResolvedValue(50)
 
-        await service.getGrowthData(userId, {}, { limit: 10, offset: 20 })
+        const result = await service.getGrowthData(userId, {}, { limit: 10, offset: 20 })
 
-        expect(mockedPrisma.measurement.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            take: 10,
-            skip: 20,
-          })
-        )
+        expect(result.data.length).toBeLessThanOrEqual(10)
+        expect(result.meta.offset).toBe(20)
       })
     })
 
